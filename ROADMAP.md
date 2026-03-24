@@ -8,15 +8,15 @@ See [design spec](docs/superpowers/specs/2026-03-24-flywheel-design.md) for the 
 
 The foundation. A working Electron app with the core spatial model — before any real terminals or browsers.
 
-**Research / Decisions needed first:**
-- Lock down frontend framework (React, Svelte, Solid, etc.)
-- Spike: `WebContentsView` + `setBounds()` performance — how many overlays can we reposition per frame during smooth scroll? This determines if the approach is viable or if we need a fallback.
-- Spike: scroll event handling — can we get smooth momentum scrolling from trackpad events on a native Electron window, or do we need a custom scroll implementation?
+**Research / Decisions (resolved):**
+- ✅ Frontend framework: **Solid** — custom UI throughout, no need for React's ecosystem; fine-grained reactivity fits scroll-driven updates
+- ✅ `WebContentsView` + `setBounds()` performance: Stack Browser's issues involved dozens of views; our 2-6 visible panels are a different load profile. Start with free-form scrolling, fall back to snap-only if perf is insufficient.
+- ✅ Scroll event handling: In Phase 1, panels are placeholders with no scrollable content, so all horizontal wheel events can be forwarded to drive strip scroll. macOS provides momentum events natively — no custom physics needed.
 
 **Scope:**
 - Electron `BaseWindow` with a Chrome View ([spec: Process Model, L53-61](docs/superpowers/specs/2026-03-24-flywheel-design.md#L53-L61))
 - Horizontal strip of **placeholder panels** (colored boxes with title bars) positioned via `setBounds()`
-- Snap-animated keyboard-driven navigation (free-form momentum scrolling deferred — can be added later with no architectural changes). Fade indicators, scroll track ([spec: Scroll Behavior, L126-132](docs/superpowers/specs/2026-03-24-flywheel-design.md#L126-L132))
+- Horizontal scrolling with momentum (free-form trackpad scroll + keyboard snap navigation). Fade indicators, scroll track ([spec: Scroll Behavior, L126-132](docs/superpowers/specs/2026-03-24-flywheel-design.md#L126-L132))
 - Panel focus tracking with visual indicator (border + glow)
 - Keyboard navigation: Mod+Left/Right to move focus, Mod+1-9 to jump ([spec: Keyboard Navigation, L108-118](docs/superpowers/specs/2026-03-24-flywheel-design.md#L108-L118))
 - Keyboard hint bar ([spec: Keyboard Hint Bar, L120-122](docs/superpowers/specs/2026-03-24-flywheel-design.md#L120-L122))

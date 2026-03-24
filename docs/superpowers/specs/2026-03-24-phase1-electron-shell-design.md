@@ -2,21 +2,22 @@
 
 ## Overview
 
-The foundation of Flywheel: a working Electron app with the core spatial model — a horizontal strip of panels with keyboard-driven snap navigation. No real terminals or browsers yet; panels are colored placeholders that prove the layout model works.
+The foundation of Flywheel: a working Electron app with the core spatial model — a horizontal strip of panels with free-form trackpad scrolling and keyboard navigation. No real terminals or browsers yet; panels are colored placeholders that prove the layout model works.
 
 ## Decisions Made
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Frontend framework | **Solid** | The Chrome View is entirely custom UI (sidebar, hint bar, scroll indicators, title bars). No complex forms/tables/data grids where React's ecosystem pays off. Solid's fine-grained reactivity is a natural fit for scroll-driven layout updates. |
-| Strip navigation | **Snap (keyboard-driven)** | Avoids the `setBounds()` performance ceiling for free-form 60fps scrolling. Snap animations (~200ms, 2-4 views) are trivially within budget. Aligns with Niri's model: focus moves, strip follows. |
-| Free-form trackpad scroll | **Deferred** | Can be added later as a refinement. The rendering pipeline (scroll position → panel bounds → `setBounds()`) is input-source-agnostic — free-form scrolling just adds a new input source. No architectural risk in deferring. |
+| Strip navigation | **Free-form + keyboard** | Start with free-form trackpad scrolling. Stack Browser's `setBounds()` performance issues involved dozens of views; our 2-6 visible panels are a different load profile. If performance is insufficient, fall back to snap-only (keyboard-driven, animated transitions) — the fallback is trivial since it just removes the wheel event input source. |
 
 ### Research Summary
 
-**`WebContentsView` + `setBounds()` performance**: Stack Browser (the most ambitious attempt at `setBounds()`-driven scrolling) found performance insufficient for smooth 60fps scrolling with many views. However, their use case involved dozens of views. Repositioning 2-6 views during a controlled animation (not free-form scroll) is well within budget.
+**`WebContentsView` + `setBounds()` performance**: Stack Browser (the most ambitious attempt at `setBounds()`-driven scrolling) found performance insufficient for smooth 60fps scrolling with many views. However, their use case involved dozens of views (topbars, tooltips, modals, content cards). Flywheel repositions 2-3 views in the typical case, 5-6 max on ultrawide. This is a fundamentally different load profile and likely viable.
 
-**Scroll event handling**: Native macOS momentum scrolling works automatically in scrollable DOM containers within a `WebContentsView`. Since we chose snap navigation (no free-form strip scrolling), scroll event disambiguation between panels and strip is not needed — scroll events on panels always belong to the panel.
+**Scroll event handling**: Native macOS momentum scrolling works automatically in scrollable DOM containers within a `WebContentsView`. In Phase 1, panels are placeholder colored boxes with no scrollable content, so there is no scroll disambiguation problem — all horizontal wheel events can be forwarded to drive strip scroll. Scroll disambiguation (strip scroll vs panel content scroll) becomes relevant in Phase 2 when real terminals arrive.
+
+**Fallback strategy**: If free-form scrolling proves janky at higher panel counts, the fallback to snap-only navigation (keyboard-driven, animated transitions) is trivial — just remove the wheel event input source. The rendering pipeline (scroll position → panel bounds → `setBounds()` calls) is identical in both modes.
 
 ## Architecture
 
@@ -63,6 +64,7 @@ Panel title bars are rendered by the Chrome View in the space above each panel's
 
 ### Data Flow
 
+**Keyboard navigation (⌘→):**
 ```
 User presses ⌘→
        │
@@ -80,6 +82,29 @@ Main Process (Node.js)
   5. Calls panel.setVisible(true/false) for panels entering/leaving viewport
   6. Destroys panels far off-screen, creates them when they approach
 ```
+
+**Trackpad scroll:**
+```
+User scrolls horizontally on a panel
+       │
+       ▼
+Main Process intercepts wheel event via webContents.on('input-event')
+  1. Detects horizontal wheel delta on a panel view
+  2. Forwards delta to Chrome View via IPC
+       │
+       ▼
+Chrome View (Solid app in renderer)
+  3. Applies delta to scrollOffset
+  4. Recomputes panel positions (via requestAnimationFrame)
+  5. Sends IPC message: { panelId, bounds }[] for visible panels
+       │
+       ▼
+Main Process
+  6. Calls panel.setBounds(bounds) for each visible panel
+  7. Updates visibility as panels enter/leave viewport
+```
+
+macOS provides momentum events automatically — after the user lifts their fingers, the OS continues sending decaying wheel events. No custom physics needed.
 
 ## Panel Layout Model
 
@@ -113,9 +138,11 @@ One panel is focused at a time, tracked by index.
 | `⌘ W` | Close focused panel, focus moves to nearest neighbor |
 | `⌘ 1-9` | Jump to panel by position |
 
-When focus changes, the strip animates to center the newly focused panel:
+When focus changes via keyboard, the strip animates to center the newly focused panel:
 - Animation: ease-out curve, ~200ms duration
-- `setBounds()` called each frame of the animation for visible panels (2-4 panels, ~12-15 frames — trivial performance load)
+- `setBounds()` called each frame of the animation for visible panels
+
+Trackpad horizontal scroll also moves the strip freely. Focus updates to whichever panel is most centered in the viewport after scrolling stops.
 
 ### Focus Indicator
 
@@ -128,7 +155,7 @@ The focused panel gets a visual indicator rendered by the Chrome View (behind th
 Rendered by the Chrome View (standard DOM elements):
 
 - **Fade gradients**: on left/right edges of the viewport when panels exist off-screen in that direction. Includes a subtle directional arrow.
-- **Scroll track**: a thin horizontal bar at the bottom of the strip area (above the hint bar) showing viewport position relative to total strip width. Under snap navigation this acts as a discrete position indicator — it shows which segment of the strip is visible, jumping between positions as focus changes (not continuously draggable).
+- **Scroll track**: a thin horizontal bar at the bottom of the strip area (above the hint bar) showing viewport position relative to total strip width. Moves continuously as the user scrolls.
 
 ## Keyboard Hint Bar
 
@@ -156,7 +183,8 @@ A persistent bar at the bottom of the window, Zellij-style. Rendered by the Chro
 **In scope:**
 - Electron `BaseWindow` with Chrome View (Solid)
 - Placeholder panels (colored boxes with title label) as `WebContentsView` instances
-- Snap navigation with animated transitions
+- Free-form trackpad scrolling with momentum
+- Keyboard snap navigation with animated transitions
 - Focus tracking with visual indicator
 - Keyboard shortcuts: ⌘←/→, ⌘T, ⌘W, ⌘1-9
 - Keyboard hint bar
@@ -167,7 +195,7 @@ A persistent bar at the bottom of the window, Zellij-style. Rendered by the Chro
 - Real terminal content (Phase 2)
 - Real browser content (Phase 3)
 - Sidebar / project model (Phase 4)
-- Free-form trackpad scrolling (refinement, after snap navigation is proven)
+- Scroll disambiguation between strip scroll and panel content scroll (Phase 2 — not needed while panels are placeholders)
 
 ## Initial State
 
