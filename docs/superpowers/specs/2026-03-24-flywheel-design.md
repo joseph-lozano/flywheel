@@ -34,7 +34,7 @@ Windows are arranged as columns in an infinite horizontal strip within each row.
 
 **Terminal** — A full terminal emulator. Supports interactive programs (shells, Claude Code, vim, etc.). Each terminal runs in the project directory (or worktree directory for worktree rows). MVP uses xterm.js + node-pty, with ghostty-web (libghostty WASM) as an intended upgrade path — the two are API-compatible so swapping is low-risk.
 
-**Browser** — An embedded browser panel via Electron's `WebContentsView`. Loads any URL. Browser panels within the same project share a session by default (shared cookies, localStorage, etc. via `session.fromPartition('persist:project-name')`). Independent sessions can be opted into per panel when needed. Primarily used for localhost dev server previews.
+**Browser** — An embedded browser panel via Electron's `WebContentsView`. Loads any URL. Session sharing is configurable: browsers can share cookies/localStorage at the project level, worktree level, or be fully independent per panel. Default TBD — per-worktree is a reasonable starting point (different branches may need different logged-in states). Primarily used for localhost dev server previews.
 
 ### Link Handling
 
