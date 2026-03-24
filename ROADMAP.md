@@ -16,7 +16,7 @@ The foundation. A working Electron app with the core spatial model — before an
 **Scope:**
 - Electron `BaseWindow` with a Chrome View ([spec: Process Model, L53-61](docs/superpowers/specs/2026-03-24-flywheel-design.md#L53-L61))
 - Horizontal strip of **placeholder panels** (colored boxes with title bars) positioned via `setBounds()`
-- Horizontal scrolling with momentum, fade indicators, scroll track ([spec: Scroll Behavior, L126-132](docs/superpowers/specs/2026-03-24-flywheel-design.md#L126-L132))
+- Snap-animated keyboard-driven navigation (free-form momentum scrolling deferred — can be added later with no architectural changes). Fade indicators, scroll track ([spec: Scroll Behavior, L126-132](docs/superpowers/specs/2026-03-24-flywheel-design.md#L126-L132))
 - Panel focus tracking with visual indicator (border + glow)
 - Keyboard navigation: Mod+Left/Right to move focus, Mod+1-9 to jump ([spec: Keyboard Navigation, L108-118](docs/superpowers/specs/2026-03-24-flywheel-design.md#L108-L118))
 - Keyboard hint bar ([spec: Keyboard Hint Bar, L120-122](docs/superpowers/specs/2026-03-24-flywheel-design.md#L120-L122))
