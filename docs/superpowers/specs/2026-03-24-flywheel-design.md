@@ -12,13 +12,13 @@ Developers juggle dozens of windows across multiple projects: terminal tabs for 
 
 A project is a directory on disk, typically a git repo. Projects are listed in a tree sidebar on the left side of the app. You add projects manually (open a directory) or they're auto-discovered.
 
-Each project can have a `flywheel.yml` config file that defines processes to auto-launch when the project is opened. Without a config, the project opens with a single empty terminal in the project directory.
+Each project can have a config file that defines processes to auto-launch when the project is opened. Without a config, the project opens with a single empty terminal in the project directory.
 
 ### Rows (Worktrees)
 
 Each project has a default row tied to its working directory. Additional rows can be created for git worktrees, giving each branch its own independent horizontal strip of windows.
 
-**One row is visible at a time.** Switching rows (via sidebar click or keyboard shortcut) replaces the current strip entirely. Rows persist in the background — processes keep running and scroll position is preserved when switching back.
+**One row is visible at a time.** Switching rows (via sidebar click, keyboard shortcut, or vertical scroll gesture) replaces the current strip entirely. Rows persist in the background — processes keep running and scroll position is preserved when switching back.
 
 ### Windows (Panels)
 
@@ -27,24 +27,28 @@ Windows are arranged as columns in an infinite horizontal strip within each row.
 **Key properties:**
 - Opening or closing a window never causes other windows to resize
 - New windows appear to the right of the currently focused window
-- Windows have a fixed default width (configurable preset: half, third, or two-thirds of viewport). Per-window resize is a stretch goal.
+- Windows have a fixed default width as a percentage of viewport (configurable preset: half, third, or two-thirds). Per-window resize is a stretch goal.
 - Each window has a title bar showing its name, type icon, and process status indicator
 
 ### Window Types (MVP)
 
-**Terminal** — A full terminal emulator powered by xterm.js + node-pty. Supports interactive programs (shells, Claude Code, vim, etc.). Each terminal runs in the project directory (or worktree directory for worktree rows).
+**Terminal** — A full terminal emulator. Supports interactive programs (shells, Claude Code, vim, etc.). Each terminal runs in the project directory (or worktree directory for worktree rows). MVP uses xterm.js + node-pty, with ghostty-web (libghostty WASM) as an intended upgrade path — the two are API-compatible so swapping is low-risk.
 
-**Browser** — An embedded browser panel via Electron's `WebContentsView`. Loads any URL. Independent cookies/sessions per panel via `session.fromPartition()`. Primarily used for localhost dev server previews.
+**Browser** — An embedded browser panel via Electron's `WebContentsView`. Loads any URL. Browser panels within the same project share a session by default (shared cookies, localStorage, etc. via `session.fromPartition('persist:project-name')`). Independent sessions can be opted into per panel when needed. Primarily used for localhost dev server previews.
+
+### Link Handling
+
+Links clicked within Flywheel (in terminals via link detection, or in browser panels via navigation interception) open as new browser panels in the current strip rather than launching the system browser. This keeps the workflow contained within the workspace.
 
 ## Architecture
 
 ### Technology Stack
 
 - **Shell**: Electron with `BaseWindow` + `WebContentsView` (Electron 30+)
-- **Terminals**: xterm.js in renderer + node-pty in main process
-- **Browsers**: `WebContentsView` instances with independent sessions
+- **Terminals**: xterm.js in renderer + node-pty in main process (ghostty-web upgrade path)
+- **Browsers**: `WebContentsView` instances with shared project sessions
 - **Frontend**: React (or similar) for the chrome (sidebar, row headers, scroll indicators, keyboard hint bar)
-- **Config**: YAML (`flywheel.yml`)
+- **Config**: Format TBD (YAML, TOML, JSON, or similar)
 
 ### Process Model
 
@@ -69,16 +73,9 @@ Chrome View (renderer)  ←IPC→  Main Process  ←IPC→  Panel Views
 ### Panel Lifecycle
 
 - Panels that scroll off-screen are hidden via `setVisible(false)` to save GPU resources
-- Panels far off-screen (e.g., 3+ panels away) may be fully destroyed and recreated on scroll for memory efficiency
+- Panels far off-screen may be fully destroyed and recreated on scroll for memory efficiency
 - Terminal state is preserved via xterm.js serialization when panels are destroyed
 - Browser panels reload their URL when recreated (acceptable for localhost dev servers)
-
-### Memory Budget
-
-- Each browser `WebContentsView`: ~50-80 MB
-- Each terminal `WebContentsView`: ~30-50 MB
-- Target: comfortable with 5-10 visible panels, up to 20 total per project with lazy loading
-- Aggressive panel destruction for off-screen panels keeps active memory under control
 
 ## Sidebar
 
@@ -87,8 +84,8 @@ The sidebar uses a tree layout:
 ```
 PROJECTS
 ▼ flywheel-api
-  ● main          ← active row (blue)
-  ● feat/auth     ← worktree row (orange)
+  ● main          ← active row
+  ● feat/auth     ← worktree row
 ▶ web-client      ← collapsed project
 ▶ shared-lib      ← collapsed project
 + Add Project
@@ -96,35 +93,17 @@ PROJECTS
 
 - Click a project name to expand/collapse its worktree list
 - Click a worktree branch to switch to that row
-- Each branch shows a colored dot (unique per worktree for quick identification)
+- Each branch shows a colored dot (unique per worktree for quick identification, colors TBD)
 - The active row is highlighted in the sidebar
 
-## Config Format
+## Config
 
-`flywheel.yml` in the project root:
+The project config file lives in the project root. Format TBD — the important thing is what it can express:
 
-```yaml
-name: flywheel-api
-
-processes:
-  - name: dev server
-    command: npm run dev
-    type: terminal
-
-  - name: tests
-    command: npm run test:watch
-    type: terminal
-
-  - name: app preview
-    url: http://localhost:5173
-    type: browser
-    after: dev server  # waits for process to be ready before opening
-```
-
-- `type: terminal` — spawns a terminal running the command
-- `type: browser` — opens a browser panel to the URL
-- `after` — optional dependency ordering (don't open browser before server is up)
-- No config file → one empty terminal in the project directory
+- **Named processes** — each with a name, command, and type (terminal or browser)
+- **Browser URLs** — a URL to load for browser-type panels
+- **Dependency ordering** — a process can declare it should start after another process is ready (e.g., don't open browser until dev server is up). Readiness detection strategy TBD (port listening, stdout match, delay, etc.)
+- **Default behavior** — no config file → one empty terminal in the project directory
 
 ## Keyboard Navigation
 
@@ -144,31 +123,38 @@ A persistent bar at the bottom of the app (Zellij-style) showing available short
 
 ## Scroll Behavior
 
+### Horizontal (within a row)
+
 - The strip scrolls horizontally. Smooth scrolling with momentum.
 - Fade indicators on left/right edges show when more windows exist off-screen, with directional arrows.
 - A thin scroll track at the bottom of the strip shows viewport position relative to the full strip.
 - When focus moves to a window (via keyboard), the strip auto-scrolls to center that window.
 - Trackpad horizontal scroll and mouse wheel (with shift) also work.
 
+### Vertical (switching rows)
+
+- Vertical scroll gestures with sufficient intent (not small scrolls) switch between worktree rows.
+- This requires the same gesture disambiguation as horizontal scroll — distinguishing app-level navigation from scrolling within a terminal or browser panel. The approach is the same for both axes: scroll events that land on the chrome (outside panel content areas) are app-level navigation; scroll events within a focused panel are forwarded to the panel.
+
 ## Process Management
 
-Each terminal window can optionally be tied to a managed process (from `flywheel.yml`):
+Each terminal window can optionally be tied to a managed process (from the config):
 
-- **Status indicator** in the window title bar: green (running), orange (warning), red (crashed), gray (idle/stopped)
+- **Status indicator** in the window title bar: running, warning, crashed, idle (visual treatment TBD)
 - **Auto-restart on crash** (configurable, with backoff)
 - Processes continue running when their row is not visible
 - Closing a managed terminal stops the associated process
 
 ## Out of Scope (MVP)
 
-- Window type beyond terminal and browser (e.g., log viewer, markdown preview)
+- Window types beyond terminal and browser
 - Per-window resize (stretch goal — fixed presets only for MVP)
 - Split views within a single column (vertical stacking within a panel)
 - Multi-monitor support
 - Remote/SSH terminals
 - Plugin/extension system
 - Collaborative features
-- Process auto-detection (requires explicit `flywheel.yml` for MVP)
+- Process auto-detection (requires explicit config for MVP)
 - Cross-platform (macOS first, Linux/Windows later)
 
 ## Visual Reference
