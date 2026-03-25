@@ -23,10 +23,48 @@ export const PANEL_COLORS = [
 ] as const
 
 export const IPC_CHANNELS = {
+  // Existing
   PANEL_CREATE: 'panel:create',
   PANEL_DESTROY: 'panel:destroy',
   PANEL_UPDATE_BOUNDS: 'panel:update-bounds',
   PANEL_WHEEL: 'panel:wheel',
   SCROLL_WHEEL: 'scroll:wheel',
-  SHORTCUT_ACTION: 'shortcut:action'
+  SHORTCUT_ACTION: 'shortcut:action',
+  // New: PTY
+  PTY_CREATE: 'pty:create',
+  PTY_INPUT: 'pty:input',
+  PTY_OUTPUT: 'pty:output',
+  PTY_RESIZE: 'pty:resize',
+  PTY_EXIT: 'pty:exit',
+  PTY_CONFIRM_CLOSE: 'pty:confirm-close',
+  PTY_CONFIRM_CLOSE_RESPONSE: 'pty:confirm-close-response',
+  PANEL_CLOSE_REQUEST: 'panel:close-request'
+} as const
+
+export const TERMINAL_DEFAULTS = {
+  fontFamily: 'monospace',
+  fontSize: 14,
+  theme: {
+    background: '#1a1a2e',
+    foreground: '#e0e0e0',
+    cursor: '#e0e0e0',
+    cursorAccent: '#1a1a2e',
+    selectionBackground: 'rgba(255, 255, 255, 0.2)',
+    black: '#1a1a2e',
+    red: '#f43f5e',
+    green: '#10b981',
+    yellow: '#f59e0b',
+    blue: '#6366f1',
+    magenta: '#8b5cf6',
+    cyan: '#06b6d4',
+    white: '#e0e0e0',
+    brightBlack: '#4a4a6a',
+    brightRed: '#fb7185',
+    brightGreen: '#34d399',
+    brightYellow: '#fbbf24',
+    brightBlue: '#818cf8',
+    brightMagenta: '#a78bfa',
+    brightCyan: '#22d3ee',
+    brightWhite: '#ffffff'
+  }
 } as const
