@@ -1,10 +1,12 @@
 import { app, BaseWindow, WebContentsView, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { PanelManager } from './panel-manager'
+import { PtyManager } from './pty-manager'
 
 let mainWindow: BaseWindow
 let chromeView: WebContentsView
 let panelManager: PanelManager
+let ptyManager: PtyManager
 
 function createWindow(): void {
   mainWindow = new BaseWindow({
@@ -34,6 +36,16 @@ function createWindow(): void {
 
   panelManager = new PanelManager(mainWindow, chromeView)
 
+  ptyManager = new PtyManager(
+    (panelId, channel, data) => {
+      const view = panelManager.getPanelView(panelId)
+      if (view) view.webContents.send(channel, data)
+    },
+    (channel, data) => {
+      chromeView.webContents.send(channel, data)
+    }
+  )
+
   setupIpcHandlers()
   setupShortcuts()
 
@@ -47,16 +59,22 @@ function createWindow(): void {
   })
 
   mainWindow.on('close', () => {
+    ptyManager.dispose()
     panelManager.destroyAll()
   })
 }
 
 function setupIpcHandlers(): void {
-  ipcMain.on('panel:create', (_event, data: { id: string; color: string }) => {
-    panelManager.createPanel(data.id, data.color)
+  ipcMain.on('panel:create', (_event, data: { id: string; color?: string; type?: string }) => {
+    if (data.type === 'terminal') {
+      panelManager.createPanel(data.id, { type: 'terminal' })
+    } else {
+      panelManager.createPanel(data.id, { color: data.color || '#333' })
+    }
   })
 
   ipcMain.on('panel:destroy', (_event, id: string) => {
+    ptyManager.kill(id)
     panelManager.destroyPanel(id)
   })
 
@@ -78,6 +96,42 @@ function setupIpcHandlers(): void {
       panelViewCount: panelManager.panelCount,
       mainMemoryMB: Math.round(mem.rss / 1024 / 1024),
       heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024)
+    }
+  })
+
+  // PTY handlers
+  ipcMain.on('pty:create', (_event, data: { panelId: string }) => {
+    ptyManager.create(data.panelId)
+  })
+
+  ipcMain.on('pty:input', (_event, data: { panelId: string; data: string }) => {
+    ptyManager.write(data.panelId, data.data)
+  })
+
+  ipcMain.on('pty:resize', (_event, data: { panelId: string; cols: number; rows: number }) => {
+    ptyManager.resize(data.panelId, data.cols, data.rows)
+  })
+
+  // Close confirmation flow
+  ipcMain.on('panel:close-request', (_event, data: { panelId: string }) => {
+    if (ptyManager.isBusy(data.panelId)) {
+      const processName = ptyManager.getForegroundProcess(data.panelId) || 'unknown'
+      chromeView.webContents.send('pty:confirm-close', {
+        panelId: data.panelId,
+        processName
+      })
+    } else {
+      ptyManager.kill(data.panelId)
+      panelManager.destroyPanel(data.panelId)
+      chromeView.webContents.send('pty:exit', { panelId: data.panelId, exitCode: 0 })
+    }
+  })
+
+  ipcMain.on('pty:confirm-close-response', (_event, data: { panelId: string; confirmed: boolean }) => {
+    if (data.confirmed) {
+      ptyManager.kill(data.panelId)
+      panelManager.destroyPanel(data.panelId)
+      chromeView.webContents.send('pty:exit', { panelId: data.panelId, exitCode: -1 })
     }
   })
 }
@@ -105,7 +159,7 @@ function setupShortcuts(): void {
         },
         { type: 'separator' },
         {
-          label: 'New Panel',
+          label: 'New Terminal',
           accelerator: 'CommandOrControl+T',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'new-panel' })
         },
@@ -113,6 +167,11 @@ function setupShortcuts(): void {
           label: 'Close Panel',
           accelerator: 'CommandOrControl+W',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'close-panel' })
+        },
+        {
+          label: 'Blur Panel',
+          accelerator: 'CommandOrControl+G',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'blur-panel' })
         },
         { type: 'separator' },
         ...Array.from({ length: 9 }, (_, i) => ({
