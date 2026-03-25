@@ -4,47 +4,19 @@ import PanelFrame from './PanelFrame'
 
 interface StripProps {
   layout: PanelLayout[]
-  panels: Array<{ id: string; type: string; label: string; url?: string; canGoBack?: boolean; canGoForward?: boolean }>
-  focusedIndex: number
-  onNavigate?: (panelId: string, url: string) => void
-  onGoBack?: (panelId: string) => void
-  onGoForward?: (panelId: string) => void
-  onReload?: (panelId: string) => void
+  focusedPanelId: string | undefined
 }
 
 export default function Strip(props: StripProps) {
   return (
     <div style={{ position: 'absolute', inset: 0, 'pointer-events': 'none' }}>
       <For each={props.layout}>
-        {(entry, index) => {
-          const panel = () => props.panels.find((p) => p.id === entry.panelId)
-          const panelIndex = () => props.panels.findIndex((p) => p.id === entry.panelId)
-          const label = () => {
-            const pos = panelIndex() + 1
-            const p = panel()
-            const name = p?.label ?? ''
-            return pos <= 9 ? `${pos} / ${name}` : name
-          }
-          return (
-            <PanelFrame
-              titleBarBounds={entry.titleBarBounds}
-              contentBounds={entry.contentBounds}
-              label={label()}
-              focused={entry.panelId === props.panels[props.focusedIndex]?.id}
-              panelType={panel()?.type || 'placeholder'}
-              panelId={entry.panelId}
-              position={panelIndex() + 1}
-              url={panel()?.url}
-              autoEdit={panel()?.type === 'browser' && (!panel()?.url || panel()?.url === 'about:blank')}
-              canGoBack={panel()?.canGoBack}
-              canGoForward={panel()?.canGoForward}
-              onNavigate={props.onNavigate}
-              onGoBack={props.onGoBack}
-              onGoForward={props.onGoForward}
-              onReload={props.onReload}
-            />
-          )
-        }}
+        {(entry) => (
+          <PanelFrame
+            contentBounds={entry.contentBounds}
+            focused={entry.panelId === props.focusedPanelId}
+          />
+        )}
       </For>
     </div>
   )

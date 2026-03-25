@@ -32,14 +32,16 @@ interface FlywheelAPI {
 
   // Browser panels
   createBrowserPanel(id: string, url: string): void
-  navigateBrowser(panelId: string, url: string): void
   reloadBrowser(panelId: string): void
   goBackBrowser(panelId: string): void
   goForwardBrowser(panelId: string): void
   onBrowserUrlChanged(callback: (data: { panelId: string; url: string }) => void): void
-  onBrowserNavStateChanged(callback: (data: { panelId: string; canGoBack: boolean; canGoForward: boolean }) => void): void
   onBrowserOpenUrl(callback: (data: { url: string }) => void): void
   onPanelClosed(callback: (data: { panelId: string }) => void): void
+  sendChromeState(panelId: string, state: {
+    position: number; label: string; focused: boolean;
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
+  }): void
 }
 
 declare global {

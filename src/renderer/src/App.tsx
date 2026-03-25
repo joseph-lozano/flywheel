@@ -4,7 +4,6 @@ import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCentere
 import { animate, easeOut } from './scroll/animator'
 import type { AnimationHandle } from './scroll/animator'
 import type { PanelBoundsUpdate } from '../../../shared/types'
-import { LAYOUT } from '../../shared/constants'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
 import HintBar from './components/HintBar'
@@ -45,16 +44,9 @@ export default function App() {
           createdPanelIds.add(entry.panelId)
         }
       }
-      const panel = state.panels.find((p) => p.id === entry.panelId)
-      const isBrowser = panel?.type === 'browser'
-      const adjustedBounds = isBrowser ? {
-        ...entry.contentBounds,
-        y: entry.contentBounds.y + LAYOUT.BROWSER_NAV_BAR_HEIGHT,
-        height: entry.contentBounds.height - LAYOUT.BROWSER_NAV_BAR_HEIGHT
-      } : entry.contentBounds
       boundsUpdates.push({
         panelId: entry.panelId,
-        bounds: adjustedBounds,
+        bounds: entry.contentBounds,
         visible: entry.visibility === 'visible'
       })
     }
@@ -108,6 +100,24 @@ export default function App() {
       }
     )
   )
+
+  // Send chrome state to each panel's own view(s) whenever relevant state changes
+  createEffect(() => {
+    const panels = [...state.panels]
+    const focusedIndex = state.focusedIndex
+    for (let i = 0; i < panels.length; i++) {
+      const panel = panels[i]
+      window.api.sendChromeState(panel.id, {
+        position: i + 1,
+        label: panel.label,
+        focused: i === focusedIndex && state.terminalFocused,
+        type: panel.type,
+        url: panel.url,
+        canGoBack: panel.canGoBack,
+        canGoForward: panel.canGoForward
+      })
+    }
+  })
 
   function handleWheel(deltaX: number): void {
     currentAnimation?.cancel()
@@ -188,11 +198,6 @@ export default function App() {
     }
   }
 
-  function handleNavigate(panelId: string, url: string): void {
-    window.api.navigateBrowser(panelId, url)
-    actions.setPanelUrl(panelId, url)
-  }
-
   onMount(() => {
     window.api.onWheelEvent((data) => handleWheel(data.deltaX))
     window.api.onShortcut((action) => handleShortcut(action))
@@ -230,11 +235,6 @@ export default function App() {
       actions.setPanelTitle(data.panelId, data.url)
     })
 
-    // Browser nav state (back/forward availability)
-    window.api.onBrowserNavStateChanged((data) => {
-      actions.setPanelNavState(data.panelId, data.canGoBack, data.canGoForward)
-    })
-
     // Navigation interception — new-window from browser panel opens a new browser panel
     window.api.onBrowserOpenUrl((data) => {
       const panel = actions.addPanel('browser', data.url)
@@ -268,12 +268,7 @@ export default function App() {
     <>
       <Strip
         layout={layout()}
-        panels={[...state.panels]}
-        focusedIndex={state.focusedIndex}
-        onNavigate={handleNavigate}
-        onGoBack={(panelId) => window.api.goBackBrowser(panelId)}
-        onGoForward={(panelId) => window.api.goForwardBrowser(panelId)}
-        onReload={(panelId) => window.api.reloadBrowser(panelId)}
+        focusedPanelId={state.panels[state.focusedIndex]?.id}
       />
       <ScrollIndicators
         scrollOffset={state.scrollOffset} maxScroll={maxScroll()}
