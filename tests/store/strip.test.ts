@@ -148,3 +148,140 @@ describe('scrollOffset', () => {
     })
   })
 })
+
+describe('terminalFocused (blur)', () => {
+  it('starts with terminalFocused true', () => {
+    withStore(({ state }) => { expect(state.terminalFocused).toBe(true) })
+  })
+  it('blurPanel sets terminalFocused to false', () => {
+    withStore(({ state, actions }) => { actions.blurPanel(); expect(state.terminalFocused).toBe(false) })
+  })
+  it('focusLeft re-enables terminalFocused', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.blurPanel(); actions.focusLeft()
+      expect(state.terminalFocused).toBe(true)
+    })
+  })
+  it('focusRight re-enables terminalFocused', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.jumpTo(0); actions.blurPanel(); actions.focusRight()
+      expect(state.terminalFocused).toBe(true)
+    })
+  })
+  it('jumpTo re-enables terminalFocused', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.blurPanel(); actions.jumpTo(0)
+      expect(state.terminalFocused).toBe(true)
+    })
+  })
+})
+
+describe('removePanelById', () => {
+  it('removes panel by id', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      actions.removePanelById(p1.id)
+      expect(state.panels).toHaveLength(1); expect(state.panels[0].id).toBe(p2.id)
+    })
+  })
+  it('adjusts focusedIndex when removing before focused', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); actions.addPanel(); actions.addPanel()
+      actions.jumpTo(2); actions.removePanelById(p1.id)
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+  it('clamps focusedIndex when removing focused panel', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); const p2 = actions.addPanel()
+      actions.removePanelById(p2.id); expect(state.focusedIndex).toBe(0)
+    })
+  })
+  it('returns null for unknown id', () => {
+    withStore(({ actions }) => { expect(actions.removePanelById('nonexistent')).toBeNull() })
+  })
+})
+
+describe('swap', () => {
+  it('swapLeft swaps focused panel with left neighbor', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      // p2 is focused at index 1
+      actions.swapLeft()
+      expect(state.panels[0].id).toBe(p2.id)
+      expect(state.panels[1].id).toBe(p1.id)
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('swapRight swaps focused panel with right neighbor', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      actions.jumpTo(0)
+      actions.swapRight()
+      expect(state.panels[0].id).toBe(p2.id)
+      expect(state.panels[1].id).toBe(p1.id)
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+
+  it('swapLeft is no-op at leftmost position', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      actions.jumpTo(0)
+      actions.swapLeft()
+      expect(state.panels[0].id).toBe(p1.id)
+      expect(state.panels[1].id).toBe(p2.id)
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('swapRight is no-op at rightmost position', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      // p2 is focused at index 1 (rightmost)
+      actions.swapRight()
+      expect(state.panels[0].id).toBe(p1.id)
+      expect(state.panels[1].id).toBe(p2.id)
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+
+  it('swap is no-op with single panel', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel()
+      actions.swapLeft()
+      actions.swapRight()
+      expect(state.panels).toHaveLength(1)
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('swapLeft sets terminalFocused to true', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel()
+      actions.blurPanel()
+      actions.swapLeft()
+      expect(state.terminalFocused).toBe(true)
+    })
+  })
+
+  it('swapRight sets terminalFocused to true', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel()
+      actions.jumpTo(0); actions.blurPanel()
+      actions.swapRight()
+      expect(state.terminalFocused).toBe(true)
+    })
+  })
+
+  it('swapLeft preserves panel identity through three panels', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel(); const p2 = actions.addPanel(); const p3 = actions.addPanel()
+      // focused on p3 at index 2
+      actions.swapLeft()
+      expect(state.panels.map(p => p.id)).toEqual([p1.id, p3.id, p2.id])
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+})

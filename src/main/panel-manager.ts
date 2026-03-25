@@ -3,6 +3,7 @@ import { join } from 'path'
 
 interface ManagedPanel {
   id: string
+  type: 'terminal' | 'placeholder'
   view: WebContentsView
 }
 
@@ -16,8 +17,10 @@ export class PanelManager {
     this.chromeView = chromeView
   }
 
-  createPanel(id: string, color: string): void {
+  createPanel(id: string, options: { type: 'terminal' } | { type?: 'placeholder'; color: string }): void {
     if (this.panels.has(id)) return
+
+    const panelType = options.type || 'placeholder'
 
     const view = new WebContentsView({
       webPreferences: {
@@ -26,13 +29,55 @@ export class PanelManager {
       }
     })
 
-    view.setBackgroundColor(color)
-    view.webContents.loadURL(
-      `data:text/html,<html><body style="margin:0;background:${encodeURIComponent(color)};height:100vh"></body></html>`
-    )
+    if (panelType === 'terminal') {
+      if (process.env['ELECTRON_RENDERER_URL']) {
+        view.webContents.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/terminal/index.html?panelId=${id}`)
+      } else {
+        view.webContents.loadFile(join(__dirname, '../renderer/terminal/index.html'), {
+          query: { panelId: id }
+        })
+      }
+    } else {
+      const color = 'color' in options ? options.color : '#333'
+      view.setBackgroundColor(color)
+      view.webContents.loadURL(
+        `data:text/html,<html><body style="margin:0;background:${encodeURIComponent(color)};height:100vh"></body></html>`
+      )
+    }
+
+    // Intercept app shortcuts before xterm.js consumes them
+    // Menu accelerators don't fire when a child WebContentsView has focus,
+    // so we manually forward matching key combos to the chrome view.
+    view.webContents.on('before-input-event', (event, input) => {
+      if (input.type !== 'keyDown' || !input.meta) return
+
+      let action: { type: string; index?: number } | null = null
+
+      if (input.shift) {
+        if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
+        else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
+      } else {
+        if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
+        else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
+        else if (input.key === 't') action = { type: 'new-panel' }
+        else if (input.key === 'w') action = { type: 'close-panel' }
+        else if (input.key === 'g') action = { type: 'blur-panel' }
+        else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
+      }
+
+      if (action) {
+        event.preventDefault()
+        this.chromeView.webContents.send('shortcut:action', action)
+      }
+    })
+
+    // When a panel gains focus via click, notify chrome view so it can update focusedIndex
+    view.webContents.on('focus', () => {
+      this.chromeView.webContents.send('panel:focused', { panelId: id })
+    })
 
     this.window.contentView.addChildView(view)
-    this.panels.set(id, { id, view })
+    this.panels.set(id, { id, type: panelType, view })
   }
 
   destroyPanel(id: string): void {
@@ -60,8 +105,24 @@ export class PanelManager {
     }
   }
 
+  getPanelView(id: string): WebContentsView | null {
+    return this.panels.get(id)?.view || null
+  }
+
   get panelCount(): number {
     return this.panels.size
+  }
+
+  hideAll(): void {
+    for (const panel of this.panels.values()) {
+      panel.view.setVisible(false)
+    }
+  }
+
+  showAll(): void {
+    for (const panel of this.panels.values()) {
+      panel.view.setVisible(true)
+    }
   }
 
   destroyAll(): void {

@@ -35,12 +35,22 @@ Replace placeholders with real terminals. After this, Flywheel is a usable Niri-
 - Decision: xterm.js addon selection — WebGL renderer vs Canvas renderer, search addon, unicode11 addon
 - Evaluate ghostty-web maturity at this point — if stable enough, may start with it instead of xterm.js
 
+**Decisions (resolved):**
+- ✅ IPC architecture: **Buffered output, unbuffered input** — battle-tested pattern (Hyper, Terminus). Keystrokes relay immediately; PTY output buffers at ~16ms for throughput handling.
+- ✅ xterm.js addons: **fit + webgl + unicode11** — auto-sizing, GPU rendering, wide-char support.
+- ✅ Scroll disambiguation: **Mouse-position-based** — scroll over panel content goes to terminal, scroll over chrome goes to strip.
+- ✅ Off-screen panels: **Hide, never destroy** — simplest approach. Terminal serialization deferred to optimization phase.
+- ✅ Link detection: **Deferred to Phase 2.5** — only useful once browser panels exist.
+
 **Scope:**
 - xterm.js + node-pty integration ([spec: Terminal, L35](docs/superpowers/specs/2026-03-24-flywheel-design.md#L35))
 - Each terminal panel is a `WebContentsView` running xterm.js
-- Main process manages node-pty sessions, pipes I/O via IPC
-- Terminal lifecycle: create, destroy, serialize/restore state ([spec: Panel Lifecycle, L73-78](docs/superpowers/specs/2026-03-24-flywheel-design.md#L73-L78))
-- Link detection in terminal output ([spec: Link Handling, L39-41](docs/superpowers/specs/2026-03-24-flywheel-design.md#L39-L41))
+- PTY Manager in main process: node-pty sessions, buffered output (~16ms flush), resize handling
+- Scroll disambiguation: mouse-position-based routing (vertical over panel → terminal, horizontal → strip)
+- Panel blur/unfocus via Mod+G, re-focus via click or Enter
+- Close confirmation when foreground process is running
+- Auto-remove panel when shell exits
+- Terminal appearance: dark theme, configurable font family/size/color scheme
 - Mod+T to open a new terminal ([spec: L115](docs/superpowers/specs/2026-03-24-flywheel-design.md#L115))
 - Mod+W to close focused terminal ([spec: L117](docs/superpowers/specs/2026-03-24-flywheel-design.md#L117))
 

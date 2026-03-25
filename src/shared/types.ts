@@ -1,5 +1,6 @@
 export interface Panel {
   id: string
+  type: 'terminal' | 'placeholder'
   color: string
   label: string
 }
@@ -26,7 +27,7 @@ export interface PanelLayout {
   visibility: VisibilityState
 }
 
-export interface ShortcutAction {
-  type: 'focus-left' | 'focus-right' | 'new-panel' | 'close-panel' | 'jump-to'
+export type ShortcutAction = {
+  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
   index?: number
 }

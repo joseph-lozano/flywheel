@@ -9,8 +9,11 @@ interface HintBarProps {
 const HINTS = [
   { key: '\u2318\u2190', label: 'Focus Left' },
   { key: '\u2318\u2192', label: 'Focus Right' },
-  { key: '\u2318T', label: 'New Panel' },
+  { key: '\u2318\u21e7\u2190', label: 'Swap Left' },
+  { key: '\u2318\u21e7\u2192', label: 'Swap Right' },
+  { key: '\u2318T', label: 'New Terminal' },
   { key: '\u2318W', label: 'Close' },
+  { key: '\u2318G', label: 'Blur' },
   { key: '\u23181-9', label: 'Jump' }
 ]
 
@@ -32,7 +35,7 @@ export default function HintBar(props: HintBarProps) {
       }
     }
     poll()
-    const id = setInterval(poll, 2000)
+    const id = setInterval(poll, 5000)
     onCleanup(() => clearInterval(id))
   })
 
