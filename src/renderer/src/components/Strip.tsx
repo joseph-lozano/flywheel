@@ -30,6 +30,7 @@ export default function Strip(props: StripProps) {
               focused={entry.panelId === props.panels[props.focusedIndex]?.id}
               panelType={panel()?.type || 'placeholder'}
               panelId={entry.panelId}
+              position={panelIndex() + 1}
               url={panel()?.url}
               onNavigate={props.onNavigate}
             />
