@@ -11,6 +11,7 @@ interface ManagedPanel {
 
 export class PanelManager {
   private panels = new Map<string, ManagedPanel>()
+  private pendingChromeState = new Map<string, Record<string, unknown>>()
   private window: BaseWindow
   private chromeView: WebContentsView
 
@@ -134,6 +135,12 @@ export class PanelManager {
         })
       })
 
+      // Replay cached chrome state once chrome strip finishes loading
+      chromeStripView.webContents.once('did-finish-load', () => {
+        const cached = this.pendingChromeState.get(id)
+        if (cached) chromeStripView.webContents.send('panel:chrome-state', cached)
+      })
+
       this.window.contentView.addChildView(chromeStripView)
       this.window.contentView.addChildView(view)
       this.panels.set(id, { id, type: panelType, view, chromeView: chromeStripView })
@@ -149,6 +156,15 @@ export class PanelManager {
     view.webContents.on('focus', () => {
       this.chromeView.webContents.send('panel:focused', { panelId: id })
     })
+
+    // Replay cached chrome state once views finish loading (state may arrive before scripts run)
+    const replayOnLoad = (wc: Electron.WebContents): void => {
+      wc.once('did-finish-load', () => {
+        const cached = this.pendingChromeState.get(id)
+        if (cached) wc.send('panel:chrome-state', cached)
+      })
+    }
+    replayOnLoad(view.webContents)
 
     if (panelType !== 'browser') {
       this.window.contentView.addChildView(view)
@@ -190,6 +206,7 @@ export class PanelManager {
       panel.chromeView.webContents.close()
     }
     this.panels.delete(id)
+    this.pendingChromeState.delete(id)
   }
 
   updateBounds(updates: Array<{
@@ -237,6 +254,7 @@ export class PanelManager {
     position: number; label: string; focused: boolean;
     type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
   }): void {
+    this.pendingChromeState.set(id, state)
     const panel = this.panels.get(id)
     if (!panel) return
     if (panel.chromeView) {
