@@ -15,6 +15,7 @@ declare global {
       onExit: (callback: (exitCode: number) => void) => void
       getPanelId: () => string
       openUrl: (url: string) => void
+      onChromeState: (callback: (state: { position: number; label: string; focused: boolean }) => void) => void
     }
   }
 }
@@ -77,3 +78,14 @@ resizeObserver.observe(container)
 
 // Initial size report
 reportSize()
+
+// Chrome state → title bar
+const titleBar = document.getElementById('panel-titlebar')!
+const spacer = document.getElementById('panel-spacer')!
+
+window.pty.onChromeState((state) => {
+  const pos = state.position <= 9 ? `${state.position} / ` : ''
+  titleBar.textContent = `${pos}${state.label}`
+  titleBar.classList.toggle('focused', state.focused)
+  spacer.classList.toggle('focused', state.focused)
+})

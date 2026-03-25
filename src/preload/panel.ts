@@ -30,5 +30,8 @@ contextBridge.exposeInMainWorld('pty', {
   },
   openUrl: (url: string) => {
     ipcRenderer.send('browser:open-url-from-terminal', { url })
-  }
+  },
+  onChromeState: (callback: (state: { position: number; label: string; focused: boolean }) => void) => {
+    ipcRenderer.on('panel:chrome-state', (_event, state) => callback(state))
+  },
 })
