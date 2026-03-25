@@ -241,7 +241,7 @@ Each terminal panel's WebContentsView loads a minimal HTML page that:
 
 Instead of loading a `data:` URL (as Phase 1 does for colored placeholders), terminal panels load a local HTML file bundled with the app: `src/terminal/index.html`. This file imports xterm.js and sets up the terminal instance.
 
-The terminal page is built by electron-vite alongside the existing renderer and preload entries. It's a separate entry point, not part of the chrome view's Solid app.
+The terminal page is built by electron-vite alongside the existing renderer and preload entries. It's a separate entry point, not part of the chrome view's Solid app. This requires adding a new renderer entry in `electron.vite.config.ts` (multi-page config) so the terminal HTML/JS is built and output alongside the existing chrome renderer.
 
 ### Terminal Theme
 
@@ -295,7 +295,7 @@ The Solid store (`src/renderer/src/store/strip.ts`) needs:
 - **Blur state**: A `terminalFocused` boolean (or similar). When false, the focused panel's terminal doesn't receive input focus.
 - **New action**: `blurPanel()` — sets `terminalFocused = false`
 - **Updated action**: `focusPanel(index)` — sets `terminalFocused = true` (re-focuses terminal on navigation)
-- **New action**: `removePanel(id)` — removes a panel by ID (for auto-remove on shell exit)
+- **New action**: `removePanelById(id)` — removes a panel by ID (for auto-remove on shell exit). The existing `removePanel()` (which removes the focused panel) is updated to delegate to this, ensuring one removal path.
 - **Shortcut type update**: Add `'blur-panel'` to the `ShortcutAction` type union
 
 ## Keyboard Shortcuts Update
@@ -314,7 +314,7 @@ The hint bar updates to show `⌘G Blur` instead of no blur option.
 
 When `⌘W` targets a panel with a running foreground process:
 
-1. Main process detects foreground process via `pty.process` (node-pty provides the foreground process name)
+1. Main process detects foreground process via `pty.process` (node-pty provides the foreground process name). Note: `pty.process` can sometimes return the shell itself rather than a foreground child; compare against the original shell name as a fallback heuristic.
 2. Sends `pty:confirm-close` to chrome view with the process name
 3. Chrome view renders a minimal modal overlay:
    - Dark semi-transparent backdrop
