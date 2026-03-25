@@ -18,7 +18,7 @@ export function createStripStore() {
     const color = PANEL_COLORS[colorIndex % PANEL_COLORS.length]
     colorIndex++
     nextId++
-    return { id: `panel-${nextId}`, color: color.hex, label: `${nextId} — ${color.name}` }
+    return { id: `panel-${nextId}`, color: color.hex, label: color.name }
   }
 
   const [state, setState] = createStore<StripState>({

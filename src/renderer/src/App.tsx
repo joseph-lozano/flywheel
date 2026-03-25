@@ -108,9 +108,7 @@ export default function App() {
 
     batch(() => {
       actions.setViewport(window.innerWidth, window.innerHeight)
-      actions.addPanel()
-      actions.addPanel()
-      actions.addPanel()
+      for (let i = 0; i < 12; i++) actions.addPanel()
       actions.jumpTo(0)
     })
   })

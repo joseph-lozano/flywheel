@@ -14,11 +14,17 @@ export default function Strip(props: StripProps) {
       <For each={props.layout}>
         {(entry, index) => {
           const panel = () => props.panels.find((p) => p.id === entry.panelId)
+          const panelIndex = () => props.panels.findIndex((p) => p.id === entry.panelId)
+          const label = () => {
+            const pos = panelIndex() + 1
+            const name = panel()?.label ?? ''
+            return pos <= 9 ? `${pos} — ${name}` : name
+          }
           return (
             <PanelFrame
               titleBarBounds={entry.titleBarBounds}
               contentBounds={entry.contentBounds}
-              label={panel()?.label ?? ''}
+              label={label()}
               focused={index() === props.focusedIndex}
             />
           )

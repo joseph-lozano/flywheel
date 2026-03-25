@@ -27,7 +27,9 @@ export class PanelManager {
     })
 
     view.setBackgroundColor(color)
-    view.webContents.loadURL('about:blank')
+    view.webContents.loadURL(
+      `data:text/html,<html><body style="margin:0;background:${encodeURIComponent(color)};height:100vh"></body></html>`
+    )
 
     this.window.contentView.addChildView(view)
     this.panels.set(id, { id, view })
