@@ -76,8 +76,9 @@ export class PtyManager {
   }
 
   killByPrefix(prefix: string): void {
-    for (const [panelId, managed] of this.ptys) {
+    for (const panelId of [...this.ptys.keys()]) {
       if (panelId.startsWith(prefix)) {
+        const managed = this.ptys.get(panelId)!
         managed.disposed = true
         managed.pty.kill()
         this.ptys.delete(panelId)
