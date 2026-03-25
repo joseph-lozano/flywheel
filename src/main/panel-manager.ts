@@ -86,10 +86,10 @@ export class PanelManager {
 
       if (process.env['ELECTRON_RENDERER_URL']) {
         chromeStripView.webContents.loadURL(
-          `${process.env['ELECTRON_RENDERER_URL']}/browser-host/index.html?panelId=${id}&url=${encodeURIComponent(url)}`
+          `${process.env['ELECTRON_RENDERER_URL']}/browser/browser-host.html?panelId=${id}&url=${encodeURIComponent(url)}`
         )
       } else {
-        chromeStripView.webContents.loadFile(join(__dirname, '../renderer/browser-host/index.html'), {
+        chromeStripView.webContents.loadFile(join(__dirname, '../renderer/browser/browser-host.html'), {
           query: { panelId: id, url }
         })
       }
