@@ -21,7 +21,7 @@ Add a sidebar to Flywheel that lets users manage multiple projects and switch be
 | Project list | Flat list | Ready for one level of nesting (worktrees in Phase 4). No deep tree. |
 | Strip state | Per-project, in-memory | Ephemeral — dies with app session. Session restore deferred to Phase 5. |
 | Project switching | Hide/show WebContentsViews | No teardown, no reload. PTYs and browsers stay alive. |
-| Add projects | Manual via directory picker | No auto-discovery. `Cmd+Shift+O` shortcut or sidebar button. |
+| Add projects | Manual via directory picker | No auto-discovery. `Cmd+O` shortcut or sidebar button. |
 | First visit to project | Empty strip | User opens terminals with `Cmd+T`. Auto-launch config deferred to Phase 5. |
 
 ## Data Model
@@ -105,7 +105,7 @@ These replace the use of `hideAll()` / `showAll()` during project switching. The
 - Opens the native directory picker dialog on `project:add`
 - Passes `cwd` to `node-pty` on terminal creation
 - Hides/shows panel groups by project ID prefix on project switch
-- `Cmd+Shift+O` is added to the Electron application menu under a new "Projects" submenu, forwarded via `shortcut:action` to the chrome view (consistent with existing shortcut pattern)
+- `Cmd+O` and `Cmd+Shift+<1-9>` are added to the Electron application menu under a new "Projects" submenu, forwarded via `shortcut:action` to the chrome view (consistent with existing shortcut pattern)
 
 The main process does not need to know about the sidebar itself — it's entirely within the chrome view.
 
@@ -148,7 +148,7 @@ Layers/stack SVG icon + "Projects" in title case, styled in the app's accent col
 - Pinned at bottom of sidebar
 - Subtle top border separating it from the project list
 - Click opens native directory picker
-- Keyboard shortcut: `Cmd+Shift+O`
+- Keyboard shortcut: `Cmd+O`
 
 ### Remove Project
 
@@ -160,7 +160,7 @@ Layers/stack SVG icon + "Projects" in title case, styled in the app's accent col
 
 ## Project Switching Flow
 
-1. User clicks a project in the sidebar
+1. User clicks a project in the sidebar (or presses `Cmd+Shift+<1-9>` to jump by position)
 2. Snapshot current strip store state into `Map<projectId, StripState>`
 3. Hide current project's panels via `PanelManager.hideByPrefix(currentProjectId)`
 4. Update `activeProjectId` in app store and `electron-store`
@@ -187,13 +187,13 @@ What stays alive in the background:
 
 - Sidebar shows header and "+ Add Project" button only
 - Strip area is empty
-- Hint bar shows `Cmd+Shift+O Add Project`
+- Hint bar shows `Cmd+O Add Project`
 
 ### Project with No Panels
 
 - Sidebar shows project as active
 - Strip area is blank
-- Hint bar shows `Cmd+T New Terminal`, `Cmd+B New Browser`
+- Hint bar shows `Cmd+T New Terminal`, `Cmd+B New Browser`, `Cmd+Shift+1-9 Switch Project`
 
 ### All Projects Removed
 
@@ -201,18 +201,18 @@ What stays alive in the background:
 
 ### Hint Bar Context
 
-The `HintBar` component becomes context-aware. It receives state (`hasProjects`, `hasPanels`) and renders different hint sets:
-- No projects: `Cmd+Shift+O Add Project`
-- Project active, no panels: `Cmd+T New Terminal`, `Cmd+B New Browser`
-- Project active, has panels: existing hints (navigate, close, move, etc.)
+The `HintBar` component becomes context-aware. It receives `hasProjects` from the app store:
+- No projects: `Cmd+O Add Project`
+- Has projects: existing hints (navigate, new terminal, close, move, etc.) + `Cmd+Shift+1-9 Switch Project`
 
 ## New Keyboard Shortcuts
 
 | Shortcut | Action | Registration |
 |----------|--------|-------------|
-| `Cmd+Shift+O` | Add project (open directory picker) | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
+| `Cmd+O` | Add project (open directory picker) | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
+| `Cmd+Shift+<1-9>` | Switch to project by position | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
 
-Keyboard shortcut for switching between projects is deferred — mouse-click switching is sufficient for Phase 3. Phase 4 adds `Cmd+Up/Down` for row switching; project switching shortcuts can be designed alongside that.
+`Cmd+Shift+<1-9>` mirrors the existing `Cmd+<1-9>` for panel jumping — same pattern, one level up.
 
 ## Existing Code Changes
 
@@ -225,4 +225,3 @@ Keyboard shortcut for switching between projects is deferred — mouse-click swi
 - Config-driven auto-launch of terminals/browsers (Phase 5)
 - Worktree rows nested under projects (Phase 4)
 - Sidebar collapse/minimize
-- Keyboard shortcut for project switching
