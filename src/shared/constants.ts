@@ -66,3 +66,8 @@ export const SIDEBAR = {
   ITEM_FONT_SIZE: 11,
   ADD_FONT_SIZE: 10
 } as const
+
+export function goldenAngleColor(index: number): string {
+  const hue = (index * 137.508) % 360
+  return `hsl(${Math.round(hue * 100) / 100}, 65%, 65%)`
+}

@@ -13,6 +13,18 @@ export interface Project {
   name: string
   path: string
   missing?: boolean
+  rows: Row[]
+  activeRowId: string
+  expanded: boolean
+}
+
+export interface Row {
+  id: string
+  projectId: string
+  branch: string
+  path: string
+  color: string
+  isDefault: boolean
 }
 
 export interface PersistedState {
@@ -54,6 +66,6 @@ export interface PanelLayout {
 }
 
 export type ShortcutAction = {
-  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward' | 'add-project' | 'switch-project' | 'prev-project' | 'next-project'
+  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward' | 'add-project' | 'switch-project' | 'prev-project' | 'next-project' | 'new-row' | 'prev-row' | 'next-row'
   index?: number
 }
