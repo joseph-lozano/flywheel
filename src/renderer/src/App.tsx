@@ -232,10 +232,17 @@ export default function App() {
       }
     })
 
-    // Browser URL tracking
+    // Browser URL + nav state tracking (combined to update store atomically)
     window.api.onBrowserUrlChanged((data) => {
-      actions.setPanelUrl(data.panelId, data.url)
-      actions.setPanelTitle(data.panelId, data.url)
+      batch(() => {
+        actions.setPanelUrl(data.panelId, data.url)
+        actions.setPanelNavState(data.panelId, data.canGoBack, data.canGoForward)
+      })
+    })
+
+    // Page <title> tracking
+    window.api.onBrowserTitleChanged((data) => {
+      actions.setPanelTitle(data.panelId, data.title)
     })
 
     // Navigation interception — new-window from browser panel opens a new browser panel

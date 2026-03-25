@@ -36,7 +36,8 @@ interface FlywheelAPI {
   reloadBrowser(panelId: string): void
   goBackBrowser(panelId: string): void
   goForwardBrowser(panelId: string): void
-  onBrowserUrlChanged(callback: (data: { panelId: string; url: string }) => void): void
+  onBrowserUrlChanged(callback: (data: { panelId: string; url: string; canGoBack: boolean; canGoForward: boolean }) => void): void
+  onBrowserTitleChanged(callback: (data: { panelId: string; title: string }) => void): void
   onBrowserOpenUrl(callback: (data: { url: string }) => void): void
   onPanelClosed(callback: (data: { panelId: string }) => void): void
   sendChromeState(panelId: string, state: {

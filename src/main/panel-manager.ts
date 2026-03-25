@@ -107,32 +107,27 @@ export class PanelManager {
         return { action: 'deny' }
       })
 
-      // Track URL changes → update address bar in chrome view and chrome strip view
-      view.webContents.on('did-navigate', (_event, navUrl) => {
-        this.chromeView.webContents.send('browser:url-changed', { panelId: id, url: navUrl })
-        this.chromeView.webContents.send('browser:nav-state-changed', {
-          panelId: id,
-          canGoBack: view.webContents.navigationHistory.canGoBack(),
-          canGoForward: view.webContents.navigationHistory.canGoForward()
+      // Track URL changes → update address bar in chrome view and chrome strip view.
+      // Nav state (canGoBack/canGoForward) is included in the same message so the
+      // renderer store updates atomically and the reactive sendChromeState effect
+      // never overwrites correct values with stale ones.
+      const sendNavUpdate = (_event: Electron.Event, navUrl: string): void => {
+        const canGoBack = view.webContents.navigationHistory.canGoBack()
+        const canGoForward = view.webContents.navigationHistory.canGoForward()
+        this.chromeView.webContents.send('browser:url-changed', {
+          panelId: id, url: navUrl, canGoBack, canGoForward
         })
         chromeStripView.webContents.send('panel:chrome-state', {
-          url: navUrl,
-          canGoBack: view.webContents.navigationHistory.canGoBack(),
-          canGoForward: view.webContents.navigationHistory.canGoForward()
+          url: navUrl, canGoBack, canGoForward
         })
-      })
-      view.webContents.on('did-navigate-in-page', (_event, navUrl) => {
-        this.chromeView.webContents.send('browser:url-changed', { panelId: id, url: navUrl })
-        this.chromeView.webContents.send('browser:nav-state-changed', {
-          panelId: id,
-          canGoBack: view.webContents.navigationHistory.canGoBack(),
-          canGoForward: view.webContents.navigationHistory.canGoForward()
-        })
-        chromeStripView.webContents.send('panel:chrome-state', {
-          url: navUrl,
-          canGoBack: view.webContents.navigationHistory.canGoBack(),
-          canGoForward: view.webContents.navigationHistory.canGoForward()
-        })
+      }
+      view.webContents.on('did-navigate', sendNavUpdate)
+      view.webContents.on('did-navigate-in-page', sendNavUpdate)
+
+      // Forward page <title> to chrome view so the title bar shows the real title
+      view.webContents.on('page-title-updated', (_event, title) => {
+        this.chromeView.webContents.send('browser:title-changed', { panelId: id, title })
+        chromeStripView.webContents.send('panel:chrome-state', { label: title })
       })
 
       // Replay cached chrome state once chrome strip finishes loading

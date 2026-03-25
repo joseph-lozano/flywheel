@@ -85,7 +85,7 @@ window.browserHost.onChromeState((partial) => {
   currentState = { ...currentState, ...partial }
   const s = currentState
   posLabel.textContent = s.position <= 9 ? `${s.position} /` : ''
-  titleLabel.textContent = s.url || 'about:blank'
+  titleLabel.textContent = s.label || s.url || 'about:blank'
   titlebar.classList.toggle('focused', s.focused)
   navbar.classList.toggle('focused', s.focused)
   btnBack.disabled = !s.canGoBack

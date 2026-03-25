@@ -79,8 +79,11 @@ contextBridge.exposeInMainWorld('api', {
   goForwardBrowser: (panelId: string) => {
     ipcRenderer.send('browser:go-forward', { panelId })
   },
-  onBrowserUrlChanged: (callback: (data: { panelId: string; url: string }) => void) => {
+  onBrowserUrlChanged: (callback: (data: { panelId: string; url: string; canGoBack: boolean; canGoForward: boolean }) => void) => {
     ipcRenderer.on('browser:url-changed', (_event, data) => callback(data))
+  },
+  onBrowserTitleChanged: (callback: (data: { panelId: string; title: string }) => void) => {
+    ipcRenderer.on('browser:title-changed', (_event, data) => callback(data))
   },
   sendChromeState: (panelId: string, state: {
     position: number; label: string; focused: boolean;
