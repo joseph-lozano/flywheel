@@ -65,9 +65,11 @@ function createWindow(): void {
 }
 
 function setupIpcHandlers(): void {
-  ipcMain.on('panel:create', (_event, data: { id: string; color?: string; type?: string }) => {
+  ipcMain.on('panel:create', (_event, data: { id: string; color?: string; type?: string; url?: string }) => {
     if (data.type === 'terminal') {
       panelManager.createPanel(data.id, { type: 'terminal' })
+    } else if (data.type === 'browser') {
+      panelManager.createPanel(data.id, { type: 'browser', url: data.url || 'about:blank' })
     } else {
       panelManager.createPanel(data.id, { color: data.color || '#333' })
     }
@@ -112,8 +114,25 @@ function setupIpcHandlers(): void {
     ptyManager.resize(data.panelId, data.cols, data.rows)
   })
 
+  // Browser navigation
+  ipcMain.on('browser:navigate', (_event, data: { panelId: string; url: string }) => {
+    panelManager.navigateBrowser(data.panelId, data.url)
+  })
+
+  // Terminal link detection → open as browser panel
+  ipcMain.on('browser:open-url-from-terminal', (_event, data: { url: string }) => {
+    chromeView.webContents.send('browser:open-url', { url: data.url })
+  })
+
   // Close confirmation flow
   ipcMain.on('panel:close-request', (_event, data: { panelId: string }) => {
+    // Browser panels have no PTY — close immediately
+    if (!ptyManager.hasPty(data.panelId)) {
+      panelManager.destroyPanel(data.panelId)
+      chromeView.webContents.send('panel:closed', { panelId: data.panelId })
+      return
+    }
+
     if (ptyManager.isBusy(data.panelId)) {
       const processName = ptyManager.getForegroundProcess(data.panelId) || 'unknown'
       chromeView.webContents.send('pty:confirm-close', {
@@ -193,6 +212,11 @@ function setupShortcuts(): void {
           label: 'New Terminal',
           accelerator: 'CommandOrControl+T',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'new-panel' })
+        },
+        {
+          label: 'New Browser',
+          accelerator: 'CommandOrControl+B',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'new-browser' })
         },
         {
           label: 'Close Panel',

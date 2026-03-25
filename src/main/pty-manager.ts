@@ -81,6 +81,10 @@ export class PtyManager {
     return managed.pty.process
   }
 
+  hasPty(panelId: string): boolean {
+    return this.ptys.has(panelId)
+  }
+
   isBusy(panelId: string): boolean {
     const managed = this.ptys.get(panelId)
     if (!managed) return false
