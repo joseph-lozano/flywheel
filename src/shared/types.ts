@@ -1,8 +1,9 @@
 export interface Panel {
   id: string
-  type: 'terminal' | 'placeholder'
+  type: 'terminal' | 'placeholder' | 'browser'
   color: string
   label: string
+  url?: string
 }
 
 export interface Rectangle {
@@ -28,6 +29,6 @@ export interface PanelLayout {
 }
 
 export type ShortcutAction = {
-  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
+  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel'
   index?: number
 }
