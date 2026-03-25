@@ -175,6 +175,16 @@ function setupShortcuts(): void {
           accelerator: 'Command+Right',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'focus-right' })
         },
+        {
+          label: 'Swap Left',
+          accelerator: 'Command+Shift+Left',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'swap-left' })
+        },
+        {
+          label: 'Swap Right',
+          accelerator: 'Command+Shift+Right',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'swap-right' })
+        },
         { type: 'separator' },
         {
           label: 'New Terminal',
