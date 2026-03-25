@@ -141,18 +141,20 @@ export default function App() {
       () => {
         const strip = activeStrip()
         if (!strip) return null
-        return { idx: strip.state.focusedIndex, focused: strip.state.terminalFocused, panels: strip.state.panels }
+        // Only track focusedIndex and terminalFocused — NOT panels.
+        // Tracking panels would re-fire on every addPanel, causing focus oscillation.
+        return { idx: strip.state.focusedIndex, focused: strip.state.terminalFocused }
       },
       (data) => {
         if (!data) return
-        const { idx, focused, panels } = data
-        if (panels.length === 0) return
-        const panel = panels[idx]
+        const strip = activeStrip()
+        if (!strip || strip.state.panels.length === 0) return
+        const panel = strip.state.panels[data.idx]
         if (!panel) return
 
-        if (focused && (panel.type === 'terminal' || (panel.type === 'browser' && panel.url !== 'about:blank'))) {
+        if (data.focused && (panel.type === 'terminal' || (panel.type === 'browser' && panel.url !== 'about:blank'))) {
           window.api.focusPanel(panel.id)
-        } else if (focused && panel.type === 'browser' && panel.url === 'about:blank') {
+        } else if (data.focused && panel.type === 'browser' && panel.url === 'about:blank') {
           window.api.focusPanelChrome(panel.id)
         } else {
           window.api.blurAllPanels()
@@ -402,14 +404,20 @@ export default function App() {
       if (strip) strip.actions.setPanelTitle(data.panelId, data.title)
     })
 
+    // Debounce panel focus events to prevent oscillation when
+    // multiple panels are created in quick succession
+    let focusDebounce: ReturnType<typeof setTimeout>
     window.api.onPanelFocused((data) => {
-      const strip = findStripByPanelId(data.panelId)
-      if (strip) {
-        const idx = strip.state.panels.findIndex((p) => p.id === data.panelId)
-        if (idx >= 0 && idx !== strip.state.focusedIndex) {
-          strip.actions.jumpTo(idx)
+      clearTimeout(focusDebounce)
+      focusDebounce = setTimeout(() => {
+        const strip = findStripByPanelId(data.panelId)
+        if (strip) {
+          const idx = strip.state.panels.findIndex((p) => p.id === data.panelId)
+          if (idx >= 0 && idx !== strip.state.focusedIndex) {
+            strip.actions.jumpTo(idx)
+          }
         }
-      }
+      }, 50)
     })
 
     window.api.onBrowserUrlChanged((data) => {
