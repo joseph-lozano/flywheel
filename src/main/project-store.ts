@@ -1,6 +1,7 @@
 import Store from 'electron-store'
 import { randomUUID } from 'crypto'
 import { basename } from 'path'
+import { existsSync, accessSync, constants } from 'fs'
 import type { Project } from '../shared/types'
 
 interface StoreSchema {
@@ -21,7 +22,8 @@ export class ProjectStore {
   }
 
   getProjects(): Project[] {
-    return this.store.get('projects')
+    const projects = this.store.get('projects')
+    return projects.map((p) => ({ ...p, missing: !existsSync(p.path) }))
   }
 
   getActiveProjectId(): string | null {
@@ -35,6 +37,12 @@ export class ProjectStore {
   addProject(dirPath: string): Project | null {
     const projects = this.getProjects()
     if (projects.some((p) => p.path === dirPath)) return null
+
+    try {
+      accessSync(dirPath, constants.R_OK)
+    } catch {
+      return null
+    }
 
     const project: Project = {
       id: randomUUID(),

@@ -7,6 +7,17 @@ vi.mock('electron-store', () => ({
   })
 }))
 
+vi.mock('fs', async () => {
+  const actual = await vi.importActual<typeof import('fs')>('fs')
+  return {
+    ...actual,
+    existsSync: vi.fn((p: string) => !p.includes('/gone/')),
+    accessSync: vi.fn((p: string) => {
+      if (p.includes('/noaccess/')) throw new Error('EACCES')
+    })
+  }
+})
+
 import { ProjectStore } from '../../src/main/project-store'
 
 describe('ProjectStore', () => {
@@ -69,5 +80,24 @@ describe('ProjectStore', () => {
     })
     store = new ProjectStore()
     expect(store.getActiveProjectId()).toBe('proj-1')
+  })
+
+  it('getProjects marks missing directories', () => {
+    mockStore.get.mockImplementation((key: string) => {
+      if (key === 'projects') return [
+        { id: '1', name: 'exists', path: '/Users/test/exists' },
+        { id: '2', name: 'gone', path: '/Users/test/gone/project' }
+      ]
+      return null
+    })
+    store = new ProjectStore()
+    const projects = store.getProjects()
+    expect(projects[0].missing).toBe(false)
+    expect(projects[1].missing).toBe(true)
+  })
+
+  it('addProject rejects unreadable paths', () => {
+    expect(store.addProject('/Users/test/noaccess/project')).toBeNull()
+    expect(mockStore.set).not.toHaveBeenCalled()
   })
 })
