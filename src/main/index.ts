@@ -134,6 +134,16 @@ function setupIpcHandlers(): void {
       chromeView.webContents.send('pty:exit', { panelId: data.panelId, exitCode: -1 })
     }
   })
+
+  // Focus management
+  ipcMain.on('panel:focus', (_event, data: { panelId: string }) => {
+    const view = panelManager.getPanelView(data.panelId)
+    if (view) view.webContents.focus()
+  })
+
+  ipcMain.on('panel:blur-all', () => {
+    chromeView.webContents.focus()
+  })
 }
 
 function setupShortcuts(): void {

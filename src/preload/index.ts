@@ -41,5 +41,13 @@ contextBridge.exposeInMainWorld('api', {
   },
   confirmCloseResponse: (panelId: string, confirmed: boolean) => {
     ipcRenderer.send('pty:confirm-close-response', { panelId, confirmed })
+  },
+
+  // Focus management
+  focusPanel: (panelId: string) => {
+    ipcRenderer.send('panel:focus', { panelId })
+  },
+  blurAllPanels: () => {
+    ipcRenderer.send('panel:blur-all')
   }
 })

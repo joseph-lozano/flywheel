@@ -82,6 +82,18 @@ export default function App() {
     )
   )
 
+  createEffect(() => {
+    if (state.panels.length === 0) return
+    const focusedPanel = state.panels[state.focusedIndex]
+    if (!focusedPanel) return
+
+    if (state.terminalFocused && focusedPanel.type === 'terminal') {
+      window.api.focusPanel(focusedPanel.id)
+    } else {
+      window.api.blurAllPanels()
+    }
+  })
+
   function handleWheel(deltaX: number): void {
     currentAnimation?.cancel()
     currentAnimation = null

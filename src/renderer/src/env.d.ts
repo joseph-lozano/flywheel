@@ -21,6 +21,10 @@ interface FlywheelAPI {
   closePanel(panelId: string): void
   onConfirmClose(callback: (data: { panelId: string; processName: string }) => void): void
   confirmCloseResponse(panelId: string, confirmed: boolean): void
+
+  // Focus management
+  focusPanel(panelId: string): void
+  blurAllPanels(): void
 }
 
 declare global {
