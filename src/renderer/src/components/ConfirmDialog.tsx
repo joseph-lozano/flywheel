@@ -7,7 +7,7 @@ interface ConfirmDialogProps {
 export default function ConfirmDialog(props: ConfirmDialogProps) {
   function handleKeyDown(e: KeyboardEvent): void {
     if (e.key === 'Enter') { e.preventDefault(); props.onConfirm() }
-    else if (e.key === 'Escape') { e.preventDefault(); props.onCancel() }
+    else if (e.key === 'Escape' || (e.metaKey && e.key === '.')) { e.preventDefault(); props.onCancel() }
   }
 
   return (
