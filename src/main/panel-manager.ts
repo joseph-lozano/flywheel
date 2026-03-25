@@ -130,6 +130,14 @@ export class PanelManager {
         chromeStripView.webContents.send('panel:chrome-state', { label: title })
       })
 
+      // Loading state → animate dot grid in chrome strip
+      view.webContents.on('did-start-loading', () => {
+        chromeStripView.webContents.send('panel:chrome-state', { busy: true })
+      })
+      view.webContents.on('did-stop-loading', () => {
+        chromeStripView.webContents.send('panel:chrome-state', { busy: false })
+      })
+
       // Replay cached chrome state once chrome strip finishes loading
       chromeStripView.webContents.once('did-finish-load', () => {
         const cached = this.pendingChromeState.get(id)
