@@ -1,4 +1,5 @@
 import { createSignal } from 'solid-js'
+import { Globe } from 'lucide-solid'
 import type { Rectangle } from '../../../shared/types'
 import { LAYOUT } from '../../../shared/constants'
 
@@ -89,11 +90,9 @@ export default function PanelFrame(props: PanelFrameProps) {
             {props.position <= 9 && (
               <span style={{
                 color: props.focused ? '#e0e0e0' : '#666', 'margin-right': '6px', 'flex-shrink': 0
-              }}>{props.position} ⌁</span>
+              }}>{props.position} /</span>
             )}
-            <span style={{
-              color: '#06b6d4', 'margin-right': '8px', 'font-size': '14px', 'flex-shrink': 0
-            }}>&#127760;</span>
+            <Globe size={14} color="#06b6d4" />
             {editingUrl() ? (
               <input
                 type="text"
