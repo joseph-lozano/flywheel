@@ -26,7 +26,7 @@ export default function Strip(props: StripProps) {
               titleBarBounds={entry.titleBarBounds}
               contentBounds={entry.contentBounds}
               label={label()}
-              focused={index() === props.focusedIndex}
+              focused={entry.panelId === props.panels[props.focusedIndex]?.id}
             />
           )
         }}
