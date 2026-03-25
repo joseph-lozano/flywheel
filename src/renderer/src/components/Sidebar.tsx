@@ -1,4 +1,4 @@
-import { For, createSignal } from 'solid-js'
+import { For, createSignal, createEffect, onCleanup } from 'solid-js'
 import type { Project } from '../../../shared/types'
 import { SIDEBAR } from '../../../shared/constants'
 
@@ -31,6 +31,15 @@ export default function Sidebar(props: SidebarProps) {
   function closeContextMenu() {
     setContextMenu(null)
   }
+
+  // Dismiss context menu on any click outside the sidebar
+  createEffect(() => {
+    if (contextMenu()) {
+      const handler = () => closeContextMenu()
+      window.addEventListener('click', handler)
+      onCleanup(() => window.removeEventListener('click', handler))
+    }
+  })
 
   return (
     <div
