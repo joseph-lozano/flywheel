@@ -23,10 +23,20 @@ export interface PanelBoundsUpdate {
 
 export type VisibilityState = 'visible' | 'hidden' | 'destroyed'
 
+export interface PanelChromeState {
+  panelId: string
+  position: number
+  label: string
+  focused: boolean
+  type: 'terminal' | 'placeholder' | 'browser'
+  url?: string
+  canGoBack?: boolean
+  canGoForward?: boolean
+}
+
 export interface PanelLayout {
   panelId: string
   contentBounds: Rectangle
-  titleBarBounds: Rectangle
   visibility: VisibilityState
 }
 
