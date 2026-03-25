@@ -79,10 +79,9 @@ The project tree sidebar — broken out as its own focused phase before rows and
 - Decision: where to persist app-level state (project list, window positions) — SQLite, JSON file, electron-store, etc.
 
 **Scope:**
-- Tree sidebar with project list ([spec: Sidebar, L80-97](docs/superpowers/specs/2026-03-24-flywheel-design.md#L80-L97))
+- Flat project list sidebar with active indicator ([spec: Sidebar, L80-97](docs/superpowers/specs/2026-03-24-flywheel-design.md#L80-L97))
 - Add/remove projects via directory picker
-- Expand/collapse project tree
-- Switch between projects via sidebar
+- Switch between projects via sidebar (hide/show strips, PTYs stay alive)
 
 **Milestone**: Multi-project support. Open Flywheel and switch between projects from the sidebar.
 
