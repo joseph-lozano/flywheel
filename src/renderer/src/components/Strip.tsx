@@ -20,7 +20,7 @@ export default function Strip(props: StripProps) {
             const pos = panelIndex() + 1
             const p = panel()
             const name = p?.label ?? ''
-            return pos <= 9 ? `${pos} — ${name}` : name
+            return pos <= 9 ? `${pos} ⌁ ${name}` : name
           }
           return (
             <PanelFrame
