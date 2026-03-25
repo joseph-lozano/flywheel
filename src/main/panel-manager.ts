@@ -3,6 +3,7 @@ import { join } from 'path'
 
 interface ManagedPanel {
   id: string
+  type: 'terminal' | 'placeholder'
   view: WebContentsView
 }
 
@@ -16,8 +17,10 @@ export class PanelManager {
     this.chromeView = chromeView
   }
 
-  createPanel(id: string, color: string): void {
+  createPanel(id: string, options: { type: 'terminal' } | { type?: 'placeholder'; color: string }): void {
     if (this.panels.has(id)) return
+
+    const panelType = options.type || 'placeholder'
 
     const view = new WebContentsView({
       webPreferences: {
@@ -26,13 +29,24 @@ export class PanelManager {
       }
     })
 
-    view.setBackgroundColor(color)
-    view.webContents.loadURL(
-      `data:text/html,<html><body style="margin:0;background:${encodeURIComponent(color)};height:100vh"></body></html>`
-    )
+    if (panelType === 'terminal') {
+      if (process.env['ELECTRON_RENDERER_URL']) {
+        view.webContents.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/terminal/index.html?panelId=${id}`)
+      } else {
+        view.webContents.loadFile(join(__dirname, '../renderer/terminal/index.html'), {
+          query: { panelId: id }
+        })
+      }
+    } else {
+      const color = 'color' in options ? options.color : '#333'
+      view.setBackgroundColor(color)
+      view.webContents.loadURL(
+        `data:text/html,<html><body style="margin:0;background:${encodeURIComponent(color)};height:100vh"></body></html>`
+      )
+    }
 
     this.window.contentView.addChildView(view)
-    this.panels.set(id, { id, view })
+    this.panels.set(id, { id, type: panelType, view })
   }
 
   destroyPanel(id: string): void {
@@ -58,6 +72,10 @@ export class PanelManager {
         panel.view.setVisible(false)
       }
     }
+  }
+
+  getPanelView(id: string): WebContentsView | null {
+    return this.panels.get(id)?.view || null
   }
 
   get panelCount(): number {
