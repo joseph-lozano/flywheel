@@ -79,8 +79,9 @@ export class PtyManager {
   isBusy(panelId: string): boolean {
     const managed = this.ptys.get(panelId)
     if (!managed) return false
-    const fg = basename(managed.pty.process)
-    return fg !== managed.shellName
+    const fg = managed.pty.process
+    if (!fg) return false
+    return basename(fg) !== managed.shellName
   }
 
   private flush(): void {

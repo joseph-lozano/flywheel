@@ -22,24 +22,6 @@ export const PANEL_COLORS = [
   { name: 'Teal', hex: '#14b8a6' }
 ] as const
 
-export const IPC_CHANNELS = {
-  // Existing
-  PANEL_CREATE: 'panel:create',
-  PANEL_DESTROY: 'panel:destroy',
-  PANEL_UPDATE_BOUNDS: 'panel:update-bounds',
-  PANEL_WHEEL: 'panel:wheel',
-  SCROLL_WHEEL: 'scroll:wheel',
-  SHORTCUT_ACTION: 'shortcut:action',
-  // New: PTY
-  PTY_CREATE: 'pty:create',
-  PTY_INPUT: 'pty:input',
-  PTY_OUTPUT: 'pty:output',
-  PTY_RESIZE: 'pty:resize',
-  PTY_EXIT: 'pty:exit',
-  PTY_CONFIRM_CLOSE: 'pty:confirm-close',
-  PTY_CONFIRM_CLOSE_RESPONSE: 'pty:confirm-close-response',
-  PANEL_CLOSE_REQUEST: 'panel:close-request'
-} as const
 
 export const TERMINAL_DEFAULTS = {
   fontFamily: 'monospace',

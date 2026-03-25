@@ -3,6 +3,7 @@ import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { Unicode11Addon } from '@xterm/addon-unicode11'
 import '@xterm/xterm/css/xterm.css'
+import { TERMINAL_DEFAULTS } from '../shared/constants'
 
 declare global {
   interface Window {
@@ -19,31 +20,7 @@ declare global {
 const panelId = window.pty.getPanelId()
 
 const terminal = new Terminal({
-  fontFamily: 'monospace',
-  fontSize: 14,
-  theme: {
-    background: '#1a1a2e',
-    foreground: '#e0e0e0',
-    cursor: '#e0e0e0',
-    cursorAccent: '#1a1a2e',
-    selectionBackground: 'rgba(255, 255, 255, 0.2)',
-    black: '#1a1a2e',
-    red: '#f43f5e',
-    green: '#10b981',
-    yellow: '#f59e0b',
-    blue: '#6366f1',
-    magenta: '#8b5cf6',
-    cyan: '#06b6d4',
-    white: '#e0e0e0',
-    brightBlack: '#4a4a6a',
-    brightRed: '#fb7185',
-    brightGreen: '#34d399',
-    brightYellow: '#fbbf24',
-    brightBlue: '#818cf8',
-    brightMagenta: '#a78bfa',
-    brightCyan: '#22d3ee',
-    brightWhite: '#ffffff'
-  },
+  ...TERMINAL_DEFAULTS,
   allowProposedApi: true
 })
 
