@@ -31,6 +31,7 @@ export const DOT_GRID_CSS = `
 .dot-grid-wrap.busy { opacity: 1; }
 .dot-grid-wrap.busy circle {
   animation: dot-sparkle 1.5s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 .dot-grid-wrap.busy circle:nth-child(1) { animation-delay: 0s; }
 .dot-grid-wrap.busy circle:nth-child(2) { animation-delay: 0.5s; }
@@ -44,6 +45,14 @@ export const DOT_GRID_CSS = `
   60% { opacity: 0.2; fill: #6366f1; transform: scale(1); }
 }
 `
+
+export function initDotGrid(wrap: HTMLElement): void {
+  wrap.className = 'dot-grid-wrap'
+  wrap.innerHTML = DOT_GRID_SVG
+  const style = document.createElement('style')
+  style.textContent = DOT_GRID_CSS
+  document.head.appendChild(style)
+}
 
 export function setDotGridBusy(wrap: HTMLElement, busy: boolean): void {
   wrap.classList.toggle('busy', busy)

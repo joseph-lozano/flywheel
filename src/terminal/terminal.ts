@@ -5,7 +5,7 @@ import { Unicode11Addon } from '@xterm/addon-unicode11'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { TERMINAL_DEFAULTS } from '../shared/constants'
-import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from '../browser/dot-grid'
+import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
   interface Window {
@@ -85,18 +85,12 @@ const posLabel = document.getElementById('pos-label')!
 const dotGridWrap = document.getElementById('dot-grid')!
 const titleLabel = document.getElementById('title-label')!
 
-// Inject dot-grid SVG and CSS
-dotGridWrap.className = 'dot-grid-wrap'
-dotGridWrap.innerHTML = DOT_GRID_SVG
-const style = document.createElement('style')
-style.textContent = DOT_GRID_CSS
-document.head.appendChild(style)
+initDotGrid(dotGridWrap)
 
 const titleBar = document.getElementById('panel-titlebar')!
 
 window.pty.onChromeState((state) => {
   posLabel.textContent = state.position <= 9 ? `${state.position}` : ''
-  dotGridWrap.style.display = state.position <= 9 ? '' : 'none'
   titleLabel.textContent = state.label
   titleBar.classList.toggle('focused', state.focused)
   setDotGridBusy(dotGridWrap, !!state.busy)

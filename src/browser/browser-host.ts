@@ -1,5 +1,5 @@
 import { ICONS } from './icons'
-import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from './dot-grid'
+import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
   interface Window {
@@ -32,12 +32,7 @@ const urlInput = document.getElementById('url-input') as HTMLInputElement
 
 const dotGridWrap = document.getElementById('dot-grid')!
 
-// Inject dot-grid SVG and CSS
-dotGridWrap.className = 'dot-grid-wrap'
-dotGridWrap.innerHTML = DOT_GRID_SVG
-const dotGridStyle = document.createElement('style')
-dotGridStyle.textContent = DOT_GRID_CSS
-document.head.appendChild(dotGridStyle)
+initDotGrid(dotGridWrap)
 
 // Set icons
 globeIcon.innerHTML = ICONS.globe
@@ -97,7 +92,6 @@ window.browserHost.onChromeState((partial) => {
   currentState = { ...currentState, ...partial }
   const s = currentState
   posLabel.textContent = s.position <= 9 ? `${s.position}` : ''
-  dotGridWrap.style.display = s.position <= 9 ? '' : 'none'
   setDotGridBusy(dotGridWrap, !!s.busy)
   titleLabel.textContent = s.label || s.url || 'about:blank'
   titlebar.classList.toggle('focused', s.focused)
