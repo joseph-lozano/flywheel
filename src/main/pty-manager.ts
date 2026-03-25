@@ -107,9 +107,11 @@ export class PtyManager {
       if (managed.disposed) continue
       const current = managed.pty.process
       if (!current) continue
-      const title = basename(current)
-      if (title !== managed.lastTitle) {
-        managed.lastTitle = title
+      const processName = basename(current)
+      if (processName !== managed.lastTitle) {
+        managed.lastTitle = processName
+        // Show "Terminal" when process is just the shell, otherwise show the process name
+        const title = processName === managed.shellName ? 'Terminal' : processName
         this.sendToChrome('panel:title', { panelId: managed.panelId, title })
       }
     }

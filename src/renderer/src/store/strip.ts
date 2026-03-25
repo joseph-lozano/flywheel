@@ -31,6 +31,7 @@ export function createStripStore() {
     addPanel(panelType: 'terminal' | 'placeholder' = 'terminal'): Panel {
       const panel = nextPanel()
       panel.type = panelType
+      if (panelType === 'terminal') panel.label = 'Terminal'
       const insertIndex = state.panels.length === 0 ? 0 : state.focusedIndex + 1
       const before = state.panels.slice(0, insertIndex)
       const after = state.panels.slice(insertIndex)
