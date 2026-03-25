@@ -11,7 +11,14 @@ export interface StripState {
   terminalFocused: boolean
 }
 
-export function createStripStore() {
+export interface StripSnapshot {
+  panels: Panel[]
+  focusedIndex: number
+  scrollOffset: number
+  terminalFocused: boolean
+}
+
+export function createStripStore(projectId = 'default') {
   let nextId = 0
   let colorIndex = 0
 
@@ -19,7 +26,7 @@ export function createStripStore() {
     const color = PANEL_COLORS[colorIndex % PANEL_COLORS.length]
     colorIndex++
     nextId++
-    return { id: `panel-${nextId}`, type: 'placeholder', color: color.hex, label: color.name }
+    return { id: `${projectId}-panel-${nextId}`, type: 'placeholder', color: color.hex, label: color.name }
   }
 
   const [state, setState] = createStore<StripState>({
@@ -110,5 +117,21 @@ export function createStripStore() {
     setViewport(width: number, height: number) { setState('viewportWidth', width); setState('viewportHeight', height) }
   }
 
-  return { state, actions }
+  function getSnapshot(): StripSnapshot {
+    return {
+      panels: [...state.panels],
+      focusedIndex: state.focusedIndex,
+      scrollOffset: state.scrollOffset,
+      terminalFocused: state.terminalFocused
+    }
+  }
+
+  function restore(snapshot: StripSnapshot): void {
+    setState('panels', [...snapshot.panels])
+    setState('focusedIndex', snapshot.focusedIndex)
+    setState('scrollOffset', snapshot.scrollOffset)
+    setState('terminalFocused', snapshot.terminalFocused)
+  }
+
+  return { state, actions, getSnapshot, restore }
 }

@@ -3,7 +3,7 @@ import { createRoot } from 'solid-js'
 import { createStripStore } from '../../src/renderer/src/store/strip'
 
 function withStore(fn: (store: ReturnType<typeof createStripStore>) => void) {
-  createRoot((dispose) => { const store = createStripStore(); fn(store); dispose() })
+  createRoot((dispose) => { const store = createStripStore('test'); fn(store); dispose() })
 }
 
 describe('createStripStore', () => {
@@ -325,6 +325,50 @@ describe('browser panels', () => {
       actions.blurPanel()
       actions.addPanel('browser', 'http://localhost:3000')
       expect(state.terminalFocused).toBe(true)
+    })
+  })
+})
+
+describe('projectId panel ID generation', () => {
+  it('prefixes panel IDs with projectId', () => {
+    createRoot((dispose) => {
+      const store = createStripStore('proj-abc')
+      const panel = store.actions.addPanel('terminal')
+      expect(panel.id).toMatch(/^proj-abc-panel-/)
+      dispose()
+    })
+  })
+})
+
+describe('getSnapshot and restore', () => {
+  it('snapshots current state', () => {
+    createRoot((dispose) => {
+      const store = createStripStore('proj-1')
+      store.actions.addPanel('terminal')
+      store.actions.addPanel('terminal')
+      store.actions.setScrollOffset(100)
+      const snapshot = store.getSnapshot()
+      expect(snapshot.panels).toHaveLength(2)
+      expect(snapshot.scrollOffset).toBe(100)
+      expect(snapshot.focusedIndex).toBe(1)
+      dispose()
+    })
+  })
+
+  it('restores from snapshot', () => {
+    createRoot((dispose) => {
+      const store = createStripStore('proj-1')
+      store.actions.addPanel('terminal')
+      store.actions.addPanel('terminal')
+      store.actions.setScrollOffset(100)
+      const snapshot = store.getSnapshot()
+
+      const store2 = createStripStore('proj-1')
+      store2.restore(snapshot)
+      expect(store2.state.panels).toHaveLength(2)
+      expect(store2.state.scrollOffset).toBe(100)
+      expect(store2.state.focusedIndex).toBe(1)
+      dispose()
     })
   })
 })
