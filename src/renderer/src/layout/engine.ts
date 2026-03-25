@@ -21,17 +21,15 @@ export function computeVisibility(screenX: number, panelWidth: number, viewportW
 export function computeLayout(input: LayoutInput): PanelLayout[] {
   const { panels, scrollOffset, viewportWidth, viewportHeight } = input
   const panelWidth = Math.round(viewportWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO)
-  const stripHeight = viewportHeight - LAYOUT.STRIP_TOP_PADDING - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT
-  const contentHeight = stripHeight - LAYOUT.TITLE_BAR_HEIGHT
-  const contentTop = LAYOUT.STRIP_TOP_PADDING + LAYOUT.TITLE_BAR_HEIGHT
+  const panelTop = LAYOUT.STRIP_TOP_PADDING
+  const panelHeight = viewportHeight - LAYOUT.STRIP_TOP_PADDING - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT
 
   return panels.map((panel, index) => {
     const stripX = index * (panelWidth + LAYOUT.PANEL_GAP)
     const screenX = stripX - scrollOffset
     return {
       panelId: panel.id,
-      contentBounds: { x: screenX, y: contentTop, width: panelWidth, height: contentHeight },
-      titleBarBounds: { x: screenX, y: LAYOUT.STRIP_TOP_PADDING, width: panelWidth, height: LAYOUT.TITLE_BAR_HEIGHT },
+      contentBounds: { x: screenX, y: panelTop, width: panelWidth, height: panelHeight },
       visibility: computeVisibility(screenX, panelWidth, viewportWidth)
     }
   })
