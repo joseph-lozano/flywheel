@@ -29,9 +29,9 @@ function createWindow(): void {
   chromeView.setBounds({ x: 0, y: 0, width, height })
 
   if (process.env['ELECTRON_RENDERER_URL']) {
-    chromeView.webContents.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    chromeView.webContents.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/renderer/index.html`)
   } else {
-    chromeView.webContents.loadFile(join(__dirname, '../renderer/index.html'))
+    chromeView.webContents.loadFile(join(__dirname, '../renderer/renderer/index.html'))
   }
 
   panelManager = new PanelManager(mainWindow, chromeView)
