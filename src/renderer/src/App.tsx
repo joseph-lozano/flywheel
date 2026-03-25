@@ -1,4 +1,4 @@
-import { createEffect, on, onMount, batch } from 'solid-js'
+import { createEffect, createSignal, on, onMount, batch } from 'solid-js'
 import { createStripStore } from './store/strip'
 import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCenteredPanel } from './layout/engine'
 import { animate, easeOut } from './scroll/animator'
@@ -7,12 +7,15 @@ import type { PanelBoundsUpdate } from '../../../shared/types'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
 import HintBar from './components/HintBar'
+import ConfirmDialog from './components/ConfirmDialog'
 
 export default function App() {
   const { state, actions } = createStripStore()
   const createdPanelIds = new Set<string>()
   let currentAnimation: AnimationHandle | null = null
   let scrollEndTimer: ReturnType<typeof setTimeout>
+
+  const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
 
   createEffect(() => {
     const layout = computeLayout({
@@ -31,7 +34,11 @@ export default function App() {
       if (!createdPanelIds.has(entry.panelId)) {
         const panel = state.panels.find((p) => p.id === entry.panelId)
         if (panel) {
-          window.api.createPanel(entry.panelId, panel.color)
+          if (panel.type === 'terminal') {
+            window.api.createTerminalPanel(entry.panelId)
+          } else {
+            window.api.createPanel(entry.panelId, panel.color)
+          }
           createdPanelIds.add(entry.panelId)
         }
       }
@@ -88,13 +95,46 @@ export default function App() {
     }, 150)
   }
 
+  function handleClosePanel(): void {
+    if (state.panels.length === 0) return
+    const focusedPanel = state.panels[state.focusedIndex]
+    if (!focusedPanel) return
+
+    if (focusedPanel.type === 'terminal') {
+      window.api.closePanel(focusedPanel.id)
+    } else {
+      const removedId = actions.removePanel()
+      if (removedId) {
+        window.api.destroyPanel(removedId)
+        createdPanelIds.delete(removedId)
+      }
+    }
+  }
+
   function handleShortcut(action: { type: string; index?: number }): void {
     switch (action.type) {
       case 'focus-left': actions.focusLeft(); break
       case 'focus-right': actions.focusRight(); break
-      case 'new-panel': actions.addPanel(); break
-      case 'close-panel': actions.removePanel(); break
+      case 'new-panel': {
+        const panel = actions.addPanel('terminal')
+        window.api.createTerminal(panel.id)
+        break
+      }
+      case 'close-panel': handleClosePanel(); break
+      case 'blur-panel': actions.blurPanel(); break
       case 'jump-to': if (action.index !== undefined) actions.jumpTo(action.index); break
+    }
+  }
+
+  function handleConfirmResponse(confirmed: boolean): void {
+    const data = confirmClose()
+    if (data) {
+      window.api.confirmCloseResponse(data.panelId, confirmed)
+      if (confirmed) {
+        actions.removePanelById(data.panelId)
+        createdPanelIds.delete(data.panelId)
+      }
+      setConfirmClose(null)
     }
   }
 
@@ -106,9 +146,19 @@ export default function App() {
       if (event.deltaX !== 0) handleWheel(event.deltaX)
     }, { passive: true })
 
+    window.api.onPtyExit((data) => {
+      actions.removePanelById(data.panelId)
+      createdPanelIds.delete(data.panelId)
+    })
+
+    window.api.onConfirmClose((data) => {
+      setConfirmClose(data)
+    })
+
     batch(() => {
       actions.setViewport(window.innerWidth, window.innerHeight)
-      for (let i = 0; i < 12; i++) actions.addPanel()
+      const panel = actions.addPanel('terminal')
+      window.api.createTerminal(panel.id)
       actions.jumpTo(0)
     })
   })
@@ -130,6 +180,13 @@ export default function App() {
         viewportWidth={state.viewportWidth} viewportHeight={state.viewportHeight}
       />
       <HintBar viewportHeight={state.viewportHeight} panelCount={state.panels.length} />
+      {confirmClose() && (
+        <ConfirmDialog
+          processName={confirmClose()!.processName}
+          onConfirm={() => handleConfirmResponse(true)}
+          onCancel={() => handleConfirmResponse(false)}
+        />
+      )}
     </>
   )
 }
