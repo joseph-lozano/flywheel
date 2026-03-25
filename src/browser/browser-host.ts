@@ -1,4 +1,5 @@
 import { ICONS } from './icons'
+import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from './dot-grid'
 
 declare global {
   interface Window {
@@ -11,7 +12,8 @@ declare global {
       reload: () => void
       onChromeState: (callback: (state: {
         position: number; label: string; focused: boolean;
-        url: string; canGoBack: boolean; canGoForward: boolean
+        url: string; canGoBack: boolean; canGoForward: boolean;
+        busy?: boolean
       }) => void) => void
     }
   }
@@ -27,6 +29,15 @@ const btnForward = document.getElementById('btn-forward') as HTMLButtonElement
 const btnReload = document.getElementById('btn-reload') as HTMLButtonElement
 const urlDisplay = document.getElementById('url-display')!
 const urlInput = document.getElementById('url-input') as HTMLInputElement
+
+const dotGridWrap = document.getElementById('dot-grid')!
+
+// Inject dot-grid SVG and CSS
+dotGridWrap.className = 'dot-grid-wrap'
+dotGridWrap.innerHTML = DOT_GRID_SVG
+const dotGridStyle = document.createElement('style')
+dotGridStyle.textContent = DOT_GRID_CSS
+document.head.appendChild(dotGridStyle)
 
 // Set icons
 globeIcon.innerHTML = ICONS.globe
@@ -78,13 +89,16 @@ urlInput.addEventListener('blur', () => { if (editing) commitUrl() })
 // Chrome state updates from main process — merges partial updates
 let currentState = {
   position: 0, label: '', focused: false,
-  url: 'about:blank', canGoBack: false, canGoForward: false
+  url: 'about:blank', canGoBack: false, canGoForward: false,
+  busy: false
 }
 
 window.browserHost.onChromeState((partial) => {
   currentState = { ...currentState, ...partial }
   const s = currentState
-  posLabel.textContent = s.position <= 9 ? `${s.position} /` : ''
+  posLabel.textContent = s.position <= 9 ? `${s.position}` : ''
+  dotGridWrap.style.display = s.position <= 9 ? '' : 'none'
+  setDotGridBusy(dotGridWrap, !!s.busy)
   titleLabel.textContent = s.label || s.url || 'about:blank'
   titlebar.classList.toggle('focused', s.focused)
   navbar.classList.toggle('focused', s.focused)
