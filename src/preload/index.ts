@@ -52,5 +52,8 @@ contextBridge.exposeInMainWorld('api', {
   },
   onPanelFocused: (callback: (data: { panelId: string }) => void) => {
     ipcRenderer.on('panel:focused', (_event, data) => callback(data))
+  },
+  onPanelTitle: (callback: (data: { panelId: string; title: string }) => void) => {
+    ipcRenderer.on('panel:title', (_event, data) => callback(data))
   }
 })

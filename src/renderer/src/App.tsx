@@ -167,6 +167,11 @@ export default function App() {
       setConfirmClose(data)
     })
 
+    // Update panel title when foreground process changes
+    window.api.onPanelTitle((data) => {
+      actions.setPanelTitle(data.panelId, data.title)
+    })
+
     // When user clicks a panel, sync the store's focusedIndex
     window.api.onPanelFocused((data) => {
       const idx = state.panels.findIndex((p) => p.id === data.panelId)

@@ -6,6 +6,7 @@ interface ManagedPty {
   pty: pty.IPty
   buffer: string
   shellName: string
+  lastTitle: string
   disposed: boolean
 }
 
@@ -14,9 +15,12 @@ type SendToChromeFn = (channel: string, data: unknown) => void
 
 const FLUSH_INTERVAL_MS = 16
 
+const TITLE_CHECK_INTERVAL = 60 // check every ~60 flushes (~1s)
+
 export class PtyManager {
   private ptys = new Map<string, ManagedPty>()
   private flushTimer: ReturnType<typeof setInterval> | null = null
+  private flushCount = 0
   private sendToPanel: SendToPanelFn
   private sendToChrome: SendToChromeFn
 
@@ -35,7 +39,7 @@ export class PtyManager {
       cwd: process.cwd(),
       env: process.env as Record<string, string>
     })
-    const managed: ManagedPty = { panelId, pty: ptyProcess, buffer: '', shellName, disposed: false }
+    const managed: ManagedPty = { panelId, pty: ptyProcess, buffer: '', shellName, lastTitle: shellName, disposed: false }
     ptyProcess.onData((data: string) => { if (!managed.disposed) managed.buffer += data })
     ptyProcess.onExit(({ exitCode }) => {
       if (!managed.disposed) {
@@ -89,6 +93,24 @@ export class PtyManager {
       if (managed.buffer.length > 0 && !managed.disposed) {
         this.sendToPanel(managed.panelId, 'pty:output', { panelId: managed.panelId, data: managed.buffer })
         managed.buffer = ''
+      }
+    }
+    this.flushCount++
+    if (this.flushCount >= TITLE_CHECK_INTERVAL) {
+      this.flushCount = 0
+      this.checkTitles()
+    }
+  }
+
+  private checkTitles(): void {
+    for (const managed of this.ptys.values()) {
+      if (managed.disposed) continue
+      const current = managed.pty.process
+      if (!current) continue
+      const title = basename(current)
+      if (title !== managed.lastTitle) {
+        managed.lastTitle = title
+        this.sendToChrome('panel:title', { panelId: managed.panelId, title })
       }
     }
   }

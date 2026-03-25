@@ -18,7 +18,7 @@ export default function Strip(props: StripProps) {
           const label = () => {
             const pos = panelIndex() + 1
             const p = panel()
-            const name = p?.type === 'terminal' ? 'Terminal' : (p?.label ?? '')
+            const name = p?.label || (p?.type === 'terminal' ? 'Terminal' : '')
             return pos <= 9 ? `${pos} — ${name}` : name
           }
           return (

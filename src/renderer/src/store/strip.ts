@@ -65,6 +65,10 @@ export function createStripStore() {
     jumpTo(index: number) {
       if (index >= 0 && index < state.panels.length) { setState('focusedIndex', index); setState('terminalFocused', true) }
     },
+    setPanelTitle(id: string, title: string) {
+      const index = state.panels.findIndex((p) => p.id === id)
+      if (index >= 0) setState('panels', index, 'label', title)
+    },
     setScrollOffset(offset: number) { setState('scrollOffset', offset) },
     setViewport(width: number, height: number) { setState('viewportWidth', width); setState('viewportHeight', height) }
   }
