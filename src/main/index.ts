@@ -121,6 +121,9 @@ function setupIpcHandlers(): void {
         processName
       })
     } else {
+      // kill() sets disposed=true before calling pty.kill(), which suppresses the
+      // real onExit callback. We must send a synthetic pty:exit so the chrome view
+      // knows to remove the panel from the store.
       ptyManager.kill(data.panelId)
       panelManager.destroyPanel(data.panelId)
       chromeView.webContents.send('pty:exit', { panelId: data.panelId, exitCode: 0 })
