@@ -52,6 +52,7 @@ export class PtyManager {
       }
     })
     this.ptys.set(panelId, managed)
+    this.sendToChrome('panel:title', { panelId, title: shellName })
   }
 
   write(panelId: string, data: string): void {
