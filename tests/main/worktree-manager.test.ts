@@ -41,7 +41,7 @@ describe('WorktreeManager', () => {
   describe('resolveBase', () => {
     it('resolves origin/HEAD when remote exists', async () => {
       mockExecFile.mockImplementation((_cmd: string, args: string[], _opts: unknown, cb: Function) => {
-        if (args.includes('origin/HEAD')) cb(null, { stdout: 'abc123\n' })
+        if (args.includes('origin/HEAD')) cb(null, 'abc123\n')
         else cb(new Error('not found'))
       })
       const base = await manager.resolveBase('/test/project')
@@ -51,7 +51,7 @@ describe('WorktreeManager', () => {
     it('falls back to HEAD when no remote', async () => {
       mockExecFile.mockImplementation((_cmd: string, args: string[], _opts: unknown, cb: Function) => {
         if (args.includes('origin/HEAD')) cb(new Error('no remote'))
-        else if (args.includes('HEAD')) cb(null, { stdout: 'def456\n' })
+        else if (args.includes('HEAD')) cb(null, 'def456\n')
         else cb(new Error('not found'))
       })
       const base = await manager.resolveBase('/test/project')
@@ -73,7 +73,7 @@ describe('WorktreeManager', () => {
       ].join('\n')
 
       mockExecFile.mockImplementation((_cmd: string, _args: string[], _opts: unknown, cb: Function) => {
-        cb(null, { stdout: porcelainOutput })
+        cb(null, porcelainOutput)
       })
 
       const worktrees = await manager.listWorktrees('/Users/test/project')
@@ -86,7 +86,7 @@ describe('WorktreeManager', () => {
   describe('isGitRepo', () => {
     it('returns true for git repos', async () => {
       mockExecFile.mockImplementation((_cmd: string, _args: string[], _opts: unknown, cb: Function) => {
-        cb(null, { stdout: 'true\n' })
+        cb(null, 'true\n')
       })
       expect(await manager.isGitRepo('/test/project')).toBe(true)
     })
@@ -102,7 +102,7 @@ describe('WorktreeManager', () => {
   describe('getDefaultBranch', () => {
     it('returns current branch name', async () => {
       mockExecFile.mockImplementation((_cmd: string, _args: string[], _opts: unknown, cb: Function) => {
-        cb(null, { stdout: 'main\n' })
+        cb(null, 'main\n')
       })
       expect(await manager.getDefaultBranch('/test/project')).toBe('main')
     })

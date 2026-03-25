@@ -19,7 +19,7 @@ const NOUNS = [
   'snow', 'star', 'stone', 'swan', 'tide', 'vale', 'vine', 'wave', 'wind', 'wolf'
 ]
 
-interface WorktreeInfo {
+export interface WorktreeInfo {
   path: string
   branch: string
 }
@@ -107,12 +107,7 @@ export class WorktreeManager {
     return new Promise((resolve, reject) => {
       execFile('git', ['-C', cwd, ...args], {}, (error, stdout) => {
         if (error) reject(error)
-        else {
-          const out = typeof stdout === 'object' && stdout !== null && 'stdout' in stdout
-            ? (stdout as unknown as { stdout: string }).stdout
-            : String(stdout)
-          resolve(out.trim())
-        }
+        else resolve((stdout as string).trim())
       })
     })
   }
