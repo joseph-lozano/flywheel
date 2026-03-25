@@ -61,5 +61,22 @@ contextBridge.exposeInMainWorld('api', {
   },
   showAllPanels: () => {
     ipcRenderer.send('panel:show-all')
+  },
+
+  // Browser panels
+  createBrowserPanel: (id: string, url: string) => {
+    ipcRenderer.send('panel:create', { id, type: 'browser', url })
+  },
+  navigateBrowser: (panelId: string, url: string) => {
+    ipcRenderer.send('browser:navigate', { panelId, url })
+  },
+  onBrowserUrlChanged: (callback: (data: { panelId: string; url: string }) => void) => {
+    ipcRenderer.on('browser:url-changed', (_event, data) => callback(data))
+  },
+  onBrowserOpenUrl: (callback: (data: { url: string }) => void) => {
+    ipcRenderer.on('browser:open-url', (_event, data) => callback(data))
+  },
+  onPanelClosed: (callback: (data: { panelId: string }) => void) => {
+    ipcRenderer.on('panel:closed', (_event, data) => callback(data))
   }
 })

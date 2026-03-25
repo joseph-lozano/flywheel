@@ -29,6 +29,13 @@ interface FlywheelAPI {
   onPanelTitle(callback: (data: { panelId: string; title: string }) => void): void
   hideAllPanels(): void
   showAllPanels(): void
+
+  // Browser panels
+  createBrowserPanel(id: string, url: string): void
+  navigateBrowser(panelId: string, url: string): void
+  onBrowserUrlChanged(callback: (data: { panelId: string; url: string }) => void): void
+  onBrowserOpenUrl(callback: (data: { url: string }) => void): void
+  onPanelClosed(callback: (data: { panelId: string }) => void): void
 }
 
 declare global {
