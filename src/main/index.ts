@@ -1,12 +1,14 @@
-import { app, BaseWindow, WebContentsView, ipcMain, Menu } from 'electron'
+import { app, BaseWindow, WebContentsView, ipcMain, Menu, dialog } from 'electron'
 import { join } from 'path'
 import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
+import { ProjectStore } from './project-store'
 
 let mainWindow: BaseWindow
 let chromeView: WebContentsView
 let panelManager: PanelManager
 let ptyManager: PtyManager
+let projectStore: ProjectStore
 
 function createWindow(): void {
   mainWindow = new BaseWindow({
@@ -45,6 +47,8 @@ function createWindow(): void {
       chromeView.webContents.send(channel, data)
     }
   )
+
+  projectStore = new ProjectStore()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -102,8 +106,8 @@ function setupIpcHandlers(): void {
   })
 
   // PTY handlers
-  ipcMain.on('pty:create', (_event, data: { panelId: string }) => {
-    ptyManager.create(data.panelId)
+  ipcMain.on('pty:create', (_event, data: { panelId: string; cwd?: string }) => {
+    ptyManager.create(data.panelId, data.cwd)
   })
 
   ipcMain.on('pty:input', (_event, data: { panelId: string; data: string }) => {
@@ -208,6 +212,51 @@ function setupIpcHandlers(): void {
   ipcMain.on('panel:show-all', () => {
     panelManager.showAll()
   })
+
+  // Project management
+  ipcMain.handle('project:add', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+      title: 'Add Project'
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    const project = projectStore.addProject(result.filePaths[0])
+    return project
+  })
+
+  ipcMain.on('project:remove', (_event, data: { projectId: string }) => {
+    ptyManager.killByPrefix(data.projectId)
+    panelManager.destroyByPrefix(data.projectId)
+    projectStore.removeProject(data.projectId)
+  })
+
+  ipcMain.on('project:switch', (_event, data: { projectId: string }) => {
+    projectStore.setActiveProjectId(data.projectId)
+  })
+
+  ipcMain.handle('project:list', () => {
+    return {
+      projects: projectStore.getProjects(),
+      activeProjectId: projectStore.getActiveProjectId()
+    }
+  })
+
+  // Prefix-based panel management
+  ipcMain.on('panel:hide-by-prefix', (_event, data: { prefix: string }) => {
+    panelManager.hideByPrefix(data.prefix)
+  })
+
+  ipcMain.on('panel:show-by-prefix', (_event, data: { prefix: string }) => {
+    panelManager.showByPrefix(data.prefix)
+  })
+
+  ipcMain.on('panel:set-sidebar-width', (_event, data: { width: number }) => {
+    panelManager.sidebarWidth = data.width
+  })
+
+  ipcMain.on('panel:destroy-by-prefix', (_event, data: { prefix: string }) => {
+    panelManager.destroyByPrefix(data.prefix)
+  })
 }
 
 function setupShortcuts(): void {
@@ -267,6 +316,33 @@ function setupShortcuts(): void {
           label: `Jump to Panel ${i + 1}`,
           accelerator: `CommandOrControl+${i + 1}`,
           click: () => chromeView.webContents.send('shortcut:action', { type: 'jump-to', index: i })
+        }))
+      ]
+    },
+    {
+      label: 'Projects',
+      submenu: [
+        {
+          label: 'Add Project',
+          accelerator: 'CommandOrControl+O',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'add-project' })
+        },
+        { type: 'separator' },
+        {
+          label: 'Previous Project',
+          accelerator: 'Command+Shift+Up',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'prev-project' })
+        },
+        {
+          label: 'Next Project',
+          accelerator: 'Command+Shift+Down',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'next-project' })
+        },
+        { type: 'separator' },
+        ...Array.from({ length: 9 }, (_, i) => ({
+          label: `Switch to Project ${i + 1}`,
+          accelerator: `CommandOrControl+Shift+${i + 1}`,
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'switch-project', index: i })
         }))
       ]
     },

@@ -52,3 +52,17 @@ export const TERMINAL_DEFAULTS = {
     brightWhite: '#ffffff'
   }
 } as const
+
+export const SIDEBAR = {
+  MIN_WIDTH: 180,
+  MAX_WIDTH: 280,
+  BACKGROUND: '#12122a',
+  BORDER_COLOR: '#2a2a4a',
+  ACCENT_COLOR: '#6366f1',
+  ACTIVE_BG: 'rgba(99, 102, 241, 0.15)',
+  ITEM_PADDING_V: 6,
+  ITEM_PADDING_H: 12,
+  HEADER_FONT_SIZE: 11,
+  ITEM_FONT_SIZE: 11,
+  ADD_FONT_SIZE: 10
+} as const

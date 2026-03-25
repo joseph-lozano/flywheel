@@ -14,10 +14,15 @@ export class PanelManager {
   private pendingChromeState = new Map<string, Record<string, unknown>>()
   private window: BaseWindow
   private chromeView: WebContentsView
+  private _sidebarWidth = 0
 
   constructor(window: BaseWindow, chromeView: WebContentsView) {
     this.window = window
     this.chromeView = chromeView
+  }
+
+  set sidebarWidth(width: number) {
+    this._sidebarWidth = width
   }
 
   createPanel(id: string, options: { type: 'terminal' } | { type: 'browser'; url: string } | { type?: 'placeholder'; color: string }): void {
@@ -44,6 +49,9 @@ export class PanelManager {
       if (input.shift) {
         if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
         else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
+        else if (input.key === 'ArrowUp') action = { type: 'prev-project' }
+        else if (input.key === 'ArrowDown') action = { type: 'next-project' }
+        else if (input.key >= '1' && input.key <= '9') action = { type: 'switch-project', index: parseInt(input.key) - 1 }
       } else {
         if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
         else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
@@ -55,6 +63,7 @@ export class PanelManager {
         else if (input.key === '[') action = { type: 'browser-back' }
         else if (input.key === ']') action = { type: 'browser-forward' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
+        else if (input.key === 'o') action = { type: 'add-project' }
       }
 
       if (action) {
@@ -217,23 +226,31 @@ export class PanelManager {
     bounds: { x: number; y: number; width: number; height: number }
     visible: boolean
   }>): void {
+    const sw = this._sidebarWidth
     for (const update of updates) {
       const panel = this.panels.get(update.panelId)
       if (!panel) continue
       if (update.visible) {
+        // Clip panel bounds so native views never overlap the sidebar DOM
+        let { x, y, width, height } = update.bounds
+        if (sw > 0 && x < sw) {
+          const clip = sw - x
+          x = sw
+          width = Math.max(0, width - clip)
+        }
+        if (width <= 0) {
+          panel.view.setVisible(false)
+          if (panel.chromeView) panel.chromeView.setVisible(false)
+          continue
+        }
+
         if (panel.chromeView) {
           const chromeHeight = LAYOUT.PANEL_CHROME_HEIGHT
-          panel.chromeView.setBounds({
-            x: update.bounds.x, y: update.bounds.y,
-            width: update.bounds.width, height: chromeHeight
-          })
+          panel.chromeView.setBounds({ x, y, width, height: chromeHeight })
           panel.chromeView.setVisible(true)
-          panel.view.setBounds({
-            x: update.bounds.x, y: update.bounds.y + chromeHeight,
-            width: update.bounds.width, height: update.bounds.height - chromeHeight
-          })
+          panel.view.setBounds({ x, y: y + chromeHeight, width, height: height - chromeHeight })
         } else {
-          panel.view.setBounds(update.bounds)
+          panel.view.setBounds({ x, y, width, height })
         }
         panel.view.setVisible(true)
       } else {
@@ -276,6 +293,30 @@ export class PanelManager {
       if (panel.chromeView) {
         panel.chromeView.setVisible(false)
       }
+    }
+  }
+
+  hideByPrefix(prefix: string): void {
+    for (const panel of this.panels.values()) {
+      if (panel.id.startsWith(prefix)) {
+        panel.view.setVisible(false)
+        if (panel.chromeView) panel.chromeView.setVisible(false)
+      }
+    }
+  }
+
+  showByPrefix(prefix: string): void {
+    for (const panel of this.panels.values()) {
+      if (panel.id.startsWith(prefix)) {
+        panel.view.setVisible(true)
+        if (panel.chromeView) panel.chromeView.setVisible(true)
+      }
+    }
+  }
+
+  destroyByPrefix(prefix: string): void {
+    for (const id of [...this.panels.keys()]) {
+      if (id.startsWith(prefix)) this.destroyPanel(id)
     }
   }
 

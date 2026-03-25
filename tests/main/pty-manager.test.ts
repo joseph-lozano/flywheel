@@ -89,6 +89,32 @@ describe('PtyManager', () => {
     manager.create('panel-1')
     expect(manager.isBusy('panel-1')).toBe(false)
   })
+
+  it('passes cwd to node-pty spawn', () => {
+    manager.create('panel-1', '/Users/test/my-project')
+    expect(nodePty.spawn).toHaveBeenCalledWith(
+      expect.any(String), [],
+      expect.objectContaining({ cwd: '/Users/test/my-project' })
+    )
+  })
+
+  it('falls back to process.cwd() when no cwd provided', () => {
+    manager.create('panel-1')
+    expect(nodePty.spawn).toHaveBeenCalledWith(
+      expect.any(String), [],
+      expect.objectContaining({ cwd: process.cwd() })
+    )
+  })
+
+  it('killByPrefix kills all PTYs with matching prefix', () => {
+    manager.create('proj1-panel-1')
+    manager.create('proj1-panel-2')
+    manager.create('proj2-panel-1')
+    manager.killByPrefix('proj1')
+    expect(manager.hasPty('proj1-panel-1')).toBe(false)
+    expect(manager.hasPty('proj1-panel-2')).toBe(false)
+    expect(manager.hasPty('proj2-panel-1')).toBe(true)
+  })
 })
 
 describe('PtyManager output buffering', () => {
