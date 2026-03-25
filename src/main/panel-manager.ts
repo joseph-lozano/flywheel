@@ -45,6 +45,32 @@ export class PanelManager {
       )
     }
 
+    // Intercept app shortcuts before xterm.js consumes them
+    // Menu accelerators don't fire when a child WebContentsView has focus,
+    // so we manually forward matching key combos to the chrome view.
+    view.webContents.on('before-input-event', (event, input) => {
+      if (input.type !== 'keyDown' || !input.meta) return
+
+      let action: { type: string; index?: number } | null = null
+
+      if (input.shift) {
+        if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
+        else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
+      } else {
+        if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
+        else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
+        else if (input.key === 't') action = { type: 'new-panel' }
+        else if (input.key === 'w') action = { type: 'close-panel' }
+        else if (input.key === 'g') action = { type: 'blur-panel' }
+        else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
+      }
+
+      if (action) {
+        event.preventDefault()
+        this.chromeView.webContents.send('shortcut:action', action)
+      }
+    })
+
     // When a panel gains focus via click, notify chrome view so it can update focusedIndex
     view.webContents.on('focus', () => {
       this.chromeView.webContents.send('panel:focused', { panelId: id })
