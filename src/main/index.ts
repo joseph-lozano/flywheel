@@ -131,6 +131,19 @@ function setupIpcHandlers(): void {
     panelManager.goForwardBrowser(data.panelId)
   })
 
+  // Browser host chrome strip → navigate
+  ipcMain.on('browser:navigate-from-host', (_event, data: { panelId: string; url: string }) => {
+    panelManager.navigateBrowser(data.panelId, data.url)
+  })
+
+  // Chrome view → send chrome state to a panel's views
+  ipcMain.on('panel:send-chrome-state', (_event, data: {
+    panelId: string; position: number; label: string; focused: boolean;
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
+  }) => {
+    panelManager.sendChromeState(data.panelId, data)
+  })
+
   // Terminal link detection → open as browser panel
   ipcMain.on('browser:open-url-from-terminal', (_event, data: { url: string }) => {
     chromeView.webContents.send('browser:open-url', { url: data.url })
