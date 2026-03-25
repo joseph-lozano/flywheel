@@ -55,5 +55,11 @@ contextBridge.exposeInMainWorld('api', {
   },
   onPanelTitle: (callback: (data: { panelId: string; title: string }) => void) => {
     ipcRenderer.on('panel:title', (_event, data) => callback(data))
+  },
+  hideAllPanels: () => {
+    ipcRenderer.send('panel:hide-all')
+  },
+  showAllPanels: () => {
+    ipcRenderer.send('panel:show-all')
   }
 })

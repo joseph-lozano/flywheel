@@ -144,6 +144,14 @@ function setupIpcHandlers(): void {
   ipcMain.on('panel:blur-all', () => {
     chromeView.webContents.focus()
   })
+
+  ipcMain.on('panel:hide-all', () => {
+    panelManager.hideAll()
+  })
+
+  ipcMain.on('panel:show-all', () => {
+    panelManager.showAll()
+  })
 }
 
 function setupShortcuts(): void {

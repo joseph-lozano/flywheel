@@ -152,6 +152,7 @@ export default function App() {
         createdPanelIds.delete(data.panelId)
       }
       setConfirmClose(null)
+      window.api.showAllPanels()
     }
   }
 
@@ -169,6 +170,7 @@ export default function App() {
     })
 
     window.api.onConfirmClose((data) => {
+      window.api.hideAllPanels()
       setConfirmClose(data)
     })
 

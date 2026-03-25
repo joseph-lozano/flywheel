@@ -87,6 +87,18 @@ export class PanelManager {
     return this.panels.size
   }
 
+  hideAll(): void {
+    for (const panel of this.panels.values()) {
+      panel.view.setVisible(false)
+    }
+  }
+
+  showAll(): void {
+    for (const panel of this.panels.values()) {
+      panel.view.setVisible(true)
+    }
+  }
+
   destroyAll(): void {
     for (const id of [...this.panels.keys()]) {
       this.destroyPanel(id)
