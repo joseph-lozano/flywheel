@@ -123,6 +123,14 @@ function setupIpcHandlers(): void {
     panelManager.reloadBrowser(data.panelId)
   })
 
+  ipcMain.on('browser:go-back', (_event, data: { panelId: string }) => {
+    panelManager.goBackBrowser(data.panelId)
+  })
+
+  ipcMain.on('browser:go-forward', (_event, data: { panelId: string }) => {
+    panelManager.goForwardBrowser(data.panelId)
+  })
+
   // Terminal link detection → open as browser panel
   ipcMain.on('browser:open-url-from-terminal', (_event, data: { url: string }) => {
     chromeView.webContents.send('browser:open-url', { url: data.url })
@@ -259,6 +267,16 @@ function setupShortcuts(): void {
           label: 'Reload Browser Panel',
           accelerator: 'CommandOrControl+R',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'reload-browser' })
+        },
+        {
+          label: 'Browser Back',
+          accelerator: 'Command+[',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-back' })
+        },
+        {
+          label: 'Browser Forward',
+          accelerator: 'Command+]',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-forward' })
         },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const }

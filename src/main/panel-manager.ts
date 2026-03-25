@@ -51,9 +51,19 @@ export class PanelManager {
       // Track URL changes → update address bar in chrome view
       view.webContents.on('did-navigate', (_event, navUrl) => {
         this.chromeView.webContents.send('browser:url-changed', { panelId: id, url: navUrl })
+        this.chromeView.webContents.send('browser:nav-state-changed', {
+          panelId: id,
+          canGoBack: view.webContents.canGoBack(),
+          canGoForward: view.webContents.canGoForward()
+        })
       })
       view.webContents.on('did-navigate-in-page', (_event, navUrl) => {
         this.chromeView.webContents.send('browser:url-changed', { panelId: id, url: navUrl })
+        this.chromeView.webContents.send('browser:nav-state-changed', {
+          panelId: id,
+          canGoBack: view.webContents.canGoBack(),
+          canGoForward: view.webContents.canGoForward()
+        })
       })
     } else {
       const color = 'color' in options ? options.color : '#333'
@@ -82,6 +92,8 @@ export class PanelManager {
         else if (input.key === 'w') action = { type: 'close-panel' }
         else if (input.key === 'g') action = { type: 'blur-panel' }
         else if (input.key === 'r') action = { type: 'reload-browser' }
+        else if (input.key === '[') action = { type: 'browser-back' }
+        else if (input.key === ']') action = { type: 'browser-forward' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
       }
 
@@ -110,6 +122,18 @@ export class PanelManager {
     const panel = this.panels.get(id)
     if (!panel || panel.type !== 'browser') return
     panel.view.webContents.reload()
+  }
+
+  goBackBrowser(id: string): void {
+    const panel = this.panels.get(id)
+    if (!panel || panel.type !== 'browser') return
+    panel.view.webContents.goBack()
+  }
+
+  goForwardBrowser(id: string): void {
+    const panel = this.panels.get(id)
+    if (!panel || panel.type !== 'browser') return
+    panel.view.webContents.goForward()
   }
 
   destroyPanel(id: string): void {
