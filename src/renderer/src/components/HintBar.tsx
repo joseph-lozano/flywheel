@@ -12,6 +12,7 @@ const HINTS = [
   { key: '\u2318\u21e7\u2190', label: 'Swap Left' },
   { key: '\u2318\u21e7\u2192', label: 'Swap Right' },
   { key: '\u2318T', label: 'New Terminal' },
+  { key: '\u2318B', label: 'New Browser' },
   { key: '\u2318W', label: 'Close' },
   { key: '\u2318G', label: 'Blur' },
   { key: '\u23181-9', label: 'Jump' }
