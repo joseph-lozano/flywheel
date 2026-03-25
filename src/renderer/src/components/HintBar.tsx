@@ -35,7 +35,7 @@ export default function HintBar(props: HintBarProps) {
       }
     }
     poll()
-    const id = setInterval(poll, 2000)
+    const id = setInterval(poll, 5000)
     onCleanup(() => clearInterval(id))
   })
 
