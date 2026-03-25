@@ -82,17 +82,22 @@ export default function App() {
     )
   )
 
-  createEffect(() => {
-    if (state.panels.length === 0) return
-    const focusedPanel = state.panels[state.focusedIndex]
-    if (!focusedPanel) return
+  createEffect(
+    on(
+      () => ({ idx: state.focusedIndex, focused: state.terminalFocused }),
+      ({ idx, focused }) => {
+        if (state.panels.length === 0) return
+        const panel = state.panels[idx]
+        if (!panel) return
 
-    if (state.terminalFocused && focusedPanel.type === 'terminal') {
-      window.api.focusPanel(focusedPanel.id)
-    } else {
-      window.api.blurAllPanels()
-    }
-  })
+        if (focused && panel.type === 'terminal') {
+          window.api.focusPanel(panel.id)
+        } else {
+          window.api.blurAllPanels()
+        }
+      }
+    )
+  )
 
   function handleWheel(deltaX: number): void {
     currentAnimation?.cancel()
