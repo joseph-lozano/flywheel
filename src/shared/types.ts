@@ -32,6 +32,7 @@ export interface PanelChromeState {
   url?: string
   canGoBack?: boolean
   canGoForward?: boolean
+  busy?: boolean
 }
 
 export interface PanelLayout {

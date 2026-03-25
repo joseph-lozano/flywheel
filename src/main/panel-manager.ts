@@ -251,7 +251,7 @@ export class PanelManager {
 
   sendChromeState(id: string, state: {
     position: number; label: string; focused: boolean;
-    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
   }): void {
     this.pendingChromeState.set(id, state)
     const panel = this.panels.get(id)

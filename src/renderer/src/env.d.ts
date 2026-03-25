@@ -42,7 +42,7 @@ interface FlywheelAPI {
   onPanelClosed(callback: (data: { panelId: string }) => void): void
   sendChromeState(panelId: string, state: {
     position: number; label: string; focused: boolean;
-    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
   }): void
 }
 

@@ -87,7 +87,7 @@ contextBridge.exposeInMainWorld('api', {
   },
   sendChromeState: (panelId: string, state: {
     position: number; label: string; focused: boolean;
-    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
   }) => {
     ipcRenderer.send('panel:send-chrome-state', { panelId, ...state })
   },

@@ -139,7 +139,7 @@ function setupIpcHandlers(): void {
   // Chrome view → send chrome state to a panel's views
   ipcMain.on('panel:send-chrome-state', (_event, data: {
     panelId: string; position: number; label: string; focused: boolean;
-    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
   }) => {
     panelManager.sendChromeState(data.panelId, data)
   })
