@@ -27,5 +27,8 @@ contextBridge.exposeInMainWorld('pty', {
     const id = params.get('panelId')
     if (!id) console.error('panel preload: panelId missing from URL query string')
     return id || ''
+  },
+  openUrl: (url: string) => {
+    ipcRenderer.send('browser:open-url-from-terminal', { url })
   }
 })
