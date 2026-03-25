@@ -468,6 +468,12 @@ export default function App() {
     })
   })
 
+  // --- Sync sidebar width to main process for panel clipping ---
+
+  createEffect(() => {
+    window.api.setSidebarWidth(appStore.state.sidebarWidth)
+  })
+
   // --- Derived state for rendering ---
 
   const strip = () => activeStrip()

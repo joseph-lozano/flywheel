@@ -250,6 +250,10 @@ function setupIpcHandlers(): void {
     panelManager.showByPrefix(data.prefix)
   })
 
+  ipcMain.on('panel:set-sidebar-width', (_event, data: { width: number }) => {
+    panelManager.sidebarWidth = data.width
+  })
+
   ipcMain.on('panel:destroy-by-prefix', (_event, data: { prefix: string }) => {
     panelManager.destroyByPrefix(data.prefix)
   })

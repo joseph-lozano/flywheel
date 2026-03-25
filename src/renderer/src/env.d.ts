@@ -54,6 +54,7 @@ interface FlywheelAPI {
   hidePanelsByPrefix(prefix: string): void
   showPanelsByPrefix(prefix: string): void
   destroyPanelsByPrefix(prefix: string): void
+  setSidebarWidth(width: number): void
 }
 
 declare global {

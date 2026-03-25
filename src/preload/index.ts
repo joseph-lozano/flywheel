@@ -123,4 +123,7 @@ contextBridge.exposeInMainWorld('api', {
   destroyPanelsByPrefix: (prefix: string) => {
     ipcRenderer.send('panel:destroy-by-prefix', { prefix })
   },
+  setSidebarWidth: (width: number) => {
+    ipcRenderer.send('panel:set-sidebar-width', { width })
+  },
 })
