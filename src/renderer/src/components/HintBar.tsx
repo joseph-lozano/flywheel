@@ -9,13 +9,10 @@ interface HintBarProps {
 }
 
 const PANEL_HINTS = [
-  { key: '\u2318\u2190\u2192', label: 'Focus' },
-  { key: '\u2318\u21e7\u2190\u2192', label: 'Move' },
   { key: '\u2318T', label: 'Terminal' },
   { key: '\u2318B', label: 'Browser' },
   { key: '\u2318W', label: 'Close' },
-  { key: '\u23181-9', label: 'Jump' },
-  { key: '\u2318\u21e71-9', label: 'Project' }
+  { key: '\u2318G', label: 'Blur' }
 ]
 
 const NO_PROJECT_HINTS = [
