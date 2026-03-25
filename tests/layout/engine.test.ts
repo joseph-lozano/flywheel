@@ -94,3 +94,43 @@ describe('findMostCenteredPanel', () => {
   it('returns panel closest to viewport center', () => { expect(findMostCenteredPanel(258, 3, 1000)).toBe(1) })
   it('returns last panel at max scroll', () => { expect(findMostCenteredPanel(516, 3, 1000)).toBe(2) })
 })
+
+describe('sidebarWidth support', () => {
+  const panels = [mkPanel('a'), mkPanel('b'), mkPanel('c')]
+
+  it('computeLayout shifts x coordinates by sidebarWidth', () => {
+    const layout = computeLayout({ panels, scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600, sidebarWidth: 200 })
+    expect(layout[0].contentBounds.x).toBe(200)
+    expect(layout[0].contentBounds.width).toBe(400)
+  })
+
+  it('computeLayout uses effective width for panel sizing', () => {
+    const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600, sidebarWidth: 200 })
+    expect(layout[0].contentBounds.width).toBe(400)
+  })
+
+  it('computeMaxScroll uses effective width', () => {
+    expect(computeMaxScroll(3, 1000, 200)).toBe(416)
+  })
+
+  it('computeScrollToCenter uses effective width', () => {
+    expect(computeScrollToCenter(0, 3, 1000, 200)).toBe(0)
+  })
+
+  it('findMostCenteredPanel uses effective width', () => {
+    expect(findMostCenteredPanel(0, 3, 1000, 200)).toBe(0)
+  })
+
+  it('defaults sidebarWidth to 0', () => {
+    const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600 })
+    expect(layout[0].contentBounds.x).toBe(0)
+    expect(layout[0].contentBounds.width).toBe(500)
+  })
+
+  it('computeVisibility uses sidebarWidth as left boundary', () => {
+    // Panel behind sidebar: screenX=-10, width=200, panelRight=190 < sidebarWidth=200 → hidden
+    expect(computeVisibility(-10, 200, 1000, 200)).toBe('hidden')
+    // Panel partially visible: screenX=150, width=200, panelRight=350 > sidebarWidth=200 → visible
+    expect(computeVisibility(150, 200, 1000, 200)).toBe('visible')
+  })
+})
