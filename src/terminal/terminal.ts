@@ -36,8 +36,8 @@ terminal.open(container)
 // Try WebGL, fall back to canvas
 try {
   terminal.loadAddon(new WebglAddon())
-} catch {
-  console.warn('WebGL addon failed, using canvas renderer')
+} catch (e) {
+  console.warn('WebGL addon failed, using canvas renderer:', e)
 }
 
 fitAddon.fit()
