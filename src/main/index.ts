@@ -316,6 +316,22 @@ function setupShortcuts(): void {
       ]
     },
     {
+      label: 'Projects',
+      submenu: [
+        {
+          label: 'Add Project',
+          accelerator: 'CommandOrControl+O',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'add-project' })
+        },
+        { type: 'separator' },
+        ...Array.from({ length: 9 }, (_, i) => ({
+          label: `Switch to Project ${i + 1}`,
+          accelerator: `CommandOrControl+Shift+${i + 1}`,
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'switch-project', index: i })
+        }))
+      ]
+    },
+    {
       label: 'Edit',
       submenu: [
         { role: 'undo' as const },
