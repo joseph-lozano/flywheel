@@ -140,9 +140,10 @@ The deferred complex browser capabilities and vertical scroll gesture for row sw
 **Scope:**
 - Configurable session sharing: per-project, per-worktree, or per-panel ([spec: Browser, L37](docs/superpowers/specs/2026-03-24-flywheel-design.md#L37))
 - Auth flow handling within embedded `WebContentsView`
+- Browser developer tools: toggle devtools panel for the focused browser panel (keyboard shortcut, docked or undocked)
 - Vertical scroll gesture for row switching with intent detection ([spec: Vertical scroll, L134-137](docs/superpowers/specs/2026-03-24-flywheel-design.md#L134-L137))
 
-**Milestone**: Session sharing, auth flows, and vertical scroll gesture for row switching.
+**Milestone**: Session sharing, auth flows, browser devtools, and vertical scroll gesture for row switching.
 
 ## Phase 7: Release + Distribution
 
