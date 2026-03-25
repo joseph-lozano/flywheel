@@ -96,5 +96,31 @@ contextBridge.exposeInMainWorld('api', {
   },
   onPanelClosed: (callback: (data: { panelId: string }) => void) => {
     ipcRenderer.on('panel:closed', (_event, data) => callback(data))
-  }
+  },
+
+  // Project management
+  addProject: (): Promise<{ id: string; name: string; path: string; missing?: boolean } | null> => {
+    return ipcRenderer.invoke('project:add')
+  },
+  removeProject: (projectId: string) => {
+    ipcRenderer.send('project:remove', { projectId })
+  },
+  switchProject: (projectId: string) => {
+    ipcRenderer.send('project:switch', { projectId })
+  },
+  listProjects: (): Promise<{ projects: { id: string; name: string; path: string; missing?: boolean }[]; activeProjectId: string | null }> => {
+    return ipcRenderer.invoke('project:list')
+  },
+  createTerminalWithCwd: (panelId: string, cwd: string) => {
+    ipcRenderer.send('pty:create', { panelId, cwd })
+  },
+  hidePanelsByPrefix: (prefix: string) => {
+    ipcRenderer.send('panel:hide-by-prefix', { prefix })
+  },
+  showPanelsByPrefix: (prefix: string) => {
+    ipcRenderer.send('panel:show-by-prefix', { prefix })
+  },
+  destroyPanelsByPrefix: (prefix: string) => {
+    ipcRenderer.send('panel:destroy-by-prefix', { prefix })
+  },
 })

@@ -44,6 +44,16 @@ interface FlywheelAPI {
     position: number; label: string; focused: boolean;
     type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
   }): void
+
+  // Project management
+  addProject(): Promise<{ id: string; name: string; path: string; missing?: boolean } | null>
+  removeProject(projectId: string): void
+  switchProject(projectId: string): void
+  listProjects(): Promise<{ projects: { id: string; name: string; path: string; missing?: boolean }[]; activeProjectId: string | null }>
+  createTerminalWithCwd(panelId: string, cwd: string): void
+  hidePanelsByPrefix(prefix: string): void
+  showPanelsByPrefix(prefix: string): void
+  destroyPanelsByPrefix(prefix: string): void
 }
 
 declare global {
