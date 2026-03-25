@@ -255,13 +255,8 @@ export default function App() {
     // Show target panels
     window.api.showPanelsByPrefix(targetId)
 
-    // Restore snapshot into the store if needed
-    const targetStore = getStripStore(targetId)
-    const snapshot = stripSnapshots.get(targetId)
-    if (snapshot) {
-      targetStore.restore(snapshot)
-      stripSnapshots.delete(targetId)
-    }
+    // Ensure the strip store exists (restores snapshot if one was stashed)
+    getStripStore(targetId)
   }
 
   function handleRemoveProject(projectId: string): void {
