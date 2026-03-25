@@ -24,6 +24,7 @@ interface FlywheelAPI {
 
   // Focus management
   focusPanel(panelId: string): void
+  focusPanelChrome(panelId: string): void
   blurAllPanels(): void
   onPanelFocused(callback: (data: { panelId: string }) => void): void
   onPanelTitle(callback: (data: { panelId: string; title: string }) => void): void

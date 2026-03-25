@@ -47,6 +47,9 @@ contextBridge.exposeInMainWorld('api', {
   focusPanel: (panelId: string) => {
     ipcRenderer.send('panel:focus', { panelId })
   },
+  focusPanelChrome: (panelId: string) => {
+    ipcRenderer.send('panel:focus-chrome', { panelId })
+  },
   blurAllPanels: () => {
     ipcRenderer.send('panel:blur-all')
   },

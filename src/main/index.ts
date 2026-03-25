@@ -188,6 +188,11 @@ function setupIpcHandlers(): void {
     if (view) view.webContents.focus()
   })
 
+  ipcMain.on('panel:focus-chrome', (_event, data: { panelId: string }) => {
+    const view = panelManager.getPanelChromeView(data.panelId)
+    if (view) view.webContents.focus()
+  })
+
   ipcMain.on('panel:blur-all', () => {
     chromeView.webContents.focus()
   })

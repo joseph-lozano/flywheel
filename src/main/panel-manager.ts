@@ -246,6 +246,10 @@ export class PanelManager {
     return this.panels.get(id)?.view || null
   }
 
+  getPanelChromeView(id: string): WebContentsView | null {
+    return this.panels.get(id)?.chromeView || null
+  }
+
   get panelCount(): number {
     return this.panels.size
   }

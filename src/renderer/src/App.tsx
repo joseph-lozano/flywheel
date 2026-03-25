@@ -95,6 +95,8 @@ export default function App() {
 
         if (focused && (panel.type === 'terminal' || (panel.type === 'browser' && panel.url !== 'about:blank'))) {
           window.api.focusPanel(panel.id)
+        } else if (focused && panel.type === 'browser' && panel.url === 'about:blank') {
+          window.api.focusPanelChrome(panel.id)
         } else {
           window.api.blurAllPanels()
         }
