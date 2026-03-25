@@ -30,13 +30,13 @@ export class PtyManager {
     this.flushTimer = setInterval(() => this.flush(), FLUSH_INTERVAL_MS)
   }
 
-  create(panelId: string): void {
+  create(panelId: string, cwd?: string): void {
     if (this.ptys.has(panelId)) return
     const shell = process.env.SHELL || '/bin/zsh'
     const shellName = basename(shell)
     const ptyProcess = pty.spawn(shell, [], {
       cols: 80, rows: 24,
-      cwd: process.cwd(),
+      cwd: cwd || process.cwd(),
       env: process.env as Record<string, string>
     })
     const managed: ManagedPty = { panelId, pty: ptyProcess, buffer: '', shellName, lastTitle: shellName, disposed: false }
@@ -73,6 +73,16 @@ export class PtyManager {
     managed.disposed = true
     managed.pty.kill()
     this.ptys.delete(panelId)
+  }
+
+  killByPrefix(prefix: string): void {
+    for (const [panelId, managed] of this.ptys) {
+      if (panelId.startsWith(prefix)) {
+        managed.disposed = true
+        managed.pty.kill()
+        this.ptys.delete(panelId)
+      }
+    }
   }
 
   getForegroundProcess(panelId: string): string | null {
