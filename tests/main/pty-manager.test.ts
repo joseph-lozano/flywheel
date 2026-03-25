@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { basename } from 'path'
+
+const defaultShellName = basename(process.env.SHELL || '/bin/zsh')
 
 const mockPty = {
   write: vi.fn(),
@@ -6,7 +9,7 @@ const mockPty = {
   kill: vi.fn(),
   onData: vi.fn(),
   onExit: vi.fn(),
-  process: 'zsh',
+  process: defaultShellName,
   pid: 12345
 }
 
@@ -28,7 +31,7 @@ describe('PtyManager', () => {
     let onExitCb: ((exit: { exitCode: number; signal?: number }) => void) | null = null
     mockPty.onData = vi.fn((cb) => { onDataCb = cb; return { dispose: vi.fn() } })
     mockPty.onExit = vi.fn((cb) => { onExitCb = cb; return { dispose: vi.fn() } })
-    mockPty.process = 'zsh'
+    mockPty.process = defaultShellName
     ;(mockPty as any)._triggerData = (data: string) => onDataCb?.(data)
     ;(mockPty as any)._triggerExit = (code: number) => onExitCb?.({ exitCode: code })
     manager = new PtyManager(mockSendToPanel, mockSendToChrome)
@@ -100,7 +103,7 @@ describe('PtyManager output buffering', () => {
     let onExitCb: ((exit: { exitCode: number }) => void) | null = null
     mockPty.onData = vi.fn((cb) => { onDataCb = cb; return { dispose: vi.fn() } })
     mockPty.onExit = vi.fn((cb) => { onExitCb = cb; return { dispose: vi.fn() } })
-    mockPty.process = 'zsh'
+    mockPty.process = defaultShellName
     ;(mockPty as any)._triggerData = (data: string) => onDataCb?.(data)
     ;(mockPty as any)._triggerExit = (code: number) => onExitCb?.({ exitCode: code })
     manager = new PtyManager(mockSendToPanel, mockSendToChrome)
@@ -135,7 +138,7 @@ describe('PtyManager exit handling', () => {
     let onExitCb: ((exit: { exitCode: number }) => void) | null = null
     mockPty.onData = vi.fn((cb) => { onDataCb = cb; return { dispose: vi.fn() } })
     mockPty.onExit = vi.fn((cb) => { onExitCb = cb; return { dispose: vi.fn() } })
-    mockPty.process = 'zsh'
+    mockPty.process = defaultShellName
     ;(mockPty as any)._triggerData = (data: string) => onDataCb?.(data)
     ;(mockPty as any)._triggerExit = (code: number) => onExitCb?.({ exitCode: code })
     manager = new PtyManager(mockSendToPanel, mockSendToChrome)
