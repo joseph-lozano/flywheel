@@ -265,8 +265,8 @@ export default function App() {
   function handleRemoveProject(projectId: string): void {
     const wasActive = appStore.state.activeProjectId === projectId
 
-    // Clean up IPC panels
-    window.api.destroyPanelsByPrefix(projectId)
+    // Tell main process to kill PTYs, destroy panels, and remove from persistence
+    window.api.removeProject(projectId)
 
     // Clean up created panel IDs
     for (const id of [...createdPanelIds]) {
@@ -288,8 +288,6 @@ export default function App() {
         window.api.showPanelsByPrefix(newActiveId)
       }
     }
-
-    window.api.removeProject(projectId)
   }
 
   // --- Shortcuts ---
@@ -444,28 +442,9 @@ export default function App() {
       createdPanelIds.delete(data.panelId)
     })
 
-    // Load projects and initialize
+    // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
-      if (projects.length > 0) {
-        appStore.actions.loadProjects(projects, activeProjectId)
-
-        // Initialize active project's strip with a terminal
-        const activeId = appStore.state.activeProjectId
-        if (activeId) {
-          const store = getStripStore(activeId)
-          const activeProject = appStore.actions.getActiveProject()
-          batch(() => {
-            store.actions.setViewport(window.innerWidth, window.innerHeight)
-            const panel = store.actions.addPanel('terminal')
-            if (activeProject) {
-              window.api.createTerminalWithCwd(panel.id, activeProject.path)
-            } else {
-              window.api.createTerminal(panel.id)
-            }
-            store.actions.jumpTo(0)
-          })
-        }
-      }
+      appStore.actions.loadProjects(projects, activeProjectId)
     })
   })
 
@@ -523,6 +502,7 @@ export default function App() {
         maxScroll={maxScroll()}
         viewportWidth={strip()?.state.viewportWidth || window.innerWidth}
         viewportHeight={strip()?.state.viewportHeight || window.innerHeight}
+        sidebarWidth={sidebarWidth()}
       />
       <HintBar
         viewportHeight={strip()?.state.viewportHeight || window.innerHeight}
