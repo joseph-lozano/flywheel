@@ -101,7 +101,7 @@ export default function PanelFrame(props: PanelFrameProps) {
                 onInput={(e) => setUrlInput(e.currentTarget.value)}
                 onKeyDown={handleKeyDown}
                 onBlur={() => setEditingUrl(false)}
-                ref={(el) => setTimeout(() => el.focus(), 0)}
+                ref={(el) => requestAnimationFrame(() => el.focus())}
                 style={{
                   flex: 1,
                   background: '#1a1a2e',

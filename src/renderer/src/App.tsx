@@ -92,7 +92,7 @@ export default function App() {
         const panel = state.panels[idx]
         if (!panel) return
 
-        if (focused && (panel.type === 'terminal' || panel.type === 'browser')) {
+        if (focused && (panel.type === 'terminal' || (panel.type === 'browser' && panel.url !== 'about:blank'))) {
           window.api.focusPanel(panel.id)
         } else {
           window.api.blurAllPanels()
