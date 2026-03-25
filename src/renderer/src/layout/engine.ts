@@ -12,8 +12,10 @@ export function computeVisibility(screenX: number, panelWidth: number, viewportW
   const panelRight = screenX + panelWidth
   const bufferZone = viewportWidth * LAYOUT.BUFFER_ZONE_MULTIPLIER
   if (panelRight > 0 && screenX < viewportWidth) return 'visible'
-  if (panelRight > -bufferZone && screenX < viewportWidth + bufferZone) return 'hidden'
-  return 'destroyed'
+  // TODO(phase6): Re-enable panel destruction for off-screen panels.
+  // Currently all off-screen panels are hidden, never destroyed.
+  // Profile memory with real terminals/browsers to decide buffer zone + destruction strategy.
+  return 'hidden'
 }
 
 export function computeLayout(input: LayoutInput): PanelLayout[] {

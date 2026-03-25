@@ -10,6 +10,7 @@ interface FlywheelAPI {
   }>): void
   onWheelEvent(callback: (data: { deltaX: number }) => void): void
   onShortcut(callback: (action: { type: string; index?: number }) => void): void
+  getDebugStats(): Promise<{ panelViewCount: number; mainMemoryMB: number; heapUsedMB: number }>
 }
 
 declare global {

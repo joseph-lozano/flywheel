@@ -70,6 +70,15 @@ function setupIpcHandlers(): void {
   ipcMain.on('panel:wheel', (_event, data: { deltaX: number }) => {
     chromeView.webContents.send('scroll:wheel', data)
   })
+
+  ipcMain.handle('debug:stats', () => {
+    const mem = process.memoryUsage()
+    return {
+      panelViewCount: panelManager.panelCount,
+      mainMemoryMB: Math.round(mem.rss / 1024 / 1024),
+      heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024)
+    }
+  })
 }
 
 function setupShortcuts(): void {

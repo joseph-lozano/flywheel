@@ -15,5 +15,8 @@ contextBridge.exposeInMainWorld('api', {
   },
   onShortcut: (callback: (action: { type: string; index?: number }) => void) => {
     ipcRenderer.on('shortcut:action', (_event, action) => callback(action))
+  },
+  getDebugStats: (): Promise<{ panelViewCount: number; mainMemoryMB: number; heapUsedMB: number }> => {
+    return ipcRenderer.invoke('debug:stats')
   }
 })

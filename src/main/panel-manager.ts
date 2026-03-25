@@ -60,6 +60,10 @@ export class PanelManager {
     }
   }
 
+  get panelCount(): number {
+    return this.panels.size
+  }
+
   destroyAll(): void {
     for (const id of [...this.panels.keys()]) {
       this.destroyPanel(id)

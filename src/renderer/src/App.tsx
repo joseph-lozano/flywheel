@@ -129,7 +129,7 @@ export default function App() {
         scrollOffset={state.scrollOffset} maxScroll={maxScroll()}
         viewportWidth={state.viewportWidth} viewportHeight={state.viewportHeight}
       />
-      <HintBar viewportHeight={state.viewportHeight} />
+      <HintBar viewportHeight={state.viewportHeight} panelCount={state.panels.length} />
     </>
   )
 }

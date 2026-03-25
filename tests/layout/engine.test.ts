@@ -25,9 +25,9 @@ describe('computeVisibility', () => {
     expect(computeVisibility(1100, pw, vw)).toBe('hidden')
   })
 
-  it('returns destroyed when beyond buffer zone', () => {
-    expect(computeVisibility(-1600, pw, vw)).toBe('destroyed')
-    expect(computeVisibility(2100, pw, vw)).toBe('destroyed')
+  it('returns hidden when beyond buffer zone (destroy disabled)', () => {
+    expect(computeVisibility(-1600, pw, vw)).toBe('hidden')
+    expect(computeVisibility(2100, pw, vw)).toBe('hidden')
   })
 
   it('returns visible for panel partially on-screen', () => {
