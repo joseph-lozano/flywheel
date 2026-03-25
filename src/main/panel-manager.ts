@@ -3,7 +3,7 @@ import { join } from 'path'
 
 interface ManagedPanel {
   id: string
-  type: 'terminal' | 'placeholder'
+  type: 'terminal' | 'placeholder' | 'browser'
   view: WebContentsView
 }
 
@@ -17,15 +17,16 @@ export class PanelManager {
     this.chromeView = chromeView
   }
 
-  createPanel(id: string, options: { type: 'terminal' } | { type?: 'placeholder'; color: string }): void {
+  createPanel(id: string, options: { type: 'terminal' } | { type: 'browser'; url: string } | { type?: 'placeholder'; color: string }): void {
     if (this.panels.has(id)) return
 
     const panelType = options.type || 'placeholder'
 
+    const preloadFile = panelType === 'browser' ? '../preload/browser.js' : '../preload/panel.js'
     const view = new WebContentsView({
       webPreferences: {
-        preload: join(__dirname, '../preload/panel.js'),
-        sandbox: false
+        preload: join(__dirname, preloadFile),
+        sandbox: panelType === 'browser'
       }
     })
 
@@ -37,6 +38,23 @@ export class PanelManager {
           query: { panelId: id }
         })
       }
+    } else if (panelType === 'browser') {
+      const url = 'url' in options ? options.url : 'about:blank'
+      view.webContents.loadURL(url)
+
+      // Intercept target="_blank" / window.open → open as new strip panel
+      view.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
+        this.chromeView.webContents.send('browser:open-url', { url: targetUrl })
+        return { action: 'deny' }
+      })
+
+      // Track URL changes → update address bar in chrome view
+      view.webContents.on('did-navigate', (_event, navUrl) => {
+        this.chromeView.webContents.send('browser:url-changed', { panelId: id, url: navUrl })
+      })
+      view.webContents.on('did-navigate-in-page', (_event, navUrl) => {
+        this.chromeView.webContents.send('browser:url-changed', { panelId: id, url: navUrl })
+      })
     } else {
       const color = 'color' in options ? options.color : '#333'
       view.setBackgroundColor(color)
@@ -45,7 +63,7 @@ export class PanelManager {
       )
     }
 
-    // Intercept app shortcuts before xterm.js consumes them
+    // Intercept app shortcuts before xterm.js / browser content consumes them.
     // Menu accelerators don't fire when a child WebContentsView has focus,
     // so we manually forward matching key combos to the chrome view.
     view.webContents.on('before-input-event', (event, input) => {
@@ -60,6 +78,7 @@ export class PanelManager {
         if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
         else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
         else if (input.key === 't') action = { type: 'new-panel' }
+        else if (input.key === 'b') action = { type: 'new-browser' }
         else if (input.key === 'w') action = { type: 'close-panel' }
         else if (input.key === 'g') action = { type: 'blur-panel' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
@@ -78,6 +97,12 @@ export class PanelManager {
 
     this.window.contentView.addChildView(view)
     this.panels.set(id, { id, type: panelType, view })
+  }
+
+  navigateBrowser(id: string, url: string): void {
+    const panel = this.panels.get(id)
+    if (!panel || panel.type !== 'browser') return
+    panel.view.webContents.loadURL(url)
   }
 
   destroyPanel(id: string): void {
