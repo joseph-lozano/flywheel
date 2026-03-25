@@ -24,6 +24,8 @@ contextBridge.exposeInMainWorld('pty', {
   },
   getPanelId: (): string => {
     const params = new URLSearchParams(window.location.search)
-    return params.get('panelId') || ''
+    const id = params.get('panelId')
+    if (!id) console.error('panel preload: panelId missing from URL query string')
+    return id || ''
   }
 })
