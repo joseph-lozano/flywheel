@@ -2,6 +2,7 @@
 
 interface FlywheelAPI {
   createPanel(id: string, color: string): void
+  createTerminalPanel(id: string): void
   destroyPanel(id: string): void
   updateBounds(updates: Array<{
     panelId: string
@@ -11,6 +12,15 @@ interface FlywheelAPI {
   onWheelEvent(callback: (data: { deltaX: number }) => void): void
   onShortcut(callback: (action: { type: string; index?: number }) => void): void
   getDebugStats(): Promise<{ panelViewCount: number; mainMemoryMB: number; heapUsedMB: number }>
+
+  // PTY lifecycle
+  createTerminal(panelId: string): void
+  onPtyExit(callback: (data: { panelId: string; exitCode: number }) => void): void
+
+  // Close with busy-check
+  closePanel(panelId: string): void
+  onConfirmClose(callback: (data: { panelId: string; processName: string }) => void): void
+  confirmCloseResponse(panelId: string, confirmed: boolean): void
 }
 
 declare global {
