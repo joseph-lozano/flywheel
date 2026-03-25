@@ -3,7 +3,13 @@ import { defineConfig } from 'electron-vite'
 import solidPlugin from 'vite-plugin-solid'
 
 export default defineConfig({
-  main: {},
+  main: {
+    build: {
+      rollupOptions: {
+        external: ['node-pty']
+      }
+    }
+  },
   preload: {
     build: {
       rollupOptions: {
@@ -15,6 +21,15 @@ export default defineConfig({
     }
   },
   renderer: {
-    plugins: [solidPlugin()]
+    root: resolve(__dirname, 'src'),
+    plugins: [solidPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/renderer/index.html'),
+          terminal: resolve(__dirname, 'src/terminal/index.html')
+        }
+      }
+    }
   }
 })
