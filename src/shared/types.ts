@@ -28,6 +28,6 @@ export interface PanelLayout {
 }
 
 export type ShortcutAction = {
-  type: 'focus-left' | 'focus-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
+  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
   index?: number
 }
