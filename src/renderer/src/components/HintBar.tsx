@@ -9,18 +9,13 @@ interface HintBarProps {
 }
 
 const PANEL_HINTS = [
-  { key: '\u2318\u2190', label: 'Focus Left' },
-  { key: '\u2318\u2192', label: 'Focus Right' },
-  { key: '\u2318\u21e7\u2190', label: 'Swap Left' },
-  { key: '\u2318\u21e7\u2192', label: 'Swap Right' },
-  { key: '\u2318T', label: 'New Terminal' },
-  { key: '\u2318B', label: 'New Browser' },
-  { key: '\u2318[', label: 'Back' },
-  { key: '\u2318]', label: 'Forward' },
+  { key: '\u2318\u2190\u2192', label: 'Focus' },
+  { key: '\u2318\u21e7\u2190\u2192', label: 'Move' },
+  { key: '\u2318T', label: 'Terminal' },
+  { key: '\u2318B', label: 'Browser' },
   { key: '\u2318W', label: 'Close' },
-  { key: '\u2318G', label: 'Blur' },
   { key: '\u23181-9', label: 'Jump' },
-  { key: '\u2318\u21e71-9', label: 'Switch Project' }
+  { key: '\u2318\u21e71-9', label: 'Project' }
 ]
 
 const NO_PROJECT_HINTS = [
@@ -62,7 +57,7 @@ export default function HintBar(props: HintBarProps) {
       background: '#1a1a2e', 'border-top': '1px solid #252540',
       'user-select': 'none', 'font-size': '12px', 'padding-left': '16px', 'padding-right': '16px'
     }}>
-      <div style={{ flex: 1, display: 'flex', 'justify-content': 'center', gap: '24px' }}>
+      <div style={{ flex: 1, display: 'flex', 'justify-content': 'center', gap: '16px', overflow: 'hidden' }}>
         {hints().map((hint) => (
           <span>
             <span style={{
