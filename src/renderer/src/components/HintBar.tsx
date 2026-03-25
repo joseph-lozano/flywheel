@@ -9,8 +9,9 @@ interface HintBarProps {
 const HINTS = [
   { key: '\u2318\u2190', label: 'Focus Left' },
   { key: '\u2318\u2192', label: 'Focus Right' },
-  { key: '\u2318T', label: 'New Panel' },
+  { key: '\u2318T', label: 'New Terminal' },
   { key: '\u2318W', label: 'Close' },
+  { key: '\u2318G', label: 'Blur' },
   { key: '\u23181-9', label: 'Jump' }
 ]
 
