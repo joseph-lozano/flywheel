@@ -45,6 +45,11 @@ export class PanelManager {
       )
     }
 
+    // When a panel gains focus via click, notify chrome view so it can update focusedIndex
+    view.webContents.on('focus', () => {
+      this.chromeView.webContents.send('panel:focused', { panelId: id })
+    })
+
     this.window.contentView.addChildView(view)
     this.panels.set(id, { id, type: panelType, view })
   }

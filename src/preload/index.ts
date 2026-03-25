@@ -49,5 +49,8 @@ contextBridge.exposeInMainWorld('api', {
   },
   blurAllPanels: () => {
     ipcRenderer.send('panel:blur-all')
+  },
+  onPanelFocused: (callback: (data: { panelId: string }) => void) => {
+    ipcRenderer.on('panel:focused', (_event, data) => callback(data))
   }
 })

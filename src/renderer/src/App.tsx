@@ -167,6 +167,14 @@ export default function App() {
       setConfirmClose(data)
     })
 
+    // When user clicks a panel, sync the store's focusedIndex
+    window.api.onPanelFocused((data) => {
+      const idx = state.panels.findIndex((p) => p.id === data.panelId)
+      if (idx >= 0 && idx !== state.focusedIndex) {
+        actions.jumpTo(idx)
+      }
+    })
+
     batch(() => {
       actions.setViewport(window.innerWidth, window.innerHeight)
       const panel = actions.addPanel('terminal')
