@@ -14,6 +14,7 @@ interface SidebarProps {
 
 export default function Sidebar(props: SidebarProps) {
   const [contextMenu, setContextMenu] = createSignal<{ x: number; y: number; projectId: string } | null>(null)
+  const [hoveredId, setHoveredId] = createSignal<string | null>(null)
 
   function handleContextMenu(e: MouseEvent, projectId: string) {
     e.preventDefault()
@@ -79,32 +80,39 @@ export default function Sidebar(props: SidebarProps) {
       </div>
 
       {/* Project list */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, 'overflow-y': 'auto' }}>
         <For each={props.projects}>
-          {(project) => (
-            <div
-              style={{
-                padding: `${SIDEBAR.ITEM_PADDING_V}px ${SIDEBAR.ITEM_PADDING_H}px`,
-                color: project.missing
-                  ? '#555'
-                  : project.id === props.activeProjectId ? '#e0e0e0' : '#666',
-                'font-style': project.missing ? 'italic' : 'normal',
-                background: project.id === props.activeProjectId ? SIDEBAR.ACTIVE_BG : 'transparent',
-                'border-left': project.id === props.activeProjectId
-                  ? `2px solid ${SIDEBAR.ACCENT_COLOR}`
-                  : '2px solid transparent',
-                cursor: 'pointer',
-                'white-space': 'nowrap',
-                overflow: 'hidden',
-                'text-overflow': 'ellipsis'
-              }}
-              title={project.name}
-              onClick={() => props.onSwitchProject(project.id)}
-              onContextMenu={(e) => handleContextMenu(e, project.id)}
-            >
-              {project.name}
-            </div>
-          )}
+          {(project) => {
+            const isActive = () => project.id === props.activeProjectId
+            const isHovered = () => hoveredId() === project.id
+            return (
+              <div
+                style={{
+                  padding: `${SIDEBAR.ITEM_PADDING_V}px ${SIDEBAR.ITEM_PADDING_H}px`,
+                  color: project.missing
+                    ? '#555'
+                    : isActive() ? '#e0e0e0' : '#666',
+                  'font-style': project.missing ? 'italic' : 'normal',
+                  background: isActive() ? SIDEBAR.ACTIVE_BG
+                    : isHovered() ? 'rgba(255,255,255,0.03)' : 'transparent',
+                  'border-left': isActive()
+                    ? `2px solid ${SIDEBAR.ACCENT_COLOR}`
+                    : '2px solid transparent',
+                  cursor: 'pointer',
+                  'white-space': 'nowrap',
+                  overflow: 'hidden',
+                  'text-overflow': 'ellipsis'
+                }}
+                title={project.name}
+                onClick={() => props.onSwitchProject(project.id)}
+                onContextMenu={(e) => handleContextMenu(e, project.id)}
+                onMouseEnter={() => setHoveredId(project.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                {project.name}
+              </div>
+            )
+          }}
         </For>
       </div>
 
