@@ -1,0 +1,23 @@
+{
+  "name": "flywheel",
+  "version": "0.1.0",
+  "description": "Development Command Center",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "electron": "^41.0.0",
+    "electron-vite": "^5.0.0",
+    "vite": "^6.0.0",
+    "vite-plugin-solid": "^2.11.0",
+    "vitest": "^4.1.0",
+    "typescript": "^5.7.0"
+  }
+}

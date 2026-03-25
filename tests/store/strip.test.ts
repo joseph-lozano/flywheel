@@ -1,0 +1,150 @@
+import { describe, it, expect } from 'vitest'
+import { createRoot } from 'solid-js'
+import { createStripStore } from '../../src/renderer/src/store/strip'
+
+function withStore(fn: (store: ReturnType<typeof createStripStore>) => void) {
+  createRoot((dispose) => { const store = createStripStore(); fn(store); dispose() })
+}
+
+describe('createStripStore', () => {
+  it('starts with no panels', () => {
+    withStore(({ state }) => {
+      expect(state.panels).toHaveLength(0)
+      expect(state.focusedIndex).toBe(0)
+      expect(state.scrollOffset).toBe(0)
+    })
+  })
+})
+
+describe('addPanel', () => {
+  it('inserts panel after focused index', () => {
+    withStore(({ state, actions }) => {
+      const p1 = actions.addPanel()
+      expect(state.panels).toHaveLength(1)
+      expect(state.panels[0].id).toBe(p1.id)
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('focuses newly added panel', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel()
+      expect(state.panels).toHaveLength(2)
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+
+  it('inserts after current focus, not at end', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel()
+      actions.jumpTo(0); actions.addPanel()
+      expect(state.panels).toHaveLength(3)
+      expect(state.focusedIndex).toBe(1)
+      expect(state.panels[1].id).not.toBe(state.panels[0].id)
+    })
+  })
+
+  it('assigns sequential colors from palette', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.addPanel()
+      expect(state.panels[0].color).toBe('#6366f1')
+      expect(state.panels[1].color).toBe('#10b981')
+      expect(state.panels[2].color).toBe('#f59e0b')
+    })
+  })
+})
+
+describe('removePanel', () => {
+  it('removes focused panel', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.jumpTo(0)
+      expect(actions.removePanel()).toBeTruthy()
+      expect(state.panels).toHaveLength(1)
+    })
+  })
+
+  it('moves focus to nearest neighbor after removal', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.addPanel()
+      actions.jumpTo(1); actions.removePanel()
+      expect(state.panels).toHaveLength(2)
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+
+  it('clamps focus when removing last panel in list', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel()
+      actions.removePanel()
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('returns null when no panels', () => {
+    withStore(({ actions }) => { expect(actions.removePanel()).toBeNull() })
+  })
+})
+
+describe('focus navigation', () => {
+  it('focusLeft decrements index', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.focusLeft()
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('focusLeft clamps at 0', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.jumpTo(0); actions.focusLeft()
+      expect(state.focusedIndex).toBe(0)
+    })
+  })
+
+  it('focusRight increments index', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.jumpTo(0); actions.focusRight()
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+
+  it('focusRight clamps at last panel', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.focusRight()
+      expect(state.focusedIndex).toBe(1)
+    })
+  })
+
+  it('jumpTo sets focus to specific index', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.addPanel(); actions.addPanel()
+      actions.jumpTo(0); expect(state.focusedIndex).toBe(0)
+      actions.jumpTo(2); expect(state.focusedIndex).toBe(2)
+    })
+  })
+
+  it('jumpTo ignores out-of-range index', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel(); actions.jumpTo(5); expect(state.focusedIndex).toBe(0)
+      actions.jumpTo(-1); expect(state.focusedIndex).toBe(0)
+    })
+  })
+})
+
+describe('viewport', () => {
+  it('sets viewport dimensions', () => {
+    withStore(({ state, actions }) => {
+      actions.setViewport(1920, 1080)
+      expect(state.viewportWidth).toBe(1920)
+      expect(state.viewportHeight).toBe(1080)
+    })
+  })
+})
+
+describe('scrollOffset', () => {
+  it('sets scroll offset', () => {
+    withStore(({ state, actions }) => {
+      actions.setScrollOffset(150)
+      expect(state.scrollOffset).toBe(150)
+    })
+  })
+})
