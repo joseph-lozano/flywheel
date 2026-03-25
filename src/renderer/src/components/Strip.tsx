@@ -4,8 +4,9 @@ import PanelFrame from './PanelFrame'
 
 interface StripProps {
   layout: PanelLayout[]
-  panels: Array<{ id: string; type: string; label: string }>
+  panels: Array<{ id: string; type: string; label: string; url?: string }>
   focusedIndex: number
+  onNavigate?: (panelId: string, url: string) => void
 }
 
 export default function Strip(props: StripProps) {
@@ -27,6 +28,10 @@ export default function Strip(props: StripProps) {
               contentBounds={entry.contentBounds}
               label={label()}
               focused={entry.panelId === props.panels[props.focusedIndex]?.id}
+              panelType={panel()?.type || 'placeholder'}
+              panelId={entry.panelId}
+              url={panel()?.url}
+              onNavigate={props.onNavigate}
             />
           )
         }}
