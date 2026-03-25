@@ -11,12 +11,13 @@ interface PanelFrameProps {
   panelId: string
   position: number
   url?: string
+  autoEdit?: boolean
   onNavigate?: (panelId: string, url: string) => void
 }
 
 export default function PanelFrame(props: PanelFrameProps) {
   const borderWidth = LAYOUT.FOCUS_BORDER_WIDTH
-  const [editingUrl, setEditingUrl] = createSignal(false)
+  const [editingUrl, setEditingUrl] = createSignal(props.autoEdit || false)
   const [urlInput, setUrlInput] = createSignal('')
 
   function startEditing() {
@@ -24,11 +25,16 @@ export default function PanelFrame(props: PanelFrameProps) {
     setEditingUrl(true)
   }
 
+  function normalizeUrl(raw: string): string {
+    if (raw.match(/^https?:\/\//)) return raw
+    const isLocal = raw.match(/^(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/)
+    return isLocal ? `http://${raw}` : `https://${raw}`
+  }
+
   function commitUrl() {
     const raw = urlInput().trim()
     if (!raw) { setEditingUrl(false); return }
-    const url = raw.match(/^https?:\/\//) ? raw : `https://${raw}`
-    props.onNavigate?.(props.panelId, url)
+    props.onNavigate?.(props.panelId, normalizeUrl(raw))
     setEditingUrl(false)
   }
 

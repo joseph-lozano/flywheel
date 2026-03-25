@@ -81,6 +81,7 @@ export class PanelManager {
         else if (input.key === 'b') action = { type: 'new-browser' }
         else if (input.key === 'w') action = { type: 'close-panel' }
         else if (input.key === 'g') action = { type: 'blur-panel' }
+        else if (input.key === 'r') action = { type: 'reload-browser' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
       }
 
@@ -103,6 +104,12 @@ export class PanelManager {
     const panel = this.panels.get(id)
     if (!panel || panel.type !== 'browser') return
     panel.view.webContents.loadURL(url)
+  }
+
+  reloadBrowser(id: string): void {
+    const panel = this.panels.get(id)
+    if (!panel || panel.type !== 'browser') return
+    panel.view.webContents.reload()
   }
 
   destroyPanel(id: string): void {

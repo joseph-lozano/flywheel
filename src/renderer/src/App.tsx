@@ -146,6 +146,11 @@ export default function App() {
         window.api.createBrowserPanel(panel.id, panel.url || 'about:blank')
         break
       }
+      case 'reload-browser': {
+        const focused = state.panels[state.focusedIndex]
+        if (focused?.type === 'browser') window.api.reloadBrowser(focused.id)
+        break
+      }
       case 'close-panel': handleClosePanel(); break
       case 'blur-panel': actions.blurPanel(); break
       case 'jump-to': if (action.index !== undefined) actions.jumpTo(action.index); break

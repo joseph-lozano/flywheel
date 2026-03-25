@@ -32,6 +32,7 @@ export default function Strip(props: StripProps) {
               panelId={entry.panelId}
               position={panelIndex() + 1}
               url={panel()?.url}
+              autoEdit={panel()?.type === 'browser' && (!panel()?.url || panel()?.url === 'about:blank')}
               onNavigate={props.onNavigate}
             />
           )

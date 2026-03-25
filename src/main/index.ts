@@ -119,6 +119,10 @@ function setupIpcHandlers(): void {
     panelManager.navigateBrowser(data.panelId, data.url)
   })
 
+  ipcMain.on('browser:reload', (_event, data: { panelId: string }) => {
+    panelManager.reloadBrowser(data.panelId)
+  })
+
   // Terminal link detection → open as browser panel
   ipcMain.on('browser:open-url-from-terminal', (_event, data: { url: string }) => {
     chromeView.webContents.send('browser:open-url', { url: data.url })
@@ -251,7 +255,11 @@ function setupShortcuts(): void {
     {
       label: 'View',
       submenu: [
-        { role: 'reload' as const },
+        {
+          label: 'Reload Browser Panel',
+          accelerator: 'CommandOrControl+R',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'reload-browser' })
+        },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const }
       ]

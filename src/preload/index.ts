@@ -70,6 +70,9 @@ contextBridge.exposeInMainWorld('api', {
   navigateBrowser: (panelId: string, url: string) => {
     ipcRenderer.send('browser:navigate', { panelId, url })
   },
+  reloadBrowser: (panelId: string) => {
+    ipcRenderer.send('browser:reload', { panelId })
+  },
   onBrowserUrlChanged: (callback: (data: { panelId: string; url: string }) => void) => {
     ipcRenderer.on('browser:url-changed', (_event, data) => callback(data))
   },
