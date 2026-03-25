@@ -46,7 +46,7 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  mainWindow.on('closed', () => {
+  mainWindow.on('close', () => {
     panelManager.destroyAll()
   })
 }
