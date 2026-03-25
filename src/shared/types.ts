@@ -1,8 +1,11 @@
 export interface Panel {
   id: string
-  type: 'terminal' | 'placeholder'
+  type: 'terminal' | 'placeholder' | 'browser'
   color: string
   label: string
+  url?: string
+  canGoBack?: boolean
+  canGoForward?: boolean
 }
 
 export interface Rectangle {
@@ -20,14 +23,25 @@ export interface PanelBoundsUpdate {
 
 export type VisibilityState = 'visible' | 'hidden' | 'destroyed'
 
+export interface PanelChromeState {
+  panelId: string
+  position: number
+  label: string
+  focused: boolean
+  type: 'terminal' | 'placeholder' | 'browser'
+  url?: string
+  canGoBack?: boolean
+  canGoForward?: boolean
+  busy?: boolean
+}
+
 export interface PanelLayout {
   panelId: string
   contentBounds: Rectangle
-  titleBarBounds: Rectangle
   visibility: VisibilityState
 }
 
 export type ShortcutAction = {
-  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
+  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward'
   index?: number
 }

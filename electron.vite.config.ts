@@ -15,7 +15,9 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts'),
-          panel: resolve(__dirname, 'src/preload/panel.ts')
+          panel: resolve(__dirname, 'src/preload/panel.ts'),
+          browser: resolve(__dirname, 'src/preload/browser.ts'),
+          'browser-content': resolve(__dirname, 'src/preload/browser-content.ts')
         }
       }
     }
@@ -27,7 +29,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
-          terminal: resolve(__dirname, 'src/terminal/index.html')
+          terminal: resolve(__dirname, 'src/terminal/index.html'),
+          'browser-host': resolve(__dirname, 'src/browser/browser-host.html')
         }
       }
     }

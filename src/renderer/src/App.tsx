@@ -4,6 +4,7 @@ import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCentere
 import { animate, easeOut } from './scroll/animator'
 import type { AnimationHandle } from './scroll/animator'
 import type { PanelBoundsUpdate } from '../../../shared/types'
+import { LAYOUT } from '../../shared/constants'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
 import HintBar from './components/HintBar'
@@ -36,6 +37,8 @@ export default function App() {
         if (panel) {
           if (panel.type === 'terminal') {
             window.api.createTerminalPanel(entry.panelId)
+          } else if (panel.type === 'browser') {
+            window.api.createBrowserPanel(entry.panelId, panel.url || 'about:blank')
           } else {
             window.api.createPanel(entry.panelId, panel.color)
           }
@@ -90,14 +93,34 @@ export default function App() {
         const panel = state.panels[idx]
         if (!panel) return
 
-        if (focused && panel.type === 'terminal') {
+        if (focused && (panel.type === 'terminal' || (panel.type === 'browser' && panel.url !== 'about:blank'))) {
           window.api.focusPanel(panel.id)
+        } else if (focused && panel.type === 'browser' && panel.url === 'about:blank') {
+          window.api.focusPanelChrome(panel.id)
         } else {
           window.api.blurAllPanels()
         }
       }
     )
   )
+
+  // Send chrome state to each panel's own view(s) whenever relevant state changes
+  createEffect(() => {
+    const panels = [...state.panels]
+    const focusedIndex = state.focusedIndex
+    for (let i = 0; i < panels.length; i++) {
+      const panel = panels[i]
+      window.api.sendChromeState(panel.id, {
+        position: i + 1,
+        label: panel.label,
+        focused: i === focusedIndex && state.terminalFocused,
+        type: panel.type,
+        url: panel.url,
+        canGoBack: panel.canGoBack,
+        canGoForward: panel.canGoForward
+      })
+    }
+  })
 
   function handleWheel(deltaX: number): void {
     currentAnimation?.cancel()
@@ -117,7 +140,7 @@ export default function App() {
     const focusedPanel = state.panels[state.focusedIndex]
     if (!focusedPanel) return
 
-    if (focusedPanel.type === 'terminal') {
+    if (focusedPanel.type === 'terminal' || focusedPanel.type === 'browser') {
       window.api.closePanel(focusedPanel.id)
     } else {
       const removedId = actions.removePanel()
@@ -137,6 +160,26 @@ export default function App() {
       case 'new-panel': {
         const panel = actions.addPanel('terminal')
         window.api.createTerminal(panel.id)
+        break
+      }
+      case 'new-browser': {
+        const panel = actions.addPanel('browser', 'about:blank')
+        window.api.createBrowserPanel(panel.id, panel.url || 'about:blank')
+        break
+      }
+      case 'reload-browser': {
+        const focused = state.panels[state.focusedIndex]
+        if (focused?.type === 'browser') window.api.reloadBrowser(focused.id)
+        break
+      }
+      case 'browser-back': {
+        const focused = state.panels[state.focusedIndex]
+        if (focused?.type === 'browser') window.api.goBackBrowser(focused.id)
+        break
+      }
+      case 'browser-forward': {
+        const focused = state.panels[state.focusedIndex]
+        if (focused?.type === 'browser') window.api.goForwardBrowser(focused.id)
         break
       }
       case 'close-panel': handleClosePanel(); break
@@ -189,6 +232,31 @@ export default function App() {
       }
     })
 
+    // Browser URL + nav state tracking (combined to update store atomically)
+    window.api.onBrowserUrlChanged((data) => {
+      batch(() => {
+        actions.setPanelUrl(data.panelId, data.url)
+        actions.setPanelNavState(data.panelId, data.canGoBack, data.canGoForward)
+      })
+    })
+
+    // Page <title> tracking
+    window.api.onBrowserTitleChanged((data) => {
+      actions.setPanelTitle(data.panelId, data.title)
+    })
+
+    // Navigation interception — new-window from browser panel opens a new browser panel
+    window.api.onBrowserOpenUrl((data) => {
+      const panel = actions.addPanel('browser', data.url)
+      window.api.createBrowserPanel(panel.id, data.url)
+    })
+
+    // Browser panel closed (no PTY involved)
+    window.api.onPanelClosed((data) => {
+      actions.removePanelById(data.panelId)
+      createdPanelIds.delete(data.panelId)
+    })
+
     batch(() => {
       actions.setViewport(window.innerWidth, window.innerHeight)
       const panel = actions.addPanel('terminal')
@@ -206,9 +274,21 @@ export default function App() {
 
   const maxScroll = () => computeMaxScroll(state.panels.length, state.viewportWidth)
 
+  const panelChromeHeights = () => {
+    const map = new Map<string, number>()
+    for (const p of state.panels) {
+      map.set(p.id, p.type === 'browser' ? LAYOUT.PANEL_CHROME_HEIGHT : LAYOUT.TITLE_BAR_HEIGHT)
+    }
+    return map
+  }
+
   return (
     <>
-      <Strip layout={layout()} panels={[...state.panels]} focusedIndex={state.focusedIndex} />
+      <Strip
+        layout={layout()}
+        focusedPanelId={state.panels[state.focusedIndex]?.id}
+        panelChromeHeights={panelChromeHeights()}
+      />
       <ScrollIndicators
         scrollOffset={state.scrollOffset} maxScroll={maxScroll()}
         viewportWidth={state.viewportWidth} viewportHeight={state.viewportHeight}

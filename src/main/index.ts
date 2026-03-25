@@ -65,9 +65,11 @@ function createWindow(): void {
 }
 
 function setupIpcHandlers(): void {
-  ipcMain.on('panel:create', (_event, data: { id: string; color?: string; type?: string }) => {
+  ipcMain.on('panel:create', (_event, data: { id: string; color?: string; type?: string; url?: string }) => {
     if (data.type === 'terminal') {
       panelManager.createPanel(data.id, { type: 'terminal' })
+    } else if (data.type === 'browser') {
+      panelManager.createPanel(data.id, { type: 'browser', url: data.url || 'about:blank' })
     } else {
       panelManager.createPanel(data.id, { color: data.color || '#333' })
     }
@@ -112,8 +114,54 @@ function setupIpcHandlers(): void {
     ptyManager.resize(data.panelId, data.cols, data.rows)
   })
 
+  // Browser navigation
+  ipcMain.on('browser:navigate', (_event, data: { panelId: string; url: string }) => {
+    panelManager.navigateBrowser(data.panelId, data.url)
+  })
+
+  ipcMain.on('browser:reload', (_event, data: { panelId: string }) => {
+    panelManager.reloadBrowser(data.panelId)
+  })
+
+  ipcMain.on('browser:go-back', (_event, data: { panelId: string }) => {
+    panelManager.goBackBrowser(data.panelId)
+  })
+
+  ipcMain.on('browser:go-forward', (_event, data: { panelId: string }) => {
+    panelManager.goForwardBrowser(data.panelId)
+  })
+
+  // Browser host chrome strip → navigate
+  ipcMain.on('browser:navigate-from-host', (_event, data: { panelId: string; url: string }) => {
+    panelManager.navigateBrowser(data.panelId, data.url)
+  })
+
+  // Chrome view → send chrome state to a panel's views
+  ipcMain.on('panel:send-chrome-state', (_event, data: {
+    panelId: string; position: number; label: string; focused: boolean;
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
+  }) => {
+    // Enrich terminal panels with busy state from PTY
+    if (data.type === 'terminal') {
+      data.busy = ptyManager.isBusy(data.panelId)
+    }
+    panelManager.sendChromeState(data.panelId, data)
+  })
+
+  // Terminal link detection → open as browser panel
+  ipcMain.on('browser:open-url-from-terminal', (_event, data: { url: string }) => {
+    chromeView.webContents.send('browser:open-url', { url: data.url })
+  })
+
   // Close confirmation flow
   ipcMain.on('panel:close-request', (_event, data: { panelId: string }) => {
+    // Browser panels have no PTY — close immediately
+    if (!ptyManager.hasPty(data.panelId)) {
+      panelManager.destroyPanel(data.panelId)
+      chromeView.webContents.send('panel:closed', { panelId: data.panelId })
+      return
+    }
+
     if (ptyManager.isBusy(data.panelId)) {
       const processName = ptyManager.getForegroundProcess(data.panelId) || 'unknown'
       chromeView.webContents.send('pty:confirm-close', {
@@ -141,6 +189,11 @@ function setupIpcHandlers(): void {
   // Focus management
   ipcMain.on('panel:focus', (_event, data: { panelId: string }) => {
     const view = panelManager.getPanelView(data.panelId)
+    if (view) view.webContents.focus()
+  })
+
+  ipcMain.on('panel:focus-chrome', (_event, data: { panelId: string }) => {
+    const view = panelManager.getPanelChromeView(data.panelId)
     if (view) view.webContents.focus()
   })
 
@@ -195,6 +248,11 @@ function setupShortcuts(): void {
           click: () => chromeView.webContents.send('shortcut:action', { type: 'new-panel' })
         },
         {
+          label: 'New Browser',
+          accelerator: 'CommandOrControl+B',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'new-browser' })
+        },
+        {
           label: 'Close Panel',
           accelerator: 'CommandOrControl+W',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'close-panel' })
@@ -227,7 +285,21 @@ function setupShortcuts(): void {
     {
       label: 'View',
       submenu: [
-        { role: 'reload' as const },
+        {
+          label: 'Reload Browser Panel',
+          accelerator: 'CommandOrControl+R',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'reload-browser' })
+        },
+        {
+          label: 'Browser Back',
+          accelerator: 'Command+[',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-back' })
+        },
+        {
+          label: 'Browser Forward',
+          accelerator: 'Command+]',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-forward' })
+        },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const }
       ]

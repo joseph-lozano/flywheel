@@ -2,8 +2,10 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { Unicode11Addon } from '@xterm/addon-unicode11'
+import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { TERMINAL_DEFAULTS } from '../shared/constants'
+import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
   interface Window {
@@ -13,6 +15,8 @@ declare global {
       resize: (panelId: string, cols: number, rows: number) => void
       onExit: (callback: (exitCode: number) => void) => void
       getPanelId: () => string
+      openUrl: (url: string) => void
+      onChromeState: (callback: (state: { position: number; label: string; focused: boolean; busy?: boolean }) => void) => void
     }
   }
 }
@@ -42,6 +46,11 @@ try {
 
 fitAddon.fit()
 
+// Link detection — open URLs as browser panels instead of system browser
+terminal.loadAddon(new WebLinksAddon((_event, url) => {
+  window.pty.openUrl(url)
+}))
+
 // Wire input: terminal → PTY
 terminal.onData((data) => {
   window.pty.input(panelId, data)
@@ -70,3 +79,19 @@ resizeObserver.observe(container)
 
 // Initial size report
 reportSize()
+
+// Chrome state → title bar with dot-grid divider
+const posLabel = document.getElementById('pos-label')!
+const dotGridWrap = document.getElementById('dot-grid')!
+const titleLabel = document.getElementById('title-label')!
+
+initDotGrid(dotGridWrap)
+
+const titleBar = document.getElementById('panel-titlebar')!
+
+window.pty.onChromeState((state) => {
+  posLabel.textContent = state.position <= 9 ? `${state.position}` : ''
+  titleLabel.textContent = state.label
+  titleBar.classList.toggle('focused', state.focused)
+  setDotGridBusy(dotGridWrap, !!state.busy)
+})

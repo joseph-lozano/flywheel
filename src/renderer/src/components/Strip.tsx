@@ -4,32 +4,21 @@ import PanelFrame from './PanelFrame'
 
 interface StripProps {
   layout: PanelLayout[]
-  panels: Array<{ id: string; type: string; label: string }>
-  focusedIndex: number
+  focusedPanelId: string | undefined
+  panelChromeHeights: Map<string, number>
 }
 
 export default function Strip(props: StripProps) {
   return (
     <div style={{ position: 'absolute', inset: 0, 'pointer-events': 'none' }}>
       <For each={props.layout}>
-        {(entry, index) => {
-          const panel = () => props.panels.find((p) => p.id === entry.panelId)
-          const panelIndex = () => props.panels.findIndex((p) => p.id === entry.panelId)
-          const label = () => {
-            const pos = panelIndex() + 1
-            const p = panel()
-            const name = p?.label ?? ''
-            return pos <= 9 ? `${pos} — ${name}` : name
-          }
-          return (
-            <PanelFrame
-              titleBarBounds={entry.titleBarBounds}
-              contentBounds={entry.contentBounds}
-              label={label()}
-              focused={entry.panelId === props.panels[props.focusedIndex]?.id}
-            />
-          )
-        }}
+        {(entry) => (
+          <PanelFrame
+            contentBounds={entry.contentBounds}
+            focused={entry.panelId === props.focusedPanelId}
+            chromeHeight={props.panelChromeHeights.get(entry.panelId) || 60}
+          />
+        )}
       </For>
     </div>
   )

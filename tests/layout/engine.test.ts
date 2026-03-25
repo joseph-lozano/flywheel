@@ -8,7 +8,7 @@ import {
 } from '../../src/renderer/src/layout/engine'
 import type { Panel } from '../../src/shared/types'
 
-const mkPanel = (id: string): Panel => ({ id, color: '#000', label: id })
+const mkPanel = (id: string): Panel => ({ id, type: 'terminal' as const, color: '#000', label: id })
 
 describe('computeVisibility', () => {
   const vw = 1000
@@ -52,16 +52,15 @@ describe('computeLayout', () => {
     expect(layout[1].contentBounds.x).toBe(308)
   })
 
-  it('positions title bars above content', () => {
+  it('positions panels at strip top padding', () => {
     const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600 })
-    expect(layout[0].titleBarBounds.y).toBe(8)
-    expect(layout[0].titleBarBounds.height).toBe(32)
-    expect(layout[0].contentBounds.y).toBe(40)
+    expect(layout[0].contentBounds.y).toBe(8)
   })
 
-  it('computes content height from viewport', () => {
+  it('computes panel height from viewport', () => {
     const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600 })
-    expect(layout[0].contentBounds.height).toBe(524)
+    // 600 - 8(top) - 32(hint) - 4(scroll) = 556
+    expect(layout[0].contentBounds.height).toBe(556)
   })
 
   it('assigns visibility based on viewport position', () => {

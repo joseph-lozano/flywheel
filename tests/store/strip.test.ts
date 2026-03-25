@@ -285,3 +285,46 @@ describe('swap', () => {
     })
   })
 })
+
+describe('browser panels', () => {
+  it('addPanel with browser type sets type and url', () => {
+    withStore(({ state, actions }) => {
+      const panel = actions.addPanel('browser', 'http://localhost:3000')
+      expect(panel.type).toBe('browser')
+      expect(panel.url).toBe('http://localhost:3000')
+      expect(state.panels[0].type).toBe('browser')
+      expect(state.panels[0].url).toBe('http://localhost:3000')
+    })
+  })
+
+  it('addPanel with browser type uses url as initial label', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel('browser', 'http://localhost:3000')
+      expect(state.panels[0].label).toBe('http://localhost:3000')
+    })
+  })
+
+  it('setPanelUrl updates url on panel', () => {
+    withStore(({ state, actions }) => {
+      const panel = actions.addPanel('browser', 'http://localhost:3000')
+      actions.setPanelUrl(panel.id, 'http://localhost:3000/about')
+      expect(state.panels[0].url).toBe('http://localhost:3000/about')
+    })
+  })
+
+  it('setPanelUrl ignores unknown panel id', () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel('browser', 'http://localhost:3000')
+      actions.setPanelUrl('unknown', 'http://example.com')
+      expect(state.panels[0].url).toBe('http://localhost:3000')
+    })
+  })
+
+  it('browser panel sets terminalFocused so it gets focus', () => {
+    withStore(({ state, actions }) => {
+      actions.blurPanel()
+      actions.addPanel('browser', 'http://localhost:3000')
+      expect(state.terminalFocused).toBe(true)
+    })
+  })
+})

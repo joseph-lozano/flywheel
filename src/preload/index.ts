@@ -47,6 +47,9 @@ contextBridge.exposeInMainWorld('api', {
   focusPanel: (panelId: string) => {
     ipcRenderer.send('panel:focus', { panelId })
   },
+  focusPanelChrome: (panelId: string) => {
+    ipcRenderer.send('panel:focus-chrome', { panelId })
+  },
   blurAllPanels: () => {
     ipcRenderer.send('panel:blur-all')
   },
@@ -61,5 +64,37 @@ contextBridge.exposeInMainWorld('api', {
   },
   showAllPanels: () => {
     ipcRenderer.send('panel:show-all')
+  },
+
+  // Browser panels
+  createBrowserPanel: (id: string, url: string) => {
+    ipcRenderer.send('panel:create', { id, type: 'browser', url })
+  },
+  reloadBrowser: (panelId: string) => {
+    ipcRenderer.send('browser:reload', { panelId })
+  },
+  goBackBrowser: (panelId: string) => {
+    ipcRenderer.send('browser:go-back', { panelId })
+  },
+  goForwardBrowser: (panelId: string) => {
+    ipcRenderer.send('browser:go-forward', { panelId })
+  },
+  onBrowserUrlChanged: (callback: (data: { panelId: string; url: string; canGoBack: boolean; canGoForward: boolean }) => void) => {
+    ipcRenderer.on('browser:url-changed', (_event, data) => callback(data))
+  },
+  onBrowserTitleChanged: (callback: (data: { panelId: string; title: string }) => void) => {
+    ipcRenderer.on('browser:title-changed', (_event, data) => callback(data))
+  },
+  sendChromeState: (panelId: string, state: {
+    position: number; label: string; focused: boolean;
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
+  }) => {
+    ipcRenderer.send('panel:send-chrome-state', { panelId, ...state })
+  },
+  onBrowserOpenUrl: (callback: (data: { url: string }) => void) => {
+    ipcRenderer.on('browser:open-url', (_event, data) => callback(data))
+  },
+  onPanelClosed: (callback: (data: { panelId: string }) => void) => {
+    ipcRenderer.on('panel:closed', (_event, data) => callback(data))
   }
 })

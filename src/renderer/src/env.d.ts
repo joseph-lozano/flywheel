@@ -24,11 +24,26 @@ interface FlywheelAPI {
 
   // Focus management
   focusPanel(panelId: string): void
+  focusPanelChrome(panelId: string): void
   blurAllPanels(): void
   onPanelFocused(callback: (data: { panelId: string }) => void): void
   onPanelTitle(callback: (data: { panelId: string; title: string }) => void): void
   hideAllPanels(): void
   showAllPanels(): void
+
+  // Browser panels
+  createBrowserPanel(id: string, url: string): void
+  reloadBrowser(panelId: string): void
+  goBackBrowser(panelId: string): void
+  goForwardBrowser(panelId: string): void
+  onBrowserUrlChanged(callback: (data: { panelId: string; url: string; canGoBack: boolean; canGoForward: boolean }) => void): void
+  onBrowserTitleChanged(callback: (data: { panelId: string; title: string }) => void): void
+  onBrowserOpenUrl(callback: (data: { url: string }) => void): void
+  onPanelClosed(callback: (data: { panelId: string }) => void): void
+  sendChromeState(panelId: string, state: {
+    position: number; label: string; focused: boolean;
+    type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
+  }): void
 }
 
 declare global {

@@ -28,10 +28,15 @@ export function createStripStore() {
   })
 
   const actions = {
-    addPanel(panelType: 'terminal' | 'placeholder' = 'terminal'): Panel {
+    addPanel(panelType: 'terminal' | 'placeholder' | 'browser' = 'terminal', url?: string): Panel {
       const panel = nextPanel()
       panel.type = panelType
-      if (panelType === 'terminal') panel.label = ''
+      if (panelType === 'terminal') {
+        panel.label = ''
+      } else if (panelType === 'browser') {
+        panel.label = url || ''
+        panel.url = url
+      }
       const insertIndex = state.panels.length === 0 ? 0 : state.focusedIndex + 1
       const before = state.panels.slice(0, insertIndex)
       const after = state.panels.slice(insertIndex)
@@ -89,6 +94,17 @@ export function createStripStore() {
     setPanelTitle(id: string, title: string) {
       const index = state.panels.findIndex((p) => p.id === id)
       if (index >= 0) setState('panels', index, 'label', title)
+    },
+    setPanelUrl(id: string, url: string) {
+      const index = state.panels.findIndex((p) => p.id === id)
+      if (index >= 0) setState('panels', index, 'url', url)
+    },
+    setPanelNavState(id: string, canGoBack: boolean, canGoForward: boolean) {
+      const index = state.panels.findIndex((p) => p.id === id)
+      if (index >= 0) {
+        setState('panels', index, 'canGoBack', canGoBack)
+        setState('panels', index, 'canGoForward', canGoForward)
+      }
     },
     setScrollOffset(offset: number) { setState('scrollOffset', offset) },
     setViewport(width: number, height: number) { setState('viewportWidth', width); setState('viewportHeight', height) }
