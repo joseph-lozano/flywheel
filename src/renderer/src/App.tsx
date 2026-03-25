@@ -340,7 +340,6 @@ export default function App() {
       case 'close-panel': handleClosePanel(); break
       case 'blur-panel': strip?.actions.blurPanel(); break
       case 'jump-to': if (strip && action.index !== undefined) strip.actions.jumpTo(action.index); break
-      case 'toggle-sidebar': appStore.actions.toggleSidebar(); break
       case 'add-project': handleAddProject(); break
       case 'switch-project': {
         if (action.index === undefined) break
@@ -478,7 +477,7 @@ export default function App() {
   // --- Derived state for rendering ---
 
   const strip = () => activeStrip()
-  const sidebarWidth = () => appStore.state.sidebarCollapsed ? 0 : appStore.state.sidebarWidth
+  const sidebarWidth = () => appStore.state.sidebarWidth
 
   const layout = () => {
     const s = strip()
