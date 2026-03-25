@@ -36,6 +36,8 @@ export default function App() {
         if (panel) {
           if (panel.type === 'terminal') {
             window.api.createTerminalPanel(entry.panelId)
+          } else if (panel.type === 'browser') {
+            window.api.createBrowserPanel(entry.panelId, panel.url || 'about:blank')
           } else {
             window.api.createPanel(entry.panelId, panel.color)
           }
@@ -90,7 +92,7 @@ export default function App() {
         const panel = state.panels[idx]
         if (!panel) return
 
-        if (focused && panel.type === 'terminal') {
+        if (focused && (panel.type === 'terminal' || panel.type === 'browser')) {
           window.api.focusPanel(panel.id)
         } else {
           window.api.blurAllPanels()
@@ -117,7 +119,7 @@ export default function App() {
     const focusedPanel = state.panels[state.focusedIndex]
     if (!focusedPanel) return
 
-    if (focusedPanel.type === 'terminal') {
+    if (focusedPanel.type === 'terminal' || focusedPanel.type === 'browser') {
       window.api.closePanel(focusedPanel.id)
     } else {
       const removedId = actions.removePanel()
@@ -139,6 +141,11 @@ export default function App() {
         window.api.createTerminal(panel.id)
         break
       }
+      case 'new-browser': {
+        const panel = actions.addPanel('browser', 'about:blank')
+        window.api.createBrowserPanel(panel.id, panel.url || 'about:blank')
+        break
+      }
       case 'close-panel': handleClosePanel(); break
       case 'blur-panel': actions.blurPanel(); break
       case 'jump-to': if (action.index !== undefined) actions.jumpTo(action.index); break
@@ -156,6 +163,11 @@ export default function App() {
       setConfirmClose(null)
       window.api.showAllPanels()
     }
+  }
+
+  function handleNavigate(panelId: string, url: string): void {
+    window.api.navigateBrowser(panelId, url)
+    actions.setPanelUrl(panelId, url)
   }
 
   onMount(() => {
@@ -189,6 +201,24 @@ export default function App() {
       }
     })
 
+    // Browser URL tracking
+    window.api.onBrowserUrlChanged((data) => {
+      actions.setPanelUrl(data.panelId, data.url)
+      actions.setPanelTitle(data.panelId, data.url)
+    })
+
+    // Navigation interception — new-window from browser panel opens a new browser panel
+    window.api.onBrowserOpenUrl((data) => {
+      const panel = actions.addPanel('browser', data.url)
+      window.api.createBrowserPanel(panel.id, data.url)
+    })
+
+    // Browser panel closed (no PTY involved)
+    window.api.onPanelClosed((data) => {
+      actions.removePanelById(data.panelId)
+      createdPanelIds.delete(data.panelId)
+    })
+
     batch(() => {
       actions.setViewport(window.innerWidth, window.innerHeight)
       const panel = actions.addPanel('terminal')
@@ -208,7 +238,12 @@ export default function App() {
 
   return (
     <>
-      <Strip layout={layout()} panels={[...state.panels]} focusedIndex={state.focusedIndex} />
+      <Strip
+        layout={layout()}
+        panels={[...state.panels]}
+        focusedIndex={state.focusedIndex}
+        onNavigate={handleNavigate}
+      />
       <ScrollIndicators
         scrollOffset={state.scrollOffset} maxScroll={maxScroll()}
         viewportWidth={state.viewportWidth} viewportHeight={state.viewportHeight}
