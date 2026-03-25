@@ -15,7 +15,7 @@ type SendToChromeFn = (channel: string, data: unknown) => void
 
 const FLUSH_INTERVAL_MS = 16
 
-const TITLE_CHECK_INTERVAL = 60 // check every ~60 flushes (~1s)
+const TITLE_CHECK_INTERVAL = 30 // check every ~30 flushes (~0.5s)
 
 export class PtyManager {
   private ptys = new Map<string, ManagedPty>()

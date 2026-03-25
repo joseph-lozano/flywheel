@@ -141,6 +141,10 @@ function setupIpcHandlers(): void {
     panelId: string; position: number; label: string; focused: boolean;
     type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
   }) => {
+    // Enrich terminal panels with busy state from PTY
+    if (data.type === 'terminal') {
+      data.busy = ptyManager.isBusy(data.panelId)
+    }
     panelManager.sendChromeState(data.panelId, data)
   })
 
