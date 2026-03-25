@@ -349,6 +349,18 @@ export default function App() {
         }
         break
       }
+      case 'prev-project': {
+        const projects = appStore.state.projects
+        const currentIdx = projects.findIndex((p) => p.id === appStore.state.activeProjectId)
+        if (currentIdx > 0) handleSwitchProject(projects[currentIdx - 1].id)
+        break
+      }
+      case 'next-project': {
+        const projects = appStore.state.projects
+        const currentIdx = projects.findIndex((p) => p.id === appStore.state.activeProjectId)
+        if (currentIdx >= 0 && currentIdx < projects.length - 1) handleSwitchProject(projects[currentIdx + 1].id)
+        break
+      }
     }
   }
 

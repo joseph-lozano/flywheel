@@ -44,6 +44,8 @@ export class PanelManager {
       if (input.shift) {
         if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
         else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
+        else if (input.key === 'ArrowUp') action = { type: 'prev-project' }
+        else if (input.key === 'ArrowDown') action = { type: 'next-project' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'switch-project', index: parseInt(input.key) - 1 }
       } else {
         if (input.key === 'ArrowLeft') action = { type: 'focus-left' }

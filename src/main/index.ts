@@ -324,6 +324,17 @@ function setupShortcuts(): void {
           click: () => chromeView.webContents.send('shortcut:action', { type: 'add-project' })
         },
         { type: 'separator' },
+        {
+          label: 'Previous Project',
+          accelerator: 'Command+Shift+Up',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'prev-project' })
+        },
+        {
+          label: 'Next Project',
+          accelerator: 'Command+Shift+Down',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'next-project' })
+        },
+        { type: 'separator' },
         ...Array.from({ length: 9 }, (_, i) => ({
           label: `Switch to Project ${i + 1}`,
           accelerator: `CommandOrControl+Shift+${i + 1}`,
