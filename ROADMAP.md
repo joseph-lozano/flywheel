@@ -48,7 +48,7 @@ Replace placeholders with real terminals. After this, Flywheel is a usable Niri-
 
 ## Phase 2.5: Minimal Browser Panels
 
-A quick add-on (~1 day) to get basic browser panels working alongside terminals. Complex browser features are deferred to Phase 6.
+Basic browser panels alongside terminals. Complex browser features are deferred to Phase 6.
 
 **Scope:**
 - `WebContentsView` loading a URL ([spec: Browser, L37](docs/superpowers/specs/2026-03-24-flywheel-design.md#L37))
