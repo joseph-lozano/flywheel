@@ -4,6 +4,7 @@ import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCentere
 import { animate, easeOut } from './scroll/animator'
 import type { AnimationHandle } from './scroll/animator'
 import type { PanelBoundsUpdate } from '../../../shared/types'
+import { LAYOUT } from '../../shared/constants'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
 import HintBar from './components/HintBar'
@@ -44,9 +45,16 @@ export default function App() {
           createdPanelIds.add(entry.panelId)
         }
       }
+      const panel = state.panels.find((p) => p.id === entry.panelId)
+      const isBrowser = panel?.type === 'browser'
+      const adjustedBounds = isBrowser ? {
+        ...entry.contentBounds,
+        y: entry.contentBounds.y + LAYOUT.BROWSER_NAV_BAR_HEIGHT,
+        height: entry.contentBounds.height - LAYOUT.BROWSER_NAV_BAR_HEIGHT
+      } : entry.contentBounds
       boundsUpdates.push({
         panelId: entry.panelId,
-        bounds: entry.contentBounds,
+        bounds: adjustedBounds,
         visible: entry.visibility === 'visible'
       })
     }
@@ -151,6 +159,16 @@ export default function App() {
         if (focused?.type === 'browser') window.api.reloadBrowser(focused.id)
         break
       }
+      case 'browser-back': {
+        const focused = state.panels[state.focusedIndex]
+        if (focused?.type === 'browser') window.api.goBackBrowser(focused.id)
+        break
+      }
+      case 'browser-forward': {
+        const focused = state.panels[state.focusedIndex]
+        if (focused?.type === 'browser') window.api.goForwardBrowser(focused.id)
+        break
+      }
       case 'close-panel': handleClosePanel(); break
       case 'blur-panel': actions.blurPanel(); break
       case 'jump-to': if (action.index !== undefined) actions.jumpTo(action.index); break
@@ -212,6 +230,11 @@ export default function App() {
       actions.setPanelTitle(data.panelId, data.url)
     })
 
+    // Browser nav state (back/forward availability)
+    window.api.onBrowserNavStateChanged((data) => {
+      actions.setPanelNavState(data.panelId, data.canGoBack, data.canGoForward)
+    })
+
     // Navigation interception — new-window from browser panel opens a new browser panel
     window.api.onBrowserOpenUrl((data) => {
       const panel = actions.addPanel('browser', data.url)
@@ -248,6 +271,9 @@ export default function App() {
         panels={[...state.panels]}
         focusedIndex={state.focusedIndex}
         onNavigate={handleNavigate}
+        onGoBack={(panelId) => window.api.goBackBrowser(panelId)}
+        onGoForward={(panelId) => window.api.goForwardBrowser(panelId)}
+        onReload={(panelId) => window.api.reloadBrowser(panelId)}
       />
       <ScrollIndicators
         scrollOffset={state.scrollOffset} maxScroll={maxScroll()}

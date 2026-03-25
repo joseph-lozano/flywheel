@@ -99,6 +99,13 @@ export function createStripStore() {
       const index = state.panels.findIndex((p) => p.id === id)
       if (index >= 0) setState('panels', index, 'url', url)
     },
+    setPanelNavState(id: string, canGoBack: boolean, canGoForward: boolean) {
+      const index = state.panels.findIndex((p) => p.id === id)
+      if (index >= 0) {
+        setState('panels', index, 'canGoBack', canGoBack)
+        setState('panels', index, 'canGoForward', canGoForward)
+      }
+    },
     setScrollOffset(offset: number) { setState('scrollOffset', offset) },
     setViewport(width: number, height: number) { setState('viewportWidth', width); setState('viewportHeight', height) }
   }

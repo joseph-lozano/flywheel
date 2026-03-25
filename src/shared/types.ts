@@ -4,6 +4,8 @@ export interface Panel {
   color: string
   label: string
   url?: string
+  canGoBack?: boolean
+  canGoForward?: boolean
 }
 
 export interface Rectangle {

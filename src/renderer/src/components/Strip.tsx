@@ -4,9 +4,12 @@ import PanelFrame from './PanelFrame'
 
 interface StripProps {
   layout: PanelLayout[]
-  panels: Array<{ id: string; type: string; label: string; url?: string }>
+  panels: Array<{ id: string; type: string; label: string; url?: string; canGoBack?: boolean; canGoForward?: boolean }>
   focusedIndex: number
   onNavigate?: (panelId: string, url: string) => void
+  onGoBack?: (panelId: string) => void
+  onGoForward?: (panelId: string) => void
+  onReload?: (panelId: string) => void
 }
 
 export default function Strip(props: StripProps) {
@@ -33,7 +36,12 @@ export default function Strip(props: StripProps) {
               position={panelIndex() + 1}
               url={panel()?.url}
               autoEdit={panel()?.type === 'browser' && (!panel()?.url || panel()?.url === 'about:blank')}
+              canGoBack={panel()?.canGoBack}
+              canGoForward={panel()?.canGoForward}
               onNavigate={props.onNavigate}
+              onGoBack={props.onGoBack}
+              onGoForward={props.onGoForward}
+              onReload={props.onReload}
             />
           )
         }}
