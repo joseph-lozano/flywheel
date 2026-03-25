@@ -6,6 +6,7 @@ export interface AppState {
   projects: Project[]
   activeProjectId: string | null
   sidebarWidth: number
+  sidebarCollapsed: boolean
 }
 
 function computeSidebarWidth(projects: Project[]): number {
@@ -19,7 +20,8 @@ export function createAppStore() {
   const [state, setState] = createStore<AppState>({
     projects: [],
     activeProjectId: null,
-    sidebarWidth: SIDEBAR.MIN_WIDTH
+    sidebarWidth: SIDEBAR.MIN_WIDTH,
+    sidebarCollapsed: false
   })
 
   const actions = {
@@ -53,6 +55,10 @@ export function createAppStore() {
     getActiveProject(): Project | null {
       if (!state.activeProjectId) return null
       return state.projects.find((p) => p.id === state.activeProjectId) || null
+    },
+
+    toggleSidebar(): void {
+      setState('sidebarCollapsed', !state.sidebarCollapsed)
     }
   }
 

@@ -323,6 +323,12 @@ function setupShortcuts(): void {
       label: 'Projects',
       submenu: [
         {
+          label: 'Toggle Sidebar',
+          accelerator: 'CommandOrControl+E',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'toggle-sidebar' })
+        },
+        { type: 'separator' },
+        {
           label: 'Add Project',
           accelerator: 'CommandOrControl+O',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'add-project' })

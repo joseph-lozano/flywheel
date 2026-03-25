@@ -64,6 +64,7 @@ export class PanelManager {
         else if (input.key === ']') action = { type: 'browser-forward' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
         else if (input.key === 'o') action = { type: 'add-project' }
+        else if (input.key === 'e') action = { type: 'toggle-sidebar' }
       }
 
       if (action) {
