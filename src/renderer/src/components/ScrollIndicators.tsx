@@ -9,6 +9,7 @@ interface ScrollIndicatorsProps {
 }
 
 export default function ScrollIndicators(props: ScrollIndicatorsProps) {
+  const effectiveWidth = () => props.viewportWidth - props.sidebarWidth
   const trackTop = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT
   const showLeft = () => props.scrollOffset > 1
   const showRight = () => props.scrollOffset < props.maxScroll - 1
