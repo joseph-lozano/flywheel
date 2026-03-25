@@ -4,6 +4,7 @@ import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCentere
 import { animate, easeOut } from './scroll/animator'
 import type { AnimationHandle } from './scroll/animator'
 import type { PanelBoundsUpdate } from '../../../shared/types'
+import { LAYOUT } from '../../shared/constants'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
 import HintBar from './components/HintBar'
@@ -264,11 +265,20 @@ export default function App() {
 
   const maxScroll = () => computeMaxScroll(state.panels.length, state.viewportWidth)
 
+  const panelChromeHeights = () => {
+    const map = new Map<string, number>()
+    for (const p of state.panels) {
+      map.set(p.id, p.type === 'browser' ? LAYOUT.PANEL_CHROME_HEIGHT : LAYOUT.TITLE_BAR_HEIGHT)
+    }
+    return map
+  }
+
   return (
     <>
       <Strip
         layout={layout()}
         focusedPanelId={state.panels[state.focusedIndex]?.id}
+        panelChromeHeights={panelChromeHeights()}
       />
       <ScrollIndicators
         scrollOffset={state.scrollOffset} maxScroll={maxScroll()}

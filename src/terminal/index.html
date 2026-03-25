@@ -15,22 +15,16 @@
       /* no border-radius — the focus border in the chrome view provides the rounded corners */
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
-    #panel-titlebar.focused { font-weight: 500; color: #e0e0e0; background: #252540; }
-    #panel-spacer {
-      height: 28px; background: #1a1a2e;
-      border-bottom: 1px solid #2a2a3e; box-sizing: border-box;
-    }
-    #panel-spacer.focused { background: #252540; border-bottom: 2px solid #6366f1; }
+    #panel-titlebar.focused { font-weight: 500; color: #e0e0e0; background: #252540; border-bottom-color: #6366f1; border-bottom-width: 2px; }
     #terminal {
       width: calc(100% - 16px);
-      height: calc(100% - 68px);
+      height: calc(100% - 40px);
       padding: 8px;
     }
   </style>
 </head>
 <body>
   <div id="panel-titlebar"></div>
-  <div id="panel-spacer"></div>
   <div id="terminal"></div>
   <script type="module" src="./terminal.ts"></script>
 </body>

@@ -5,6 +5,7 @@ import PanelFrame from './PanelFrame'
 interface StripProps {
   layout: PanelLayout[]
   focusedPanelId: string | undefined
+  panelChromeHeights: Map<string, number>
 }
 
 export default function Strip(props: StripProps) {
@@ -15,6 +16,7 @@ export default function Strip(props: StripProps) {
           <PanelFrame
             contentBounds={entry.contentBounds}
             focused={entry.panelId === props.focusedPanelId}
+            chromeHeight={props.panelChromeHeights.get(entry.panelId) || 60}
           />
         )}
       </For>
