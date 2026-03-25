@@ -5,6 +5,7 @@ import { Unicode11Addon } from '@xterm/addon-unicode11'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { TERMINAL_DEFAULTS } from '../shared/constants'
+import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from '../browser/dot-grid'
 
 declare global {
   interface Window {
@@ -15,7 +16,7 @@ declare global {
       onExit: (callback: (exitCode: number) => void) => void
       getPanelId: () => string
       openUrl: (url: string) => void
-      onChromeState: (callback: (state: { position: number; label: string; focused: boolean }) => void) => void
+      onChromeState: (callback: (state: { position: number; label: string; focused: boolean; busy?: boolean }) => void) => void
     }
   }
 }
@@ -79,11 +80,24 @@ resizeObserver.observe(container)
 // Initial size report
 reportSize()
 
-// Chrome state → title bar
+// Chrome state → title bar with dot-grid divider
+const posLabel = document.getElementById('pos-label')!
+const dotGridWrap = document.getElementById('dot-grid')!
+const titleLabel = document.getElementById('title-label')!
+
+// Inject dot-grid SVG and CSS
+dotGridWrap.className = 'dot-grid-wrap'
+dotGridWrap.innerHTML = DOT_GRID_SVG
+const style = document.createElement('style')
+style.textContent = DOT_GRID_CSS
+document.head.appendChild(style)
+
 const titleBar = document.getElementById('panel-titlebar')!
 
 window.pty.onChromeState((state) => {
-  const pos = state.position <= 9 ? `${state.position} / ` : ''
-  titleBar.textContent = `${pos}${state.label}`
+  posLabel.textContent = state.position <= 9 ? `${state.position}` : ''
+  dotGridWrap.style.display = state.position <= 9 ? '' : 'none'
+  titleLabel.textContent = state.label
   titleBar.classList.toggle('focused', state.focused)
+  setDotGridBusy(dotGridWrap, !!state.busy)
 })
