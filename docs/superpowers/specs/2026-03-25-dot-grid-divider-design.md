@@ -47,7 +47,7 @@ This file lives in `src/browser/` alongside `icons.ts` since both terminal and b
 
 **Terminal panels** (`src/main/index.ts`):
 - The `panel:title` IPC from `ptyManager` flows through `src/main/index.ts` (not panel-manager). In the `panel:send-chrome-state` handler in `index.ts`, enrich the state with `busy: ptyManager.isBusy(panelId)` for terminal panels before forwarding to `panelManager.sendChromeState()`.
-- **Latency note:** `ptyManager.checkTitles()` polls on a ~1 second interval. This means the busy animation may lag by up to ~1s after a command starts or finishes. This is acceptable for a subtle visual cue — the dot grid is ambient, not a precise timing indicator.
+- **Latency note:** `ptyManager.checkTitles()` polls every `TITLE_CHECK_INTERVAL` flush cycles (currently 60 × 16ms ≈ ~1s, configurable at `pty-manager.ts:18`). This means the busy animation may lag by up to ~1s after a command starts or finishes. This is acceptable for a subtle visual cue — if it feels sluggish in practice, we can lower the interval (e.g. 15 ≈ ~250ms) at the cost of slightly more process polling.
 - Initial state: for a fresh shell, `isBusy()` returns `false` (foreground process matches shell name), so the dot grid starts idle. This is correct.
 
 **Panel views** receive `busy` via the existing `onChromeState` callback and call `setDotGridBusy()`.
