@@ -8,6 +8,18 @@ export interface Panel {
   canGoForward?: boolean
 }
 
+export interface Project {
+  id: string
+  name: string
+  path: string
+  missing?: boolean
+}
+
+export interface PersistedState {
+  projects: Project[]
+  activeProjectId: string | null
+}
+
 export interface Rectangle {
   x: number
   y: number
@@ -42,6 +54,6 @@ export interface PanelLayout {
 }
 
 export type ShortcutAction = {
-  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward'
+  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward' | 'add-project' | 'switch-project'
   index?: number
 }
