@@ -112,6 +112,7 @@ Config-driven process supervision — the "Solo for your dev stack" layer.
 - Decision: visual treatment for status indicators (colors, icons, animations)
 
 **Scope:**
+- Re-evaluate panel destruction for off-screen panels — currently disabled (all panels stay as hidden WCVs). Profile memory with many real terminals/browsers to decide buffer zone size and destruction strategy.
 - Auto-launch processes from config on project open ([spec: Config, L99-106](docs/superpowers/specs/2026-03-24-flywheel-design.md#L99-L106))
 - Status indicators in panel title bars ([spec: Process Management, L139-146](docs/superpowers/specs/2026-03-24-flywheel-design.md#L139-L146))
 - Dependency ordering: `after` field with readiness detection ([spec: Config, L105](docs/superpowers/specs/2026-03-24-flywheel-design.md#L105))

@@ -35,25 +35,25 @@ A **`BaseWindow`** is a native OS window (the actual macOS window frame). It con
 ### Process Model
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ BaseWindow (native macOS window)                    │
-│                                                     │
-│  ┌───────────────────────────────────────────────┐  │
-│  │ Chrome View (WebContentsView)                 │  │
-│  │ Solid app: sidebar, hint bar, scroll          │  │
-│  │ indicators, focus glow, panel title bars      │  │
-│  │                                               │  │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐      │  │
-│  │  │ Panel 1  │ │ Panel 2  │ │ Panel 3  │      │  │
-│  │  │ (WCV)    │ │ (WCV)    │ │ (WCV)    │      │  │
-│  │  │ colored  │ │ colored  │ │ colored  │      │  │
-│  │  │ box      │ │ box      │ │ box      │      │  │
-│  │  └──────────┘ └──────────┘ └──────────┘      │  │
-│  │                                               │  │
-│  │  ⌘← Focus Left  ⌘→ Focus Right  ⌘T New ...  │  │
-│  └───────────────────────────────────────────────┘  │
-│                                                     │
-└─────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│ BaseWindow (native macOS window)                      │
+│                                                       │
+│  ┌─────────────────────────────────────────────────┐  │
+│  │ Chrome View (WebContentsView)                   │  │
+│  │ Solid app: sidebar, hint bar, scroll            │  │
+│  │ indicators, focus glow, panel title bars        │  │
+│  │                                                 │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐         │  │
+│  │  │ Panel 1  │ │ Panel 2  │ │ Panel 3  │         │  │
+│  │  │ (WCV)    │ │ (WCV)    │ │ (WCV)    │         │  │
+│  │  │ colored  │ │ colored  │ │ colored  │         │  │
+│  │  │ box      │ │ box      │ │ box      │         │  │
+│  │  └──────────┘ └──────────┘ └──────────┘         │  │
+│  │                                                 │  │
+│  │  ⌘← Focus Left  ⌘→ Focus Right  ⌘T New ...      │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                       │
+└───────────────────────────────────────────────────────┘
 
 WCV = WebContentsView (each is its own renderer process)
 ```
