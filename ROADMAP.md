@@ -54,8 +54,10 @@ Basic browser panels alongside terminals. Complex browser features are deferred 
 - `WebContentsView` loading a URL ([spec: Browser, L37](docs/superpowers/specs/2026-03-24-flywheel-design.md#L37))
 - Address bar in title bar + Enter to navigate
 - Mod+B to open a new browser panel ([spec: L116](docs/superpowers/specs/2026-03-24-flywheel-design.md#L116))
+- Navigation interception: links open as new panels in the strip ([spec: Link Handling, L39-41](docs/superpowers/specs/2026-03-24-flywheel-design.md#L39-L41))
+- Terminal link detection opens browser panels instead of system browser ([spec: Link Handling, L39-41](docs/superpowers/specs/2026-03-24-flywheel-design.md#L39-L41))
 
-**Deferred to Phase 6:** Navigation interception (links open as new panels), configurable session sharing, auth flow handling, terminal link detection opening browser panels.
+**Deferred to Phase 6:** Configurable session sharing, auth flow handling.
 
 **Milestone**: Terminals and basic browsers side-by-side in the scrollable strip. You can open a localhost preview next to your dev server terminal.
 
@@ -121,19 +123,16 @@ Config-driven project setup and process supervision — the "Solo for your dev s
 The deferred complex browser capabilities and vertical scroll gesture for row switching.
 
 **Research / Decisions needed first:**
-- Spike: `WebContentsView` navigation interception — confirm `will-navigate` and `new-window` events reliably catch all link clicks for redirection into the strip
 - Decision: session sharing default — per-project vs per-worktree as the default partition scope
 - Research: how to handle auth flows (OAuth redirects, popups) within an embedded `WebContentsView`
 - Spike: vertical scroll gesture disambiguation — build a prototype that distinguishes intentional row-switch gestures from terminal/browser scrolling. Test with real terminals running vim, less, etc. This is the hardest UX problem in the app.
 
 **Scope:**
-- Navigation interception: links open as new panels in the strip ([spec: Link Handling, L39-41](docs/superpowers/specs/2026-03-24-flywheel-design.md#L39-L41))
 - Configurable session sharing: per-project, per-worktree, or per-panel ([spec: Browser, L37](docs/superpowers/specs/2026-03-24-flywheel-design.md#L37))
-- Terminal link detection opening browser panels ([spec: Link Handling, L39-41](docs/superpowers/specs/2026-03-24-flywheel-design.md#L39-L41))
 - Auth flow handling within embedded `WebContentsView`
 - Vertical scroll gesture for row switching with intent detection ([spec: Vertical scroll, L134-137](docs/superpowers/specs/2026-03-24-flywheel-design.md#L134-L137))
 
-**Milestone**: Full browser integration — links flow between terminals and browsers, sessions are shared intelligently, and rows can be switched with a vertical scroll gesture.
+**Milestone**: Session sharing, auth flows, and vertical scroll gesture for row switching.
 
 ## Phase 7: Release + Distribution
 
