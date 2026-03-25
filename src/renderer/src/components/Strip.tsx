@@ -4,7 +4,7 @@ import PanelFrame from './PanelFrame'
 
 interface StripProps {
   layout: PanelLayout[]
-  panels: Array<{ id: string; label: string }>
+  panels: Array<{ id: string; type: string; label: string }>
   focusedIndex: number
 }
 
@@ -17,7 +17,8 @@ export default function Strip(props: StripProps) {
           const panelIndex = () => props.panels.findIndex((p) => p.id === entry.panelId)
           const label = () => {
             const pos = panelIndex() + 1
-            const name = panel()?.label ?? ''
+            const p = panel()
+            const name = p?.type === 'terminal' ? 'Terminal' : (p?.label ?? '')
             return pos <= 9 ? `${pos} — ${name}` : name
           }
           return (
