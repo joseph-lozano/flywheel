@@ -21,8 +21,10 @@ Panel position is derived from array index. Swapping two elements in the `panels
 
 Two new actions on the strip store:
 
-- **`swapLeft()`** — if `focusedIndex > 0`: swap `panels[focusedIndex]` with `panels[focusedIndex - 1]`, decrement `focusedIndex`. Otherwise no-op.
-- **`swapRight()`** — if `focusedIndex < panels.length - 1`: swap `panels[focusedIndex]` with `panels[focusedIndex + 1]`, increment `focusedIndex`. Otherwise no-op.
+- **`swapLeft()`** — if `focusedIndex > 0`: swap `panels[focusedIndex]` with `panels[focusedIndex - 1]`, decrement `focusedIndex`, set `terminalFocused: true`. Otherwise no-op.
+- **`swapRight()`** — if `focusedIndex < panels.length - 1`: swap `panels[focusedIndex]` with `panels[focusedIndex + 1]`, increment `focusedIndex`, set `terminalFocused: true`. Otherwise no-op.
+
+Both actions set `terminalFocused: true`, matching the convention established by `focusLeft()` / `focusRight()`.
 
 Single-panel state is naturally a no-op for both directions (fails both index guards).
 
@@ -46,7 +48,7 @@ Add swap shortcuts to the hint bar for discoverability.
 
 ## What Does NOT Change
 
-- **`Panel` type** — no new fields
+- **`Panel` type** — no new fields on the Panel interface
 - **Layout engine** — already derives position from array index
 - **Rendering pipeline** — Strip/PanelFrame read from computed layout
 - **IPC / preload** — no new channels; swap is a store-only mutation
@@ -64,7 +66,8 @@ Add swap shortcuts to the hint bar for discoverability.
 
 ## Files to Modify
 
-1. `src/renderer/src/store/strip.ts` — add `swapLeft()`, `swapRight()` actions
-2. `src/main/index.ts` — add two Menu accelerator entries
-3. `src/renderer/src/App.tsx` — add two cases in `handleShortcut()`
-4. `src/renderer/src/components/HintBar.tsx` — add swap hints
+1. `src/shared/types.ts` — add `'swap-left' | 'swap-right'` to `ShortcutAction` type union
+2. `src/renderer/src/store/strip.ts` — add `swapLeft()`, `swapRight()` actions
+3. `src/main/index.ts` — add two Menu accelerator entries
+4. `src/renderer/src/App.tsx` — add two cases in `handleShortcut()`
+5. `src/renderer/src/components/HintBar.tsx` — add swap hints
