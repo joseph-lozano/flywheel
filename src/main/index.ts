@@ -10,7 +10,8 @@ function createWindow(): void {
   mainWindow = new BaseWindow({
     width: 1200,
     height: 800,
-    show: false
+    show: false,
+    title: 'Flywheel'
   })
 
   chromeView = new WebContentsView({
