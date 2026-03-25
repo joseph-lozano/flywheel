@@ -66,6 +66,26 @@ export function createStripStore() {
     jumpTo(index: number) {
       if (index >= 0 && index < state.panels.length) { setState('focusedIndex', index); setState('terminalFocused', true) }
     },
+    swapLeft() {
+      if (state.focusedIndex > 0) {
+        const i = state.focusedIndex
+        const newPanels = [...state.panels]
+        ;[newPanels[i - 1], newPanels[i]] = [newPanels[i], newPanels[i - 1]]
+        setState('panels', newPanels)
+        setState('focusedIndex', i - 1)
+        setState('terminalFocused', true)
+      }
+    },
+    swapRight() {
+      if (state.focusedIndex < state.panels.length - 1) {
+        const i = state.focusedIndex
+        const newPanels = [...state.panels]
+        ;[newPanels[i], newPanels[i + 1]] = [newPanels[i + 1], newPanels[i]]
+        setState('panels', newPanels)
+        setState('focusedIndex', i + 1)
+        setState('terminalFocused', true)
+      }
+    },
     setPanelTitle(id: string, title: string) {
       const index = state.panels.findIndex((p) => p.id === id)
       if (index >= 0) setState('panels', index, 'label', title)
