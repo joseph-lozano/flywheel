@@ -132,6 +132,8 @@ export default function App() {
     switch (action.type) {
       case 'focus-left': actions.focusLeft(); break
       case 'focus-right': actions.focusRight(); break
+      case 'swap-left': actions.swapLeft(); break
+      case 'swap-right': actions.swapRight(); break
       case 'new-panel': {
         const panel = actions.addPanel('terminal')
         window.api.createTerminal(panel.id)
