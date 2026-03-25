@@ -125,6 +125,8 @@ Config-driven project setup and process supervision — the "Solo for your dev s
 - Status indicators in panel title bars ([spec: Process Management, L139-146](docs/superpowers/specs/2026-03-24-flywheel-design.md#L139-L146))
 - Closing a managed terminal stops the process ([spec: L146](docs/superpowers/specs/2026-03-24-flywheel-design.md#L146))
 - Re-evaluate panel destruction for off-screen panels — currently disabled (all panels stay as hidden WCVs). Profile memory with many real terminals/browsers to decide buffer zone size and destruction strategy.
+- Editable project names (default is directory basename, allow user to rename)
+- Session restore: persist open panels (URLs for browsers, scrollback + cwd for terminals) and restore on app relaunch
 
 **Milestone**: Define your stack in a config file, open the project, everything spins up in order. Crashes auto-recover. The full Flywheel MVP.
 
