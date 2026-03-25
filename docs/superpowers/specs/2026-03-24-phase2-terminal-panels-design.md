@@ -397,3 +397,5 @@ src/
 - **Terminal serialization**: When panel destruction is implemented (for memory optimization), serialize xterm.js scrollback buffer before destroying, restore when panel re-enters viewport. Requires keeping PTY alive while view is destroyed, or re-creating PTY and replaying output.
 - **Link detection**: Wire xterm.js link provider to open URLs as browser panels (Phase 3).
 - **Ghostty-web evaluation**: If libghostty WASM matures sufficiently, evaluate as xterm.js replacement. API-compatible, so swap should be low-risk.
+- **File drag-and-drop into terminal**: Handle `drop` events on terminal panels to write file paths into PTY stdin (enables dragging images into Claude Code sessions). xterm.js has no native drop support; requires custom event handling. Ghostty-web upgrade would also help here.
+- **Kitty graphics protocol**: Inline image rendering in terminal. Not supported by xterm.js — requires ghostty-web or a custom addon.
