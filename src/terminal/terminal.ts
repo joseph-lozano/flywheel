@@ -21,7 +21,8 @@ const panelId = window.pty.getPanelId()
 
 const terminal = new Terminal({
   ...TERMINAL_DEFAULTS,
-  allowProposedApi: true
+  allowProposedApi: true,
+  scrollback: 5000
 })
 
 const fitAddon = new FitAddon()
