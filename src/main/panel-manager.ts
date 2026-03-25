@@ -44,6 +44,7 @@ export class PanelManager {
       if (input.shift) {
         if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
         else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
+        else if (input.key >= '1' && input.key <= '9') action = { type: 'switch-project', index: parseInt(input.key) - 1 }
       } else {
         if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
         else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
@@ -55,6 +56,7 @@ export class PanelManager {
         else if (input.key === '[') action = { type: 'browser-back' }
         else if (input.key === ']') action = { type: 'browser-forward' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
+        else if (input.key === 'o') action = { type: 'add-project' }
       }
 
       if (action) {
@@ -276,6 +278,30 @@ export class PanelManager {
       if (panel.chromeView) {
         panel.chromeView.setVisible(false)
       }
+    }
+  }
+
+  hideByPrefix(prefix: string): void {
+    for (const panel of this.panels.values()) {
+      if (panel.id.startsWith(prefix)) {
+        panel.view.setVisible(false)
+        if (panel.chromeView) panel.chromeView.setVisible(false)
+      }
+    }
+  }
+
+  showByPrefix(prefix: string): void {
+    for (const panel of this.panels.values()) {
+      if (panel.id.startsWith(prefix)) {
+        panel.view.setVisible(true)
+        if (panel.chromeView) panel.chromeView.setVisible(true)
+      }
+    }
+  }
+
+  destroyByPrefix(prefix: string): void {
+    for (const id of [...this.panels.keys()]) {
+      if (id.startsWith(prefix)) this.destroyPanel(id)
     }
   }
 
