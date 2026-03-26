@@ -150,6 +150,21 @@ contextBridge.exposeInMainWorld('api', {
     return ipcRenderer.invoke('row:check-path', { path })
   },
 
+  // Zoom
+  zoomPanel: (panelId: string, direction: 'in' | 'out' | 'reset', defaultValue?: number) => {
+    ipcRenderer.send('panel:zoom', { panelId, direction, defaultValue })
+  },
+  zoomApp: (direction: 'in' | 'out' | 'reset', defaultValue?: number) => {
+    const { webFrame } = require('electron')
+    if (direction === 'in') {
+      webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
+    } else if (direction === 'out') {
+      webFrame.setZoomLevel(webFrame.getZoomLevel() - 1)
+    } else {
+      webFrame.setZoomLevel(defaultValue ?? 0)
+    }
+  },
+
   // Config
   getConfig: (): Promise<FlywheelConfig> => {
     return ipcRenderer.invoke('config:get-all')

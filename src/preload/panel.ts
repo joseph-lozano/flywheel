@@ -40,4 +40,7 @@ contextBridge.exposeInMainWorld('pty', {
   onConfigUpdated: (callback: (config: any) => void) => {
     ipcRenderer.on('config:updated', (_event, config) => callback(config))
   },
+  onSetFontSize: (callback: (data: { fontSize: number }) => void) => {
+    ipcRenderer.on('terminal:set-font-size', (_event, data) => callback(data))
+  },
 })

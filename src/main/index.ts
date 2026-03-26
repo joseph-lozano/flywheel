@@ -432,6 +432,10 @@ function setupIpcHandlers(): void {
     return { updates }
   })
 
+  ipcMain.on('panel:zoom', (_event, data: { panelId: string; direction: 'in' | 'out' | 'reset'; defaultValue?: number }) => {
+    panelManager.zoomPanel(data.panelId, data.direction, data.defaultValue, configManager.get())
+  })
+
   // Config management
   ipcMain.handle('config:get-all', () => {
     return configManager.get()
@@ -561,6 +565,16 @@ function setupShortcuts(): void {
       ]
     },
     {
+      label: 'Config',
+      submenu: [
+        {
+          label: 'Reload Config',
+          accelerator: 'Command+Shift+,',
+          click: () => ipcMain.emit('config:reload')
+        }
+      ]
+    },
+    {
       label: 'Edit',
       submenu: [
         { role: 'undo' as const },
@@ -590,6 +604,23 @@ function setupShortcuts(): void {
           accelerator: 'Command+]',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-forward' })
         },
+        { type: 'separator' as const },
+        {
+          label: 'Zoom In',
+          accelerator: 'Command+=',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-in' })
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'Command+-',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-out' })
+        },
+        {
+          label: 'Reset Zoom',
+          accelerator: 'Command+0',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-reset' })
+        },
+        { type: 'separator' as const },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const }
       ]

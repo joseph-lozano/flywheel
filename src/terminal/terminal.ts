@@ -19,6 +19,7 @@ declare global {
       onChromeState: (callback: (state: { position: number; label: string; focused: boolean; busy?: boolean }) => void) => void
       getConfig: () => Promise<{ terminal: { fontFamily: string; fontSize: number } }>
       onConfigUpdated: (callback: (config: any) => void) => void
+      onSetFontSize: (callback: (data: { fontSize: number }) => void) => void
     }
   }
 }
@@ -106,6 +107,12 @@ async function initTerminal(): Promise<void> {
       terminal.options.fontSize = config.terminal.fontSize
       fitAddon.fit()
     }
+  })
+
+  // Zoom control from main process
+  window.pty.onSetFontSize((data: { fontSize: number }) => {
+    terminal.options.fontSize = data.fontSize
+    fitAddon.fit()
   })
 
   // Chrome state → title bar with dot-grid divider

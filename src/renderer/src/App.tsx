@@ -518,6 +518,38 @@ export default function App() {
         if (currentIdx < project.rows.length - 1) handleSwitchRow(project.id, project.rows[currentIdx + 1].id)
         break
       }
+      case 'zoom-in': {
+        if (!strip || !strip.state.terminalFocused) {
+          window.api.zoomApp('in')
+        } else {
+          const focused = strip.state.panels[strip.state.focusedIndex]
+          if (focused) window.api.zoomPanel(focused.id, 'in')
+        }
+        break
+      }
+      case 'zoom-out': {
+        if (!strip || !strip.state.terminalFocused) {
+          window.api.zoomApp('out')
+        } else {
+          const focused = strip.state.panels[strip.state.focusedIndex]
+          if (focused) window.api.zoomPanel(focused.id, 'out')
+        }
+        break
+      }
+      case 'zoom-reset': {
+        if (!strip || !strip.state.terminalFocused) {
+          window.api.zoomApp('reset')
+        } else {
+          const focused = strip.state.panels[strip.state.focusedIndex]
+          if (focused) window.api.zoomPanel(focused.id, 'reset')
+        }
+        break
+      }
+      case 'reload-config': {
+        window.api.reloadConfig()
+        showToast('Config reloaded', 'info')
+        break
+      }
     }
   }
 

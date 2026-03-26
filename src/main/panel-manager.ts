@@ -1,6 +1,7 @@
 import { WebContentsView, BaseWindow } from 'electron'
 import { join } from 'path'
 import { LAYOUT } from '../shared/constants'
+import type { FlywheelConfig } from '../shared/config'
 
 interface ManagedPanel {
   id: string
@@ -12,6 +13,7 @@ interface ManagedPanel {
 export class PanelManager {
   private panels = new Map<string, ManagedPanel>()
   private pendingChromeState = new Map<string, Record<string, unknown>>()
+  private terminalFontSizes = new Map<string, number>()
   private window: BaseWindow
   private chromeView: WebContentsView
   private _sidebarWidth = 0
@@ -53,6 +55,7 @@ export class PanelManager {
         else if (input.key === 'ArrowDown') action = { type: 'next-project' }
         else if (input.key === 'n') action = { type: 'add-project' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'switch-project', index: parseInt(input.key) - 1 }
+        else if (input.key === ',' || input.key === '<') action = { type: 'reload-config' }
       } else {
         if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
         else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
@@ -67,6 +70,9 @@ export class PanelManager {
         else if (input.key === 'ArrowUp') action = { type: 'prev-row' }
         else if (input.key === 'ArrowDown') action = { type: 'next-row' }
         else if (input.key === 'n') action = { type: 'new-row' }
+        else if (input.key === '=' || input.key === '+') action = { type: 'zoom-in' }
+        else if (input.key === '-') action = { type: 'zoom-out' }
+        else if (input.key === '0') action = { type: 'zoom-reset' }
       }
 
       if (action) {
@@ -215,6 +221,26 @@ export class PanelManager {
     panel.view.webContents.navigationHistory.goForward()
   }
 
+  zoomPanel(id: string, direction: 'in' | 'out' | 'reset', _defaultValue: number | undefined, config: FlywheelConfig): void {
+    const panel = this.panels.get(id)
+    if (!panel) return
+
+    if (panel.type === 'terminal') {
+      const currentSize = this.terminalFontSizes.get(id) ?? config.preferences.terminal.fontSize
+      let newSize: number
+      if (direction === 'in') newSize = currentSize + 1
+      else if (direction === 'out') newSize = Math.max(6, currentSize - 1)
+      else newSize = config.preferences.terminal.fontSize
+      this.terminalFontSizes.set(id, newSize)
+      panel.view.webContents.send('terminal:set-font-size', { fontSize: newSize })
+    } else if (panel.type === 'browser') {
+      const wc = panel.view.webContents
+      if (direction === 'in') wc.setZoomLevel(wc.getZoomLevel() + 1)
+      else if (direction === 'out') wc.setZoomLevel(wc.getZoomLevel() - 1)
+      else wc.setZoomLevel(config.preferences.browser.defaultZoom)
+    }
+  }
+
   destroyPanel(id: string): void {
     const panel = this.panels.get(id)
     if (!panel) return
@@ -224,6 +250,7 @@ export class PanelManager {
       this.window.contentView.removeChildView(panel.chromeView)
       panel.chromeView.webContents.close()
     }
+    this.terminalFontSizes.delete(id)
     this.panels.delete(id)
     this.pendingChromeState.delete(id)
   }
