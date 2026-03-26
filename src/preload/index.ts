@@ -14,7 +14,20 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.send('panel:destroy', id)
   },
   updateBounds: (updates: Array<{ panelId: string; bounds: { x: number; y: number; width: number; height: number }; visible: boolean }>) => {
-    ipcRenderer.send('panel:update-bounds', updates)
+    const factor = webFrame.getZoomFactor()
+    if (factor === 1) {
+      ipcRenderer.send('panel:update-bounds', updates)
+    } else {
+      ipcRenderer.send('panel:update-bounds', updates.map(u => ({
+        ...u,
+        bounds: {
+          x: Math.round(u.bounds.x * factor),
+          y: Math.round(u.bounds.y * factor),
+          width: Math.round(u.bounds.width * factor),
+          height: Math.round(u.bounds.height * factor)
+        }
+      })))
+    }
   },
   onWheelEvent: (callback: (data: { deltaX: number }) => void) => {
     ipcRenderer.on('scroll:wheel', (_event, data) => callback(data))
@@ -126,7 +139,8 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.send('panel:destroy-by-prefix', { prefix })
   },
   setSidebarWidth: (width: number) => {
-    ipcRenderer.send('panel:set-sidebar-width', { width })
+    const factor = webFrame.getZoomFactor()
+    ipcRenderer.send('panel:set-sidebar-width', { width: Math.round(width * factor) })
   },
 
   setExpanded: (projectId: string, expanded: boolean) => {
