@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
 import type { Row, Project } from '../shared/types'
+import { initAutoUpdater } from './auto-updater'
 
 let mainWindow: BaseWindow
 let chromeView: WebContentsView
@@ -572,7 +573,14 @@ if (process.env['ELECTRON_RENDERER_URL']) {
   app.setPath('userData', app.getPath('userData') + '-dev')
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  await createWindow()
+
+  // Only check for updates in production builds
+  if (!process.env['ELECTRON_RENDERER_URL']) {
+    initAutoUpdater()
+  }
+})
 
 app.on('window-all-closed', () => {
   app.quit()
