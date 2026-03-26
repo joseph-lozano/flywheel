@@ -80,28 +80,48 @@ export default function App() {
     const project = appStore.state.projects.find(p => p.id === projectId)
     if (!project) return
 
-    // If different project, switch project first
-    if (projectId !== appStore.state.activeProjectId) {
-      handleSwitchProject(projectId)
+    const crossProject = projectId !== appStore.state.activeProjectId
+
+    // For cross-project switches, stash and hide current project's row
+    // without showing the intermediate project's active row panels
+    if (crossProject) {
+      const currentId = appStore.state.activeProjectId
+      if (currentId) {
+        const currentProject = appStore.state.projects.find(p => p.id === currentId)
+        if (currentProject) {
+          const currentStore = stripStores.get(currentProject.activeRowId)
+          if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
+          window.api.hidePanelsByPrefix(currentProject.activeRowId)
+        }
+      }
+      appStore.actions.switchProject(projectId)
+      window.api.switchProject(projectId)
     }
 
     const currentRowId = project.activeRowId
-    if (currentRowId === targetRowId) return
+    if (!crossProject && currentRowId === targetRowId) return
 
     // Check if target row's path still exists on disk
     const targetRow = project.rows.find(r => r.id === targetRowId)
     if (targetRow && !targetRow.isDefault) {
       const { exists } = await window.api.checkRowPath(targetRow.path)
       if (!exists) {
+        // For cross-project, we already switched — show the current active row
+        if (crossProject) {
+          window.api.showPanelsByPrefix(currentRowId)
+          getStripStore(currentRowId)
+        }
         setMissingRow({ projectId, rowId: targetRowId, branch: targetRow.branch })
         return
       }
     }
 
-    // Stash current row's strip
-    const currentStore = stripStores.get(currentRowId)
-    if (currentStore) stripSnapshots.set(currentRowId, currentStore.getSnapshot())
-    window.api.hidePanelsByPrefix(currentRowId)
+    // Stash current row's strip (only for same-project switches; cross-project already stashed above)
+    if (!crossProject) {
+      const currentStore = stripStores.get(currentRowId)
+      if (currentStore) stripSnapshots.set(currentRowId, currentStore.getSnapshot())
+      window.api.hidePanelsByPrefix(currentRowId)
+    }
 
     // Switch row
     appStore.actions.switchRow(projectId, targetRowId)
