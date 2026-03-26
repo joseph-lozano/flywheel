@@ -254,18 +254,15 @@ export default function Sidebar(props: SidebarProps) {
             <p style={{ color: '#e0e0e0', margin: '0 0 20px 0', 'font-size': '14px', 'line-height': '1.5' }}>
               Remove this worktree row?
             </p>
-            <div style={{ display: 'flex', gap: '12px', 'justify-content': 'flex-end', 'flex-wrap': 'wrap' }}>
-              <button onClick={() => { setRemoveConfirm(null); props.onModalHide?.() }} style={{
-                background: '#1a1a2e', color: '#888', border: '1px solid #3a3a5c',
-                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
-              }}>Cancel</button>
+            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
               <button onClick={() => {
                 props.onRemoveRow(removeConfirm()!.rowId, false)
                 setRemoveConfirm(null)
                 props.onModalHide?.()
               }} style={{
                 background: '#1a1a2e', color: '#e0e0e0', border: '1px solid #3a3a5c',
-                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
+                padding: '8px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px',
+                width: '100%'
               }}>Remove from Flywheel</button>
               <button onClick={() => {
                 props.onRemoveRow(removeConfirm()!.rowId, true)
@@ -273,8 +270,13 @@ export default function Sidebar(props: SidebarProps) {
                 props.onModalHide?.()
               }} style={{
                 background: '#f43f5e', color: '#fff', border: 'none',
-                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
+                padding: '8px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px',
+                width: '100%'
               }}>Remove and delete from disk</button>
+              <button onClick={() => { setRemoveConfirm(null); props.onModalHide?.() }} style={{
+                background: 'transparent', color: '#666', border: 'none',
+                padding: '6px 16px', cursor: 'pointer', 'font-size': '12px'
+              }}>Cancel</button>
             </div>
           </div>
         </div>
