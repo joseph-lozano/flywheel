@@ -178,3 +178,37 @@ describe('PtyManager exit handling', () => {
     expect(mockSendToChrome).toHaveBeenCalledWith('pty:exit', { panelId: 'panel-1', exitCode: 0 })
   })
 })
+
+describe('PtyManager environment injection', () => {
+  let manager: PtyManager
+  const mockSendToPanel = vi.fn()
+  const mockSendToChrome = vi.fn()
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockPty.onData = vi.fn(() => ({ dispose: vi.fn() }))
+    mockPty.onExit = vi.fn(() => ({ dispose: vi.fn() }))
+    mockPty.process = defaultShellName
+    manager = new PtyManager(mockSendToPanel, mockSendToChrome)
+  })
+
+  afterEach(() => { manager.dispose() })
+
+  it('sets BROWSER env var to flywheel-open script', () => {
+    manager.create('panel-1')
+    const env = (nodePty.spawn as ReturnType<typeof vi.fn>).mock.calls[0][2].env
+    expect(env.BROWSER).toMatch(/\.flywheel\/bin\/flywheel-open$/)
+  })
+
+  it('prepends ~/.flywheel/bin to PATH', () => {
+    manager.create('panel-1')
+    const env = (nodePty.spawn as ReturnType<typeof vi.fn>).mock.calls[0][2].env
+    expect(env.PATH).toMatch(/\.flywheel\/bin:/)
+  })
+
+  it('sets FLYWHEEL=1 marker', () => {
+    manager.create('panel-1')
+    const env = (nodePty.spawn as ReturnType<typeof vi.fn>).mock.calls[0][2].env
+    expect(env.FLYWHEEL).toBe('1')
+  })
+})
