@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
 
 contextBridge.exposeInMainWorld('api', {
   // Existing panel management
@@ -132,16 +133,16 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   // Row management
-  createRow: (projectId: string): Promise<unknown> => {
+  createRow: (projectId: string): Promise<CreateRowResult> => {
     return ipcRenderer.invoke('row:create', { projectId })
   },
-  removeRow: (rowId: string, deleteFromDisk: boolean): Promise<unknown> => {
+  removeRow: (rowId: string, deleteFromDisk: boolean): Promise<RemoveRowResult> => {
     return ipcRenderer.invoke('row:remove', { rowId, deleteFromDisk })
   },
-  discoverWorktrees: (projectId: string): Promise<unknown> => {
+  discoverWorktrees: (projectId: string): Promise<DiscoverWorktreesResult> => {
     return ipcRenderer.invoke('row:discover', { projectId })
   },
-  checkBranches: (projectId: string): Promise<unknown> => {
+  checkBranches: (projectId: string): Promise<CheckBranchesResult> => {
     return ipcRenderer.invoke('row:check-branches', { projectId })
   },
   checkRowPath: (path: string): Promise<{ exists: boolean }> => {

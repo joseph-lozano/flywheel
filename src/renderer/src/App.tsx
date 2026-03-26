@@ -1,17 +1,19 @@
-import { createEffect, createSignal, on, onMount, batch } from 'solid-js'
+import { createEffect, createSignal, on, onMount, onCleanup, batch } from 'solid-js'
 import { createStripStore } from './store/strip'
 import { createAppStore } from './store/app'
 import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCenteredPanel } from './layout/engine'
 import { animate, easeOut } from './scroll/animator'
 import type { AnimationHandle } from './scroll/animator'
 import type { StripSnapshot } from './store/strip'
-import type { PanelBoundsUpdate, Row } from '../../../shared/types'
+import type { PanelBoundsUpdate } from '../../../shared/types'
 import { LAYOUT } from '../../shared/constants'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
 import HintBar from './components/HintBar'
 import ConfirmDialog from './components/ConfirmDialog'
 import Sidebar from './components/Sidebar'
+import MissingRowDialog from './components/MissingRowDialog'
+import RemoveRowDialog from './components/RemoveRowDialog'
 
 export default function App() {
   const appStore = createAppStore()
@@ -65,11 +67,9 @@ export default function App() {
   // --- Branch checking ---
 
   function refreshBranches(projectId: string): void {
-    window.api.checkBranches(projectId).then((result: any) => {
-      if (result?.updates) {
-        for (const update of result.updates) {
-          appStore.actions.updateBranch(projectId, update.rowId, update.branch)
-        }
+    window.api.checkBranches(projectId).then((result) => {
+      for (const update of result.updates) {
+        appStore.actions.updateBranch(projectId, update.rowId, update.branch)
       }
     })
   }
@@ -117,7 +117,7 @@ export default function App() {
   }
 
   async function handleCreateRow(projectId: string): Promise<void> {
-    const result = await window.api.createRow(projectId) as { row: Row } | { error: string }
+    const result = await window.api.createRow(projectId)
     if ('error' in result) {
       showToast(result.error)
       return
@@ -149,10 +149,13 @@ export default function App() {
 
   async function handleDiscoverWorktrees(projectId: string): Promise<void> {
     const result = await window.api.discoverWorktrees(projectId)
-    if ((result as any)?.rows) {
-      for (const row of (result as any).rows) {
+    if (result.rows.length > 0) {
+      for (const row of result.rows) {
         appStore.actions.addRow(projectId, row)
       }
+      showToast(`Discovered ${result.rows.length} worktree${result.rows.length > 1 ? 's' : ''}`)
+    } else {
+      showToast('No new worktrees found')
     }
   }
 
@@ -597,10 +600,11 @@ export default function App() {
     })
 
     // Periodic branch checking (catches fast commands like git branch -m)
-    setInterval(() => {
+    const branchCheckInterval = setInterval(() => {
       const project = appStore.actions.getActiveProject()
       if (project) refreshBranches(project.id)
     }, 5000)
+    onCleanup(() => clearInterval(branchCheckInterval))
 
     // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
@@ -702,36 +706,15 @@ export default function App() {
         />
       )}
       {missingRow() && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          display: 'flex', 'align-items': 'center', 'justify-content': 'center', 'z-index': '1000'
-        }}>
-          <div style={{
-            background: '#252540', 'border-radius': '8px', padding: '24px', 'max-width': '420px',
-            'box-shadow': '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid #3a3a5c'
-          }}>
-            <p style={{ color: '#e0e0e0', margin: '0 0 8px 0', 'font-size': '14px', 'font-weight': 'bold' }}>
-              Worktree not found
-            </p>
-            <p style={{ color: '#888', margin: '0 0 20px 0', 'font-size': '13px', 'line-height': '1.5', 'font-family': 'monospace' }}>
-              The directory for <span style={{ color: '#e0e0e0' }}>{missingRow()!.branch}</span> no longer exists on disk.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', 'justify-content': 'flex-end' }}>
-              <button onClick={() => setMissingRow(null)} style={{
-                background: '#1a1a2e', color: '#888', border: '1px solid #3a3a5c',
-                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
-              }}>Cancel</button>
-              <button onClick={() => {
-                const data = missingRow()!
-                handleRemoveRow(data.rowId, false)
-                setMissingRow(null)
-              }} style={{
-                background: '#f43f5e', color: '#fff', border: 'none',
-                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
-              }}>Remove Row</button>
-            </div>
-          </div>
-        </div>
+        <MissingRowDialog
+          branch={missingRow()!.branch}
+          onCancel={() => setMissingRow(null)}
+          onRemove={() => {
+            const data = missingRow()!
+            handleRemoveRow(data.rowId, false)
+            setMissingRow(null)
+          }}
+        />
       )}
       {toast() && (
         <div style={{

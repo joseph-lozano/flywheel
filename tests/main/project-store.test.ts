@@ -29,14 +29,17 @@ describe('ProjectStore', () => {
     vi.clearAllMocks()
     storedProjects = []
     storedActiveProjectId = null
+    let storedWorktreeCounter = 0
     mockStore.get.mockImplementation((key: string) => {
       if (key === 'projects') return storedProjects
       if (key === 'activeProjectId') return storedActiveProjectId
+      if (key === 'worktreeCounter') return storedWorktreeCounter
       return undefined
     })
     mockStore.set.mockImplementation((key: string, value: any) => {
       if (key === 'projects') storedProjects = value
       if (key === 'activeProjectId') storedActiveProjectId = value
+      if (key === 'worktreeCounter') storedWorktreeCounter = value
     })
     store = new ProjectStore()
   })
@@ -160,6 +163,12 @@ describe('ProjectStore', () => {
       store.updateRowBranch(project!.id, project!.rows[0].id, 'develop')
       const projects = store.getProjects()
       expect(projects[0].rows[0].branch).toBe('develop')
+    })
+
+    it('nextWorktreeCounter increments monotonically', () => {
+      expect(store.nextWorktreeCounter()).toBe(0)
+      expect(store.nextWorktreeCounter()).toBe(1)
+      expect(store.nextWorktreeCounter()).toBe(2)
     })
 
     it('setExpanded toggles project expanded state', () => {

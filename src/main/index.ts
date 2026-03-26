@@ -7,6 +7,7 @@ import { WorktreeManager } from './worktree-manager'
 import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
+import type { Row, Project } from '../shared/types'
 
 let mainWindow: BaseWindow
 let chromeView: WebContentsView
@@ -294,7 +295,7 @@ function setupIpcHandlers(): void {
     const isGit = await worktreeManager.isGitRepo(project.path)
     if (!isGit) return { error: 'Not a git repository' }
 
-    const name = worktreeManager.generateName()
+    const name = worktreeManager.generateName(projectStore.nextWorktreeCounter())
     const worktreePath = worktreeManager.getWorktreePath(project.name, name)
 
     try {
@@ -304,7 +305,7 @@ function setupIpcHandlers(): void {
       return { error: `Failed to create worktree: ${(err as Error).message}` }
     }
 
-    const row: import('../shared/types').Row = {
+    const row: Row = {
       id: randomUUID(),
       projectId: project.id,
       branch: name,
@@ -321,8 +322,8 @@ function setupIpcHandlers(): void {
 
   ipcMain.handle('row:remove', async (_event, data: { rowId: string; deleteFromDisk: boolean }) => {
     const projects = projectStore.getProjects()
-    let targetProject: import('../shared/types').Project | undefined
-    let targetRow: import('../shared/types').Row | undefined
+    let targetProject: Project | undefined
+    let targetRow: Row | undefined
 
     for (const p of projects) {
       const row = p.rows.find(r => r.id === data.rowId)
@@ -354,12 +355,12 @@ function setupIpcHandlers(): void {
 
     const worktrees = await worktreeManager.listWorktrees(project.path)
     const existingPaths = new Set(project.rows.map(r => r.path))
-    const newRows: import('../shared/types').Row[] = []
+    const newRows: Row[] = []
 
     for (const wt of worktrees) {
       if (existingPaths.has(wt.path)) continue
       if (wt.path === project.path) continue // Skip main worktree
-      const row: import('../shared/types').Row = {
+      const row: Row = {
         id: randomUUID(),
         projectId: project.id,
         branch: wt.branch,

@@ -8,6 +8,7 @@ import { goldenAngleColor } from '../shared/constants'
 interface StoreSchema {
   projects: Project[]
   activeProjectId: string | null
+  worktreeCounter: number
 }
 
 export class ProjectStore {
@@ -17,7 +18,8 @@ export class ProjectStore {
     this.store = new Store<StoreSchema>({
       defaults: {
         projects: [],
-        activeProjectId: null
+        activeProjectId: null,
+        worktreeCounter: 0
       }
     })
     // Phase 4: clear pre-Phase 4 projects that lack rows
@@ -126,6 +128,12 @@ export class ProjectStore {
       }
     })
     this.store.set('projects', updated)
+  }
+
+  nextWorktreeCounter(): number {
+    const counter = this.store.get('worktreeCounter')
+    this.store.set('worktreeCounter', counter + 1)
+    return counter
   }
 
   setExpanded(projectId: string, expanded: boolean): void {

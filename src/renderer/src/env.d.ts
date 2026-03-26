@@ -58,10 +58,10 @@ interface FlywheelAPI {
   setExpanded(projectId: string, expanded: boolean): void
 
   // Row management
-  createRow(projectId: string): Promise<unknown>
-  removeRow(rowId: string, deleteFromDisk: boolean): Promise<unknown>
-  discoverWorktrees(projectId: string): Promise<unknown>
-  checkBranches(projectId: string): Promise<unknown>
+  createRow(projectId: string): Promise<import('../../../shared/types').CreateRowResult>
+  removeRow(rowId: string, deleteFromDisk: boolean): Promise<import('../../../shared/types').RemoveRowResult>
+  discoverWorktrees(projectId: string): Promise<import('../../../shared/types').DiscoverWorktreesResult>
+  checkBranches(projectId: string): Promise<import('../../../shared/types').CheckBranchesResult>
   checkRowPath(path: string): Promise<{ exists: boolean }>
 }
 

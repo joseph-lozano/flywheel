@@ -1,6 +1,7 @@
 import { For, Show, createSignal, createEffect, onCleanup } from 'solid-js'
-import type { Project, Row } from '../../../shared/types'
+import type { Project } from '../../../shared/types'
 import { SIDEBAR } from '../../../shared/constants'
+import RemoveRowDialog from './RemoveRowDialog'
 
 // Lucide icons as inline SVGs
 function ChevronDown(props: { size?: number; color?: string }) {
@@ -111,7 +112,6 @@ export default function Sidebar(props: SidebarProps) {
         <For each={props.projects}>
           {(project) => {
             const isActiveProject = () => project.id === props.activeProjectId
-            const hasRows = () => project.rows && project.rows.length > 1
 
             return (
               <div>
@@ -131,7 +131,7 @@ export default function Sidebar(props: SidebarProps) {
                   onMouseEnter={() => setHoveredId(project.id)}
                   onMouseLeave={() => setHoveredId(null)}
                 >
-                  <Show when={hasRows() || (project.rows && project.rows.length >= 1)}>
+                  <Show when={project.rows.length > 0}>
                     <span
                       style={{ cursor: 'pointer', display: 'flex', 'align-items': 'center', 'flex-shrink': 0 }}
                       onClick={(e) => { e.stopPropagation(); props.onToggleExpanded(project.id) }}
@@ -241,45 +241,19 @@ export default function Sidebar(props: SidebarProps) {
 
       {/* Row removal confirmation */}
       <Show when={removeConfirm()}>
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-            display: 'flex', 'align-items': 'center', 'justify-content': 'center', 'z-index': '1000'
+        <RemoveRowDialog
+          onRemoveFromFlywheel={() => {
+            props.onRemoveRow(removeConfirm()!.rowId, false)
+            setRemoveConfirm(null)
+            props.onModalHide?.()
           }}
-        >
-          <div style={{
-            background: '#252540', 'border-radius': '8px', padding: '24px', 'max-width': '400px',
-            'box-shadow': '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid #3a3a5c'
-          }}>
-            <p style={{ color: '#e0e0e0', margin: '0 0 20px 0', 'font-size': '14px', 'line-height': '1.5' }}>
-              Remove this worktree row?
-            </p>
-            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
-              <button onClick={() => {
-                props.onRemoveRow(removeConfirm()!.rowId, false)
-                setRemoveConfirm(null)
-                props.onModalHide?.()
-              }} style={{
-                background: '#1a1a2e', color: '#e0e0e0', border: '1px solid #3a3a5c',
-                padding: '8px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px',
-                width: '100%'
-              }}>Remove from Flywheel</button>
-              <button onClick={() => {
-                props.onRemoveRow(removeConfirm()!.rowId, true)
-                setRemoveConfirm(null)
-                props.onModalHide?.()
-              }} style={{
-                background: '#f43f5e', color: '#fff', border: 'none',
-                padding: '8px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px',
-                width: '100%'
-              }}>Remove and delete from disk</button>
-              <button onClick={() => { setRemoveConfirm(null); props.onModalHide?.() }} style={{
-                background: 'transparent', color: '#666', border: 'none',
-                padding: '6px 16px', cursor: 'pointer', 'font-size': '12px'
-              }}>Cancel</button>
-            </div>
-          </div>
-        </div>
+          onDeleteFromDisk={() => {
+            props.onRemoveRow(removeConfirm()!.rowId, true)
+            setRemoveConfirm(null)
+            props.onModalHide?.()
+          }}
+          onCancel={() => { setRemoveConfirm(null); props.onModalHide?.() }}
+        />
       </Show>
     </div>
   )

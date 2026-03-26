@@ -27,14 +27,21 @@ describe('WorktreeManager', () => {
   })
 
   describe('generateName', () => {
-    it('returns adjective-noun-NNN format', () => {
-      const name = manager.generateName()
-      expect(name).toMatch(/^[a-z]+-[a-z]+-\d{3}$/)
+    it('returns adjective-noun-sqid format', () => {
+      const name = manager.generateName(0)
+      expect(name).toMatch(/^[a-z]+-[a-z]+-[a-zA-Z0-9]+$/)
     })
 
-    it('generates different names on successive calls', () => {
-      const names = new Set(Array.from({ length: 10 }, () => manager.generateName()))
-      expect(names.size).toBeGreaterThan(1)
+    it('produces unique sqid suffix per counter value', () => {
+      const names = Array.from({ length: 10 }, (_, i) => manager.generateName(i))
+      const suffixes = names.map(n => n.split('-').slice(2).join('-'))
+      expect(new Set(suffixes).size).toBe(10)
+    })
+
+    it('same counter always produces same sqid suffix', () => {
+      const a = manager.generateName(42).split('-').slice(2).join('-')
+      const b = manager.generateName(42).split('-').slice(2).join('-')
+      expect(a).toBe(b)
     })
   })
 

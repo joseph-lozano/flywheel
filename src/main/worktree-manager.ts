@@ -2,6 +2,9 @@ import { execFile } from 'child_process'
 import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
+import SqidsModule from 'sqids'
+// sqids is ESM-only; when bundled to CJS the default export lands on .default
+const Sqids = ('default' in SqidsModule ? (SqidsModule as any).default : SqidsModule) as typeof SqidsModule
 
 const ADJECTIVES = [
   'brave', 'calm', 'cool', 'dark', 'deep', 'dry', 'fair', 'fast', 'firm', 'flat',
@@ -19,6 +22,8 @@ const NOUNS = [
   'snow', 'star', 'stone', 'swan', 'tide', 'vale', 'vine', 'wave', 'wind', 'wolf'
 ]
 
+const sqids = new Sqids({ alphabet: 'abcdefghijklmnopqrstuvwxyz0123456789', minLength: 2 })
+
 export interface WorktreeInfo {
   path: string
   branch: string
@@ -31,11 +36,11 @@ export class WorktreeManager {
     this.worktreeRoot = worktreeRoot || join(homedir(), '.flywheel', 'worktrees')
   }
 
-  generateName(): string {
+  generateName(counter: number): string {
     const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]
     const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)]
-    const num = String(Math.floor(Math.random() * 1000)).padStart(3, '0')
-    return `${adj}-${noun}-${num}`
+    const id = sqids.encode([counter])
+    return `${adj}-${noun}-${id}`
   }
 
   getWorktreePath(projectName: string, worktreeName: string): string {

@@ -65,6 +65,12 @@ export interface PanelLayout {
   visibility: VisibilityState
 }
 
+// IPC result types for row management
+export type CreateRowResult = { row: Row } | { error: string }
+export type RemoveRowResult = { error?: string }
+export type DiscoverWorktreesResult = { rows: Row[] }
+export type CheckBranchesResult = { updates: { rowId: string; branch: string }[] }
+
 export type ShortcutAction = {
   type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward' | 'add-project' | 'switch-project' | 'prev-project' | 'next-project' | 'new-row' | 'prev-row' | 'next-row'
   index?: number
