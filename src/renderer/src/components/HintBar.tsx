@@ -13,7 +13,9 @@ const PANEL_HINTS = [
   { key: '\u2318T', label: 'Terminal' },
   { key: '\u2318B', label: 'Browser' },
   { key: '\u2318W', label: 'Close' },
-  { key: '\u2318G', label: 'Blur' }
+  { key: '\u2318G', label: 'Blur' },
+  { key: '\u2318+/-', label: 'Zoom' },
+  { key: '\u2318\u21e7,', label: 'Reload Config' }
 ]
 
 const ROW_HINTS = [
