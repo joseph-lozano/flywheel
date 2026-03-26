@@ -24,5 +24,7 @@ export function initAutoUpdater(): void {
     console.error('Auto-update error:', err.message)
   })
 
-  autoUpdater.checkForUpdatesAndNotify()
+  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    console.error('Auto-update check failed:', err.message)
+  })
 }

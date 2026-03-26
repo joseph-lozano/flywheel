@@ -5,11 +5,11 @@ directories:
   buildResources: build
 
 files:
-  - '!src/*'
-  - '!docs/*'
-  - '!tests/*'
-  - '!scripts/*'
-  - '!.github/*'
+  - '!src/**/*'
+  - '!docs/**/*'
+  - '!tests/**/*'
+  - '!scripts/**/*'
+  - '!.github/**/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!{vitest.config.ts,ROADMAP.md}'

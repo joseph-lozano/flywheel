@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [depot-ubuntu-22.04, depot-ubuntu-24.04]
     runs-on: ${{ matrix.os }}
@@ -23,6 +24,7 @@ jobs:
 
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [depot-ubuntu-22.04, depot-ubuntu-24.04, depot-macos-14, depot-macos-15]
     runs-on: ${{ matrix.os }}
