@@ -745,6 +745,7 @@ export default function App() {
         onCreateRow={(projectId) => handleCreateRow(projectId)}
         onRemoveRow={(rowId, deleteFromDisk) => handleRemoveRow(rowId, deleteFromDisk)}
         onDiscoverWorktrees={(projectId) => handleDiscoverWorktrees(projectId)}
+        onBlurPanels={() => activeStrip()?.actions.blurPanel()}
         onModalShow={() => window.api.hideAllPanels()}
         onModalHide={() => {
           const project = appStore.actions.getActiveProject()
