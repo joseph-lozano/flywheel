@@ -64,7 +64,9 @@ terminal.loadAddon(new WebLinksAddon())
 // The script writes: \033]7770;<url>\007 to /dev/tty, which flows through
 // the PTY into xterm.js. We parse it here and open as a browser panel.
 terminal.parser.registerOscHandler(7770, (data) => {
-  window.pty.openUrl(data)
+  if (/^https?:\/\//.test(data)) {
+    window.pty.openUrl(data)
+  }
   return true
 })
 

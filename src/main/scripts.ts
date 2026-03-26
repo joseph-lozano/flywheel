@@ -2,7 +2,10 @@ import { mkdirSync, writeFileSync, chmodSync } from 'fs'
 import { join } from 'path'
 
 const FLYWHEEL_OPEN = `#!/bin/sh
-printf '\\033]7770;%s\\007' "$1" > /dev/tty
+case "$1" in
+  http://*|https://*)
+    printf '\\033]7770;%s\\007' "$1" > /dev/tty ;;
+esac
 `
 
 const OPEN_WRAPPER = `#!/bin/sh
