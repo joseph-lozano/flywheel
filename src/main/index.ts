@@ -1,5 +1,7 @@
 import { app, BaseWindow, WebContentsView, ipcMain, Menu, dialog } from 'electron'
 import { join } from 'path'
+import { homedir } from 'os'
+import { installScripts } from './scripts'
 import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
@@ -555,7 +557,10 @@ function setupShortcuts(): void {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  installScripts(homedir())
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   app.quit()
