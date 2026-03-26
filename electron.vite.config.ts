@@ -25,6 +25,9 @@ export default defineConfig({
   renderer: {
     root: resolve(__dirname, 'src'),
     plugins: [solidPlugin()],
+    server: {
+      strictPort: false
+    },
     build: {
       rollupOptions: {
         input: {

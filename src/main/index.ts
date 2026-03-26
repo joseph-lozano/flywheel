@@ -555,6 +555,12 @@ function setupShortcuts(): void {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
+// Isolate dev instances to a separate userData directory
+// so they can't corrupt production electron-store data
+if (process.env['ELECTRON_RENDERER_URL']) {
+  app.setPath('userData', app.getPath('userData') + '-dev')
+}
+
 app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
