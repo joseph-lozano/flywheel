@@ -8,12 +8,10 @@ interface ManagedPty {
   shellName: string
   lastTitle: string
   disposed: boolean
-  wasBusy: boolean
 }
 
 type SendToPanelFn = (panelId: string, channel: string, data: unknown) => void
 type SendToChromeFn = (channel: string, data: unknown) => void
-type OnBusyToIdleFn = (panelId: string) => void
 
 const FLUSH_INTERVAL_MS = 16
 
@@ -25,12 +23,9 @@ export class PtyManager {
   private flushCount = 0
   private sendToPanel: SendToPanelFn
   private sendToChrome: SendToChromeFn
-  private onBusyToIdle: OnBusyToIdleFn | null
-
-  constructor(sendToPanel: SendToPanelFn, sendToChrome: SendToChromeFn, onBusyToIdle?: OnBusyToIdleFn) {
+  constructor(sendToPanel: SendToPanelFn, sendToChrome: SendToChromeFn) {
     this.sendToPanel = sendToPanel
     this.sendToChrome = sendToChrome
-    this.onBusyToIdle = onBusyToIdle || null
     this.flushTimer = setInterval(() => this.flush(), FLUSH_INTERVAL_MS)
   }
 
@@ -43,7 +38,7 @@ export class PtyManager {
       cwd: cwd || process.cwd(),
       env: process.env as Record<string, string>
     })
-    const managed: ManagedPty = { panelId, pty: ptyProcess, buffer: '', shellName, lastTitle: shellName, disposed: false, wasBusy: false }
+    const managed: ManagedPty = { panelId, pty: ptyProcess, buffer: '', shellName, lastTitle: shellName, disposed: false }
     ptyProcess.onData((data: string) => { if (!managed.disposed) managed.buffer += data })
     ptyProcess.onExit(({ exitCode }) => {
       if (!managed.disposed) {
@@ -128,14 +123,6 @@ export class PtyManager {
       const current = managed.pty.process
       if (!current) continue
       const processName = basename(current)
-      const isBusy = processName !== managed.shellName
-
-      // Detect busy → idle transition
-      if (managed.wasBusy && !isBusy && this.onBusyToIdle) {
-        this.onBusyToIdle(managed.panelId)
-      }
-      managed.wasBusy = isBusy
-
       if (processName !== managed.lastTitle) {
         managed.lastTitle = processName
         this.sendToChrome('panel:title', { panelId: managed.panelId, title: processName })

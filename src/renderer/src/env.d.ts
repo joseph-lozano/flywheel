@@ -61,7 +61,6 @@ interface FlywheelAPI {
   removeRow(rowId: string, deleteFromDisk: boolean): Promise<unknown>
   discoverWorktrees(projectId: string): Promise<unknown>
   checkBranches(projectId: string): Promise<unknown>
-  onBusyToIdle(callback: (data: { panelId: string }) => void): void
 }
 
 declare global {

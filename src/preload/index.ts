@@ -140,7 +140,4 @@ contextBridge.exposeInMainWorld('api', {
   checkBranches: (projectId: string): Promise<unknown> => {
     return ipcRenderer.invoke('row:check-branches', { projectId })
   },
-  onBusyToIdle: (callback: (data: { panelId: string }) => void) => {
-    ipcRenderer.on('pty:busy-to-idle', (_event, data) => callback(data))
-  },
 })

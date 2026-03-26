@@ -578,12 +578,6 @@ export default function App() {
       createdPanelIds.delete(data.panelId)
     })
 
-    // Branch checking on busy-to-idle
-    window.api.onBusyToIdle(() => {
-      const project = appStore.actions.getActiveProject()
-      if (project) refreshBranches(project.id)
-    })
-
     // Branch checking on window focus
     window.addEventListener('focus', () => {
       const project = appStore.actions.getActiveProject()

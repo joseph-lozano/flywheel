@@ -49,10 +49,6 @@ function createWindow(): void {
     },
     (channel, data) => {
       chromeView.webContents.send(channel, data)
-    },
-    (panelId) => {
-      // Busy→idle: notify renderer to check branches
-      chromeView.webContents.send('pty:busy-to-idle', { panelId })
     }
   )
 
