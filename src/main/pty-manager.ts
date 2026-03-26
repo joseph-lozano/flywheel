@@ -1,5 +1,6 @@
 import * as pty from 'node-pty'
-import { basename } from 'path'
+import { basename, join } from 'path'
+import { homedir } from 'os'
 
 interface ManagedPty {
   panelId: string
@@ -33,10 +34,17 @@ export class PtyManager {
     if (this.ptys.has(panelId)) return
     const shell = process.env.SHELL || '/bin/zsh'
     const shellName = basename(shell)
+    const binDir = join(homedir(), '.flywheel', 'bin')
+    const env = {
+      ...process.env,
+      BROWSER: join(binDir, 'flywheel-open'),
+      PATH: `${binDir}:${process.env.PATH}`,
+      FLYWHEEL: '1'
+    } as Record<string, string>
     const ptyProcess = pty.spawn(shell, [], {
       cols: 80, rows: 24,
       cwd: cwd || process.cwd(),
-      env: process.env as Record<string, string>
+      env
     })
     const managed: ManagedPty = { panelId, pty: ptyProcess, buffer: '', shellName, lastTitle: shellName, disposed: false }
     ptyProcess.onData((data: string) => { if (!managed.disposed) managed.buffer += data })

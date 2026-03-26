@@ -1,5 +1,7 @@
 import { app, BaseWindow, WebContentsView, ipcMain, Menu, dialog } from 'electron'
 import { join } from 'path'
+import { homedir } from 'os'
+import { installScripts } from './scripts'
 import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
@@ -639,6 +641,7 @@ if (process.env['ELECTRON_RENDERER_URL']) {
 }
 
 app.whenReady().then(async () => {
+  installScripts(homedir())
   await createWindow()
 
   // Only check for updates in production builds
