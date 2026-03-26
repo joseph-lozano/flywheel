@@ -4,10 +4,15 @@ on:
   issues:
     types: [labeled]
 
+concurrency:
+  group: claude-auto-pr-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   claude-auto-pr:
     if: github.event.label.name == 'claude-auto-pr'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
       pull-requests: write
