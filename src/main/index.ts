@@ -4,6 +4,7 @@ import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
 import { WorktreeManager } from './worktree-manager'
+import { ConfigManager } from './config-manager'
 import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
@@ -16,6 +17,7 @@ let panelManager: PanelManager
 let ptyManager: PtyManager
 let projectStore: ProjectStore
 let worktreeManager: WorktreeManager
+let configManager: ConfigManager
 
 async function createWindow(): Promise<void> {
   worktreeManager = new WorktreeManager()
@@ -68,6 +70,7 @@ async function createWindow(): Promise<void> {
   )
 
   projectStore = new ProjectStore()
+  configManager = new ConfigManager()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -78,6 +81,11 @@ async function createWindow(): Promise<void> {
   })
 
   chromeView.webContents.once('did-finish-load', () => {
+    const activeId = projectStore.getActiveProjectId()
+    if (activeId) {
+      const project = projectStore.getProjects().find(p => p.id === activeId)
+      if (project) configManager.load(project.path)
+    }
     mainWindow.show()
   })
 
@@ -107,7 +115,8 @@ function setupIpcHandlers(): void {
     panelId: string
     bounds: { x: number; y: number; width: number; height: number }
     visible: boolean
-  }>) => {
+  }>, sidebarWidth?: number) => {
+    if (sidebarWidth != null) panelManager.sidebarWidth = sidebarWidth
     panelManager.updateBounds(updates)
   })
 
@@ -277,6 +286,12 @@ function setupIpcHandlers(): void {
 
   ipcMain.on('project:switch', (_event, data: { projectId: string }) => {
     projectStore.setActiveProjectId(data.projectId)
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (project) {
+      configManager.load(project.path)
+      chromeView.webContents.send('config:updated', configManager.get())
+      panelManager.broadcastConfig(configManager.get())
+    }
   })
 
   ipcMain.handle('project:list', () => {
@@ -418,6 +433,29 @@ function setupIpcHandlers(): void {
 
     return { updates }
   })
+
+  ipcMain.on('panel:zoom', (_event, data: { panelId: string; direction: 'in' | 'out' | 'reset'; defaultValue?: number }) => {
+    panelManager.zoomPanel(data.panelId, data.direction, configManager.get())
+  })
+
+  // Config management
+  ipcMain.handle('config:get-all', () => {
+    return configManager.get()
+  })
+
+  ipcMain.on('config:reload', () => {
+    const project = projectStore.getProjects().find(
+      p => p.id === projectStore.getActiveProjectId()
+    )
+    if (project) {
+      configManager.load(project.path)
+    } else {
+      configManager.reload()
+    }
+    const config = configManager.get()
+    chromeView.webContents.send('config:updated', config)
+    panelManager.broadcastConfig(config)
+  })
 }
 
 function setupShortcuts(): void {
@@ -529,6 +567,16 @@ function setupShortcuts(): void {
       ]
     },
     {
+      label: 'Config',
+      submenu: [
+        {
+          label: 'Reload Config',
+          accelerator: 'Command+Shift+,',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'reload-config' })
+        }
+      ]
+    },
+    {
       label: 'Edit',
       submenu: [
         { role: 'undo' as const },
@@ -558,6 +606,23 @@ function setupShortcuts(): void {
           accelerator: 'Command+]',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-forward' })
         },
+        { type: 'separator' as const },
+        {
+          label: 'Zoom In',
+          accelerator: 'Command+=',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-in' })
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'Command+-',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-out' })
+        },
+        {
+          label: 'Reset Zoom',
+          accelerator: 'Command+0',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-reset' })
+        },
+        { type: 'separator' as const },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const }
       ]

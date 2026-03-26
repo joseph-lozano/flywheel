@@ -50,6 +50,7 @@ interface SidebarProps {
   onDiscoverWorktrees: (projectId: string) => void
   onModalShow?: () => void
   onModalHide?: () => void
+  onBlurPanels?: () => void
 }
 
 export default function Sidebar(props: SidebarProps) {
@@ -92,6 +93,7 @@ export default function Sidebar(props: SidebarProps) {
         display: 'flex', 'flex-direction': 'column', 'font-family': 'monospace',
         'font-size': `${SIDEBAR.ITEM_FONT_SIZE}px`, 'user-select': 'none', 'z-index': '20'
       }}
+      onMouseDown={() => props.onBlurPanels?.()}
       onClick={closeContextMenu}
     >
       {/* Header */}
