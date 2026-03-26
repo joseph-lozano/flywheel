@@ -150,8 +150,8 @@ describe('scrollOffset', () => {
 })
 
 describe('terminalFocused (blur)', () => {
-  it('starts with terminalFocused true', () => {
-    withStore(({ state }) => { expect(state.terminalFocused).toBe(true) })
+  it('starts with terminalFocused false so first addPanel triggers focus effect', () => {
+    withStore(({ state }) => { expect(state.terminalFocused).toBe(false) })
   })
   it('blurPanel sets terminalFocused to false', () => {
     withStore(({ state, actions }) => { actions.blurPanel(); expect(state.terminalFocused).toBe(false) })

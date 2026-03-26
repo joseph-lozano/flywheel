@@ -45,11 +45,20 @@ try {
 }
 
 fitAddon.fit()
+terminal.focus()
 
-// Link detection — open URLs as browser panels instead of system browser
-terminal.loadAddon(new WebLinksAddon((_event, url) => {
-  window.pty.openUrl(url)
-}))
+// Link detection — open URLs as browser panels instead of system browser.
+// The WebLinksAddon's default handler calls window.open() (about:blank) then
+// sets newWindow.location.href = uri. Override window.open so that the URL
+// is captured from the location.href setter and routed via IPC.
+window.open = () => {
+  const loc = {} as Location
+  Object.defineProperty(loc, 'href', {
+    set(url: string) { window.pty.openUrl(url) }
+  })
+  return { opener: null, location: loc } as unknown as Window
+}
+terminal.loadAddon(new WebLinksAddon())
 
 // Wire input: terminal → PTY
 terminal.onData((data) => {
