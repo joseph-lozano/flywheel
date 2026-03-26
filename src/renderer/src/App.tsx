@@ -110,15 +110,7 @@ export default function App() {
     window.api.showPanelsByPrefix(targetRowId)
 
     // Ensure strip store exists
-    const targetStore = getStripStore(targetRowId)
-
-    // If first visit to this row, create a terminal
-    if (targetStore.state.panels.length === 0) {
-      if (targetRow) {
-        const panel = targetStore.actions.addPanel('terminal')
-        window.api.createTerminalWithCwd(panel.id, targetRow.path)
-      }
-    }
+    getStripStore(targetRowId)
 
     // Check for branch renames
     refreshBranches(projectId)
