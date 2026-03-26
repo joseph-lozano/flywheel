@@ -18,7 +18,7 @@ export interface StripSnapshot {
   terminalFocused: boolean
 }
 
-export function createStripStore(projectId = 'default') {
+export function createStripStore(rowId = 'default') {
   let nextId = 0
   let colorIndex = 0
 
@@ -26,7 +26,7 @@ export function createStripStore(projectId = 'default') {
     const color = PANEL_COLORS[colorIndex % PANEL_COLORS.length]
     colorIndex++
     nextId++
-    return { id: `${projectId}-panel-${nextId}`, type: 'placeholder', color: color.hex, label: color.name }
+    return { id: `${rowId}-panel-${nextId}`, type: 'placeholder', color: color.hex, label: color.name }
   }
 
   const [state, setState] = createStore<StripState>({

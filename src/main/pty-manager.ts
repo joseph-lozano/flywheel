@@ -23,7 +23,6 @@ export class PtyManager {
   private flushCount = 0
   private sendToPanel: SendToPanelFn
   private sendToChrome: SendToChromeFn
-
   constructor(sendToPanel: SendToPanelFn, sendToChrome: SendToChromeFn) {
     this.sendToPanel = sendToPanel
     this.sendToChrome = sendToChrome

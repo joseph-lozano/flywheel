@@ -46,15 +46,23 @@ interface FlywheelAPI {
   }): void
 
   // Project management
-  addProject(): Promise<{ id: string; name: string; path: string; missing?: boolean } | null>
-  removeProject(projectId: string): void
+  addProject(): Promise<import('../../../shared/types').Project | null>
+  removeProject(projectId: string, deleteWorktrees?: boolean): Promise<{ errors: string[] }>
   switchProject(projectId: string): void
-  listProjects(): Promise<{ projects: { id: string; name: string; path: string; missing?: boolean }[]; activeProjectId: string | null }>
+  listProjects(): Promise<{ projects: import('../../../shared/types').Project[]; activeProjectId: string | null }>
   createTerminalWithCwd(panelId: string, cwd: string): void
   hidePanelsByPrefix(prefix: string): void
   showPanelsByPrefix(prefix: string): void
   destroyPanelsByPrefix(prefix: string): void
   setSidebarWidth(width: number): void
+  setExpanded(projectId: string, expanded: boolean): void
+
+  // Row management
+  createRow(projectId: string): Promise<import('../../../shared/types').CreateRowResult>
+  removeRow(rowId: string, deleteFromDisk: boolean): Promise<import('../../../shared/types').RemoveRowResult>
+  discoverWorktrees(projectId: string): Promise<import('../../../shared/types').DiscoverWorktreesResult>
+  checkBranches(projectId: string): Promise<import('../../../shared/types').CheckBranchesResult>
+  checkRowPath(path: string): Promise<{ exists: boolean }>
 }
 
 declare global {

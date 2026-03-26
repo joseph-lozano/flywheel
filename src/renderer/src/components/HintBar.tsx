@@ -6,6 +6,7 @@ interface HintBarProps {
   panelCount: number
   hasProjects: boolean
   sidebarWidth: number
+  rowCount?: number
 }
 
 const PANEL_HINTS = [
@@ -15,14 +16,23 @@ const PANEL_HINTS = [
   { key: '\u2318G', label: 'Blur' }
 ]
 
+const ROW_HINTS = [
+  { key: '\u2318N', label: 'New Row' },
+  { key: '\u2318\u2191\u2193', label: 'Switch Row' }
+]
+
 const NO_PROJECT_HINTS = [
-  { key: '\u2318O', label: 'Add Project' }
+  { key: '\u2318\u21e7N', label: 'Add Project' }
 ]
 
 export default function HintBar(props: HintBarProps) {
   const top = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT
 
-  const hints = () => props.hasProjects ? PANEL_HINTS : NO_PROJECT_HINTS
+  const hints = () => {
+    if (!props.hasProjects) return NO_PROJECT_HINTS
+    if (props.rowCount && props.rowCount > 1) return [...PANEL_HINTS, ...ROW_HINTS]
+    return PANEL_HINTS
+  }
 
   const [stats, setStats] = createSignal({
     panelViewCount: 0,

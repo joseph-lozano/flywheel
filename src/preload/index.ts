@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
 
 contextBridge.exposeInMainWorld('api', {
   // Existing panel management
@@ -99,16 +100,16 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   // Project management
-  addProject: (): Promise<{ id: string; name: string; path: string; missing?: boolean } | null> => {
+  addProject: (): Promise<Project | null> => {
     return ipcRenderer.invoke('project:add')
   },
-  removeProject: (projectId: string) => {
-    ipcRenderer.send('project:remove', { projectId })
+  removeProject: (projectId: string, deleteWorktrees: boolean = false): Promise<{ errors: string[] }> => {
+    return ipcRenderer.invoke('project:remove', { projectId, deleteWorktrees })
   },
   switchProject: (projectId: string) => {
     ipcRenderer.send('project:switch', { projectId })
   },
-  listProjects: (): Promise<{ projects: { id: string; name: string; path: string; missing?: boolean }[]; activeProjectId: string | null }> => {
+  listProjects: (): Promise<{ projects: Project[]; activeProjectId: string | null }> => {
     return ipcRenderer.invoke('project:list')
   },
   createTerminalWithCwd: (panelId: string, cwd: string) => {
@@ -125,5 +126,26 @@ contextBridge.exposeInMainWorld('api', {
   },
   setSidebarWidth: (width: number) => {
     ipcRenderer.send('panel:set-sidebar-width', { width })
+  },
+
+  setExpanded: (projectId: string, expanded: boolean) => {
+    ipcRenderer.send('project:set-expanded', { projectId, expanded })
+  },
+
+  // Row management
+  createRow: (projectId: string): Promise<CreateRowResult> => {
+    return ipcRenderer.invoke('row:create', { projectId })
+  },
+  removeRow: (rowId: string, deleteFromDisk: boolean): Promise<RemoveRowResult> => {
+    return ipcRenderer.invoke('row:remove', { rowId, deleteFromDisk })
+  },
+  discoverWorktrees: (projectId: string): Promise<DiscoverWorktreesResult> => {
+    return ipcRenderer.invoke('row:discover', { projectId })
+  },
+  checkBranches: (projectId: string): Promise<CheckBranchesResult> => {
+    return ipcRenderer.invoke('row:check-branches', { projectId })
+  },
+  checkRowPath: (path: string): Promise<{ exists: boolean }> => {
+    return ipcRenderer.invoke('row:check-path', { path })
   },
 })
