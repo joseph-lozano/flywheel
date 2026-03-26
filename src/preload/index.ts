@@ -126,4 +126,21 @@ contextBridge.exposeInMainWorld('api', {
   setSidebarWidth: (width: number) => {
     ipcRenderer.send('panel:set-sidebar-width', { width })
   },
+
+  // Row management
+  createRow: (projectId: string): Promise<unknown> => {
+    return ipcRenderer.invoke('row:create', { projectId })
+  },
+  removeRow: (rowId: string, deleteFromDisk: boolean): Promise<unknown> => {
+    return ipcRenderer.invoke('row:remove', { rowId, deleteFromDisk })
+  },
+  discoverWorktrees: (projectId: string): Promise<unknown> => {
+    return ipcRenderer.invoke('row:discover', { projectId })
+  },
+  checkBranches: (projectId: string): Promise<unknown> => {
+    return ipcRenderer.invoke('row:check-branches', { projectId })
+  },
+  onBusyToIdle: (callback: (data: { panelId: string }) => void) => {
+    ipcRenderer.on('pty:busy-to-idle', (_event, data) => callback(data))
+  },
 })
