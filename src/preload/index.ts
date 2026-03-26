@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
+import type { FlywheelConfig } from '../shared/config'
 
 contextBridge.exposeInMainWorld('api', {
   // Existing panel management
@@ -147,5 +148,16 @@ contextBridge.exposeInMainWorld('api', {
   },
   checkRowPath: (path: string): Promise<{ exists: boolean }> => {
     return ipcRenderer.invoke('row:check-path', { path })
+  },
+
+  // Config
+  getConfig: (): Promise<FlywheelConfig> => {
+    return ipcRenderer.invoke('config:get-all')
+  },
+  reloadConfig: () => {
+    ipcRenderer.send('config:reload')
+  },
+  onConfigUpdated: (callback: (config: FlywheelConfig) => void) => {
+    ipcRenderer.on('config:updated', (_event, config) => callback(config))
   },
 })

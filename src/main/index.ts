@@ -4,6 +4,7 @@ import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
 import { WorktreeManager } from './worktree-manager'
+import { ConfigManager } from './config-manager'
 import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
@@ -15,6 +16,7 @@ let panelManager: PanelManager
 let ptyManager: PtyManager
 let projectStore: ProjectStore
 let worktreeManager: WorktreeManager
+let configManager: ConfigManager
 
 async function createWindow(): Promise<void> {
   worktreeManager = new WorktreeManager()
@@ -67,6 +69,7 @@ async function createWindow(): Promise<void> {
   )
 
   projectStore = new ProjectStore()
+  configManager = new ConfigManager()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -77,6 +80,11 @@ async function createWindow(): Promise<void> {
   })
 
   chromeView.webContents.once('did-finish-load', () => {
+    const activeId = projectStore.getActiveProjectId()
+    if (activeId) {
+      const project = projectStore.getProjects().find(p => p.id === activeId)
+      if (project) configManager.load(project.path)
+    }
     mainWindow.show()
   })
 
@@ -276,6 +284,12 @@ function setupIpcHandlers(): void {
 
   ipcMain.on('project:switch', (_event, data: { projectId: string }) => {
     projectStore.setActiveProjectId(data.projectId)
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (project) {
+      configManager.load(project.path)
+      chromeView.webContents.send('config:updated', configManager.get())
+      panelManager.broadcastConfig(configManager.get().preferences)
+    }
   })
 
   ipcMain.handle('project:list', () => {
@@ -416,6 +430,25 @@ function setupIpcHandlers(): void {
     }
 
     return { updates }
+  })
+
+  // Config management
+  ipcMain.handle('config:get-all', () => {
+    return configManager.get()
+  })
+
+  ipcMain.on('config:reload', () => {
+    const project = projectStore.getProjects().find(
+      p => p.id === projectStore.getActiveProjectId()
+    )
+    if (project) {
+      configManager.load(project.path)
+    } else {
+      configManager.reload()
+    }
+    const config = configManager.get()
+    chromeView.webContents.send('config:updated', config)
+    panelManager.broadcastConfig(config.preferences)
   })
 }
 

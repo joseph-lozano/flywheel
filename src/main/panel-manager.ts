@@ -341,4 +341,12 @@ export class PanelManager {
       this.destroyPanel(id)
     }
   }
+
+  broadcastConfig(preferences: { terminal: { fontFamily: string; fontSize: number }; browser: { defaultZoom: number }; app: { defaultZoom: number } }): void {
+    for (const panel of this.panels.values()) {
+      if (panel.type === 'terminal') {
+        panel.view.webContents.send('config:updated', preferences)
+      }
+    }
+  }
 }
