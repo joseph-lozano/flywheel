@@ -139,11 +139,12 @@ export default function App() {
     stripStores.delete(rowId)
     stripSnapshots.delete(rowId)
 
-    appStore.actions.removeRow(project.id, rowId)
+    const projectId = project.id
+    appStore.actions.removeRow(projectId, rowId)
 
     if (wasActive) {
-      const defaultRow = project.rows.find(r => r.isDefault)
-      if (defaultRow) handleSwitchRow(project.id, defaultRow.id)
+      const updated = appStore.state.projects.find(p => p.id === projectId)
+      if (updated) handleSwitchRow(projectId, updated.activeRowId)
     }
   }
 
