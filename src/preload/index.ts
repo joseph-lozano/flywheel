@@ -144,4 +144,7 @@ contextBridge.exposeInMainWorld('api', {
   checkBranches: (projectId: string): Promise<unknown> => {
     return ipcRenderer.invoke('row:check-branches', { projectId })
   },
+  checkRowPath: (path: string): Promise<{ exists: boolean }> => {
+    return ipcRenderer.invoke('row:check-path', { path })
+  },
 })

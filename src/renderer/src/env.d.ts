@@ -62,6 +62,7 @@ interface FlywheelAPI {
   removeRow(rowId: string, deleteFromDisk: boolean): Promise<unknown>
   discoverWorktrees(projectId: string): Promise<unknown>
   checkBranches(projectId: string): Promise<unknown>
+  checkRowPath(path: string): Promise<{ exists: boolean }>
 }
 
 declare global {

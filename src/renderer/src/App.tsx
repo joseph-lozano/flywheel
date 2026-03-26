@@ -22,6 +22,7 @@ export default function App() {
   let scrollEndTimer: ReturnType<typeof setTimeout>
 
   const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
+  const [missingRow, setMissingRow] = createSignal<{ projectId: string; rowId: string; branch: string } | null>(null)
   const [toast, setToast] = createSignal<string | null>(null)
   let toastTimer: ReturnType<typeof setTimeout>
 
@@ -75,7 +76,7 @@ export default function App() {
 
   // --- Row management ---
 
-  function handleSwitchRow(projectId: string, targetRowId: string): void {
+  async function handleSwitchRow(projectId: string, targetRowId: string): Promise<void> {
     const project = appStore.state.projects.find(p => p.id === projectId)
     if (!project) return
 
@@ -86,6 +87,16 @@ export default function App() {
 
     const currentRowId = project.activeRowId
     if (currentRowId === targetRowId) return
+
+    // Check if target row's path still exists on disk
+    const targetRow = project.rows.find(r => r.id === targetRowId)
+    if (targetRow && !targetRow.isDefault) {
+      const { exists } = await window.api.checkRowPath(targetRow.path)
+      if (!exists) {
+        setMissingRow({ projectId, rowId: targetRowId, branch: targetRow.branch })
+        return
+      }
+    }
 
     // Stash current row's strip
     const currentStore = stripStores.get(currentRowId)
@@ -103,10 +114,9 @@ export default function App() {
 
     // If first visit to this row, create a terminal
     if (targetStore.state.panels.length === 0) {
-      const row = project.rows.find(r => r.id === targetRowId)
-      if (row) {
+      if (targetRow) {
         const panel = targetStore.actions.addPanel('terminal')
-        window.api.createTerminalWithCwd(panel.id, row.path)
+        window.api.createTerminalWithCwd(panel.id, targetRow.path)
       }
     }
 
@@ -698,6 +708,38 @@ export default function App() {
           onConfirm={() => handleConfirmResponse(true)}
           onCancel={() => handleConfirmResponse(false)}
         />
+      )}
+      {missingRow() && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', 'align-items': 'center', 'justify-content': 'center', 'z-index': '1000'
+        }}>
+          <div style={{
+            background: '#252540', 'border-radius': '8px', padding: '24px', 'max-width': '420px',
+            'box-shadow': '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid #3a3a5c'
+          }}>
+            <p style={{ color: '#e0e0e0', margin: '0 0 8px 0', 'font-size': '14px', 'font-weight': 'bold' }}>
+              Worktree not found
+            </p>
+            <p style={{ color: '#888', margin: '0 0 20px 0', 'font-size': '13px', 'line-height': '1.5', 'font-family': 'monospace' }}>
+              The directory for <span style={{ color: '#e0e0e0' }}>{missingRow()!.branch}</span> no longer exists on disk.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', 'justify-content': 'flex-end' }}>
+              <button onClick={() => setMissingRow(null)} style={{
+                background: '#1a1a2e', color: '#888', border: '1px solid #3a3a5c',
+                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
+              }}>Cancel</button>
+              <button onClick={() => {
+                const data = missingRow()!
+                handleRemoveRow(data.rowId, false)
+                setMissingRow(null)
+              }} style={{
+                background: '#f43f5e', color: '#fff', border: 'none',
+                padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
+              }}>Remove Row</button>
+            </div>
+          </div>
+        </div>
       )}
       {toast() && (
         <div style={{

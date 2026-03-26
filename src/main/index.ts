@@ -5,6 +5,7 @@ import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
 import { WorktreeManager } from './worktree-manager'
 import { randomUUID } from 'crypto'
+import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
 
 let mainWindow: BaseWindow
@@ -279,6 +280,10 @@ function setupIpcHandlers(): void {
 
   ipcMain.on('project:set-expanded', (_event, data: { projectId: string; expanded: boolean }) => {
     projectStore.setExpanded(data.projectId, data.expanded)
+  })
+
+  ipcMain.handle('row:check-path', (_event, data: { path: string }) => {
+    return { exists: existsSync(data.path) }
   })
 
   // Row management
