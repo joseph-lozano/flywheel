@@ -16,12 +16,24 @@ let ptyManager: PtyManager
 let projectStore: ProjectStore
 let worktreeManager: WorktreeManager
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
+  worktreeManager = new WorktreeManager()
+
+  let title = 'Flywheel'
+  if (process.env['ELECTRON_RENDERER_URL']) {
+    try {
+      const branch = await worktreeManager.getDefaultBranch(process.cwd())
+      title = `Flywheel [${branch}]`
+    } catch {
+      title = 'Flywheel [dev]'
+    }
+  }
+
   mainWindow = new BaseWindow({
     width: 1200,
     height: 800,
     show: false,
-    title: 'Flywheel'
+    title
   })
 
   chromeView = new WebContentsView({
@@ -55,7 +67,6 @@ function createWindow(): void {
   )
 
   projectStore = new ProjectStore()
-  worktreeManager = new WorktreeManager()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -553,6 +564,12 @@ function setupShortcuts(): void {
   ]
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
+// Isolate dev instances to a separate userData directory
+// so they can't corrupt production electron-store data
+if (process.env['ELECTRON_RENDERER_URL']) {
+  app.setPath('userData', app.getPath('userData') + '-dev')
 }
 
 app.whenReady().then(createWindow)
