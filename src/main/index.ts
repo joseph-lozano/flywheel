@@ -240,15 +240,27 @@ function setupIpcHandlers(): void {
     return project
   })
 
-  ipcMain.on('project:remove', (_event, data: { projectId: string }) => {
+  ipcMain.handle('project:remove', async (_event, data: { projectId: string; deleteWorktrees: boolean }) => {
     const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    const errors: string[] = []
     if (project) {
       for (const row of project.rows) {
         ptyManager.killByPrefix(row.id)
         panelManager.destroyByPrefix(row.id)
       }
+      if (data.deleteWorktrees) {
+        for (const row of project.rows) {
+          if (row.isDefault) continue
+          try {
+            await worktreeManager.removeWorktree(project.path, row.path)
+          } catch (err) {
+            errors.push((err as Error).message)
+          }
+        }
+      }
     }
     projectStore.removeProject(data.projectId)
+    return { errors }
   })
 
   ipcMain.on('project:switch', (_event, data: { projectId: string }) => {

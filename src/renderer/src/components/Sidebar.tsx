@@ -2,6 +2,7 @@ import { For, Show, createSignal, createEffect, onCleanup } from 'solid-js'
 import type { Project } from '../../../shared/types'
 import { SIDEBAR } from '../../../shared/constants'
 import RemoveRowDialog from './RemoveRowDialog'
+import RemoveProjectDialog from './RemoveProjectDialog'
 
 // Lucide icons as inline SVGs
 function ChevronDown(props: { size?: number; color?: string }) {
@@ -42,7 +43,7 @@ interface SidebarProps {
   onSwitchProject: (id: string) => void
   onSwitchRow: (projectId: string, rowId: string) => void
   onAddProject: () => void
-  onRemoveProject: (id: string) => void
+  onRemoveProject: (id: string, deleteWorktrees: boolean) => void
   onToggleExpanded: (projectId: string) => void
   onCreateRow: (projectId: string) => void
   onRemoveRow: (rowId: string, deleteFromDisk: boolean) => void
@@ -58,6 +59,7 @@ export default function Sidebar(props: SidebarProps) {
   } | null>(null)
   const [hoveredId, setHoveredId] = createSignal<string | null>(null)
   const [removeConfirm, setRemoveConfirm] = createSignal<{ rowId: string } | null>(null)
+  const [removeProjectConfirm, setRemoveProjectConfirm] = createSignal<{ projectId: string } | null>(null)
 
   function handleProjectContext(e: MouseEvent, projectId: string) {
     e.preventDefault()
@@ -221,7 +223,18 @@ export default function Sidebar(props: SidebarProps) {
               style={{ padding: '6px 16px', color: '#f43f5e', 'font-size': '11px', cursor: 'pointer' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(244,63,94,0.1)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              onClick={() => { props.onRemoveProject(contextMenu()!.projectId!); setContextMenu(null) }}
+              onClick={() => {
+                const pid = contextMenu()!.projectId!
+                const project = props.projects.find(p => p.id === pid)
+                const hasWorktrees = project?.rows.some(r => !r.isDefault)
+                setContextMenu(null)
+                if (hasWorktrees) {
+                  setRemoveProjectConfirm({ projectId: pid })
+                  props.onModalShow?.()
+                } else {
+                  props.onRemoveProject(pid, false)
+                }
+              }}
             >
               Remove Project
             </div>
@@ -253,6 +266,23 @@ export default function Sidebar(props: SidebarProps) {
             props.onModalHide?.()
           }}
           onCancel={() => { setRemoveConfirm(null); props.onModalHide?.() }}
+        />
+      </Show>
+
+      {/* Project removal confirmation (when project has worktree rows) */}
+      <Show when={removeProjectConfirm()}>
+        <RemoveProjectDialog
+          onRemoveFromFlywheel={() => {
+            props.onRemoveProject(removeProjectConfirm()!.projectId, false)
+            setRemoveProjectConfirm(null)
+            props.onModalHide?.()
+          }}
+          onDeleteWorktrees={() => {
+            props.onRemoveProject(removeProjectConfirm()!.projectId, true)
+            setRemoveProjectConfirm(null)
+            props.onModalHide?.()
+          }}
+          onCancel={() => { setRemoveProjectConfirm(null); props.onModalHide?.() }}
         />
       </Show>
     </div>

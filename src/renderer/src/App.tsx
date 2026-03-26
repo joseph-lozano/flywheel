@@ -394,11 +394,14 @@ export default function App() {
     }
   }
 
-  function handleRemoveProject(projectId: string): void {
+  async function handleRemoveProject(projectId: string, deleteWorktrees: boolean = false): Promise<void> {
     const project = appStore.state.projects.find(p => p.id === projectId)
     const wasActive = appStore.state.activeProjectId === projectId
 
-    window.api.removeProject(projectId)
+    const result = await window.api.removeProject(projectId, deleteWorktrees)
+    if (result.errors.length > 0) {
+      showToast(`Failed to remove ${result.errors.length} worktree(s)`)
+    }
 
     // Clean up all rows' panel IDs, strip stores, and snapshots
     if (project) {

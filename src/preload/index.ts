@@ -103,8 +103,8 @@ contextBridge.exposeInMainWorld('api', {
   addProject: (): Promise<{ id: string; name: string; path: string; missing?: boolean } | null> => {
     return ipcRenderer.invoke('project:add')
   },
-  removeProject: (projectId: string) => {
-    ipcRenderer.send('project:remove', { projectId })
+  removeProject: (projectId: string, deleteWorktrees: boolean = false): Promise<{ errors: string[] }> => {
+    return ipcRenderer.invoke('project:remove', { projectId, deleteWorktrees })
   },
   switchProject: (projectId: string) => {
     ipcRenderer.send('project:switch', { projectId })
