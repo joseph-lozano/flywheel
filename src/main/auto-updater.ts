@@ -5,6 +5,10 @@ export function initAutoUpdater(): void {
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
 
+  autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version)
+  })
+
   autoUpdater.on('update-downloaded', (info) => {
     dialog
       .showMessageBox({

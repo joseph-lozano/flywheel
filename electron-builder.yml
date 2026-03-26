@@ -37,5 +37,5 @@ dmg:
 
 publish:
   provider: github
-  owner: OWNER
+  owner: joseph-lozano
   repo: flywheel-releases

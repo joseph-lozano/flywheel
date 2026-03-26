@@ -16,7 +16,7 @@ exports.default = async function notarizing(context) {
   console.log(`Notarizing ${appPath}...`)
 
   await notarize({
-    appBundleId: 'com.flywheel.app',
+    appBundleId: context.packager.config.appId,
     appPath,
     appleId: process.env.APPLE_ID,
     appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
