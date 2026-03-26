@@ -1,0 +1,41 @@
+appId: com.flywheel.app
+productName: Flywheel
+
+directories:
+  buildResources: build
+
+files:
+  - '!src/**/*'
+  - '!docs/**/*'
+  - '!tests/**/*'
+  - '!scripts/**/*'
+  - '!.github/**/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!{vitest.config.ts,ROADMAP.md}'
+
+asarUnpack:
+  - node_modules/node-pty/**
+
+npmRebuild: false
+
+mac:
+  target:
+    - target: dmg
+      arch: arm64
+  category: public.app-category.developer-tools
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.inherit.plist
+
+afterSign: scripts/notarize.js
+
+dmg:
+  sign: true
+  artifactName: ${name}-${version}-arm64.${ext}
+
+publish:
+  provider: github
+  owner: joseph-lozano
+  repo: flywheel-releases

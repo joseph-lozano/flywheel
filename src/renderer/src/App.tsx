@@ -27,6 +27,7 @@ export default function App() {
   const [missingRow, setMissingRow] = createSignal<{ projectId: string; rowId: string; branch: string } | null>(null)
   const [viewportHeight, setViewportHeight] = createSignal(window.innerHeight)
   const [toast, setToast] = createSignal<{ message: string; type: 'error' | 'info' } | null>(null)
+  const [appDefaultZoom, setAppDefaultZoom] = createSignal(0)
   let toastTimer: ReturnType<typeof setTimeout>
 
   function showToast(message: string, type: 'error' | 'info' = 'error'): void {
@@ -234,7 +235,7 @@ export default function App() {
     }
 
     if (boundsUpdates.length > 0) {
-      window.api.updateBounds(boundsUpdates)
+      window.api.updateBounds(boundsUpdates, sidebarWidth)
     }
   })
 
@@ -518,6 +519,38 @@ export default function App() {
         if (currentIdx < project.rows.length - 1) handleSwitchRow(project.id, project.rows[currentIdx + 1].id)
         break
       }
+      case 'zoom-in': {
+        if (!strip || !strip.state.terminalFocused) {
+          window.api.zoomApp('in')
+        } else {
+          const focused = strip.state.panels[strip.state.focusedIndex]
+          if (focused) window.api.zoomPanel(focused.id, 'in')
+        }
+        break
+      }
+      case 'zoom-out': {
+        if (!strip || !strip.state.terminalFocused) {
+          window.api.zoomApp('out')
+        } else {
+          const focused = strip.state.panels[strip.state.focusedIndex]
+          if (focused) window.api.zoomPanel(focused.id, 'out')
+        }
+        break
+      }
+      case 'zoom-reset': {
+        if (!strip || !strip.state.terminalFocused) {
+          window.api.zoomApp('reset', appDefaultZoom())
+        } else {
+          const focused = strip.state.panels[strip.state.focusedIndex]
+          if (focused) window.api.zoomPanel(focused.id, 'reset')
+        }
+        break
+      }
+      case 'reload-config': {
+        window.api.reloadConfig()
+        showToast('Config reloaded', 'info')
+        break
+      }
     }
   }
 
@@ -633,6 +666,22 @@ export default function App() {
     }, 5000)
     onCleanup(() => clearInterval(branchCheckInterval))
 
+    // Apply app zoom from config on startup
+    window.api.getConfig().then((config) => {
+      setAppDefaultZoom(config.preferences.app.defaultZoom)
+      window.api.zoomApp('reset', config.preferences.app.defaultZoom)
+    })
+
+    // Re-apply app zoom on config reload (only if defaultZoom changed)
+    window.api.onConfigUpdated((config) => {
+      const prev = appDefaultZoom()
+      const next = config.preferences.app.defaultZoom
+      setAppDefaultZoom(next)
+      if (prev !== next) {
+        window.api.zoomApp('reset', next)
+      }
+    })
+
     // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
       appStore.actions.loadProjects(projects, activeProjectId)
@@ -700,6 +749,7 @@ export default function App() {
         onCreateRow={(projectId) => handleCreateRow(projectId)}
         onRemoveRow={(rowId, deleteFromDisk) => handleRemoveRow(rowId, deleteFromDisk)}
         onDiscoverWorktrees={(projectId) => handleDiscoverWorktrees(projectId)}
+        onBlurPanels={() => activeStrip()?.actions.blurPanel()}
         onModalShow={() => window.api.hideAllPanels()}
         onModalHide={() => {
           const project = appStore.actions.getActiveProject()

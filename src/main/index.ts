@@ -6,10 +6,12 @@ import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
 import { WorktreeManager } from './worktree-manager'
+import { ConfigManager } from './config-manager'
 import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
 import type { Row, Project } from '../shared/types'
+import { initAutoUpdater } from './auto-updater'
 
 let mainWindow: BaseWindow
 let chromeView: WebContentsView
@@ -17,13 +19,26 @@ let panelManager: PanelManager
 let ptyManager: PtyManager
 let projectStore: ProjectStore
 let worktreeManager: WorktreeManager
+let configManager: ConfigManager
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
+  worktreeManager = new WorktreeManager()
+
+  let title = 'Flywheel'
+  if (process.env['ELECTRON_RENDERER_URL']) {
+    try {
+      const branch = await worktreeManager.getDefaultBranch(process.cwd())
+      title = `Flywheel [${branch}]`
+    } catch {
+      title = 'Flywheel [dev]'
+    }
+  }
+
   mainWindow = new BaseWindow({
     width: 1200,
     height: 800,
     show: false,
-    title: 'Flywheel'
+    title
   })
 
   chromeView = new WebContentsView({
@@ -57,7 +72,7 @@ function createWindow(): void {
   )
 
   projectStore = new ProjectStore()
-  worktreeManager = new WorktreeManager()
+  configManager = new ConfigManager()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -68,6 +83,11 @@ function createWindow(): void {
   })
 
   chromeView.webContents.once('did-finish-load', () => {
+    const activeId = projectStore.getActiveProjectId()
+    if (activeId) {
+      const project = projectStore.getProjects().find(p => p.id === activeId)
+      if (project) configManager.load(project.path)
+    }
     mainWindow.show()
   })
 
@@ -97,7 +117,8 @@ function setupIpcHandlers(): void {
     panelId: string
     bounds: { x: number; y: number; width: number; height: number }
     visible: boolean
-  }>) => {
+  }>, sidebarWidth?: number) => {
+    if (sidebarWidth != null) panelManager.sidebarWidth = sidebarWidth
     panelManager.updateBounds(updates)
   })
 
@@ -267,6 +288,12 @@ function setupIpcHandlers(): void {
 
   ipcMain.on('project:switch', (_event, data: { projectId: string }) => {
     projectStore.setActiveProjectId(data.projectId)
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (project) {
+      configManager.load(project.path)
+      chromeView.webContents.send('config:updated', configManager.get())
+      panelManager.broadcastConfig(configManager.get())
+    }
   })
 
   ipcMain.handle('project:list', () => {
@@ -408,6 +435,29 @@ function setupIpcHandlers(): void {
 
     return { updates }
   })
+
+  ipcMain.on('panel:zoom', (_event, data: { panelId: string; direction: 'in' | 'out' | 'reset'; defaultValue?: number }) => {
+    panelManager.zoomPanel(data.panelId, data.direction, configManager.get())
+  })
+
+  // Config management
+  ipcMain.handle('config:get-all', () => {
+    return configManager.get()
+  })
+
+  ipcMain.on('config:reload', () => {
+    const project = projectStore.getProjects().find(
+      p => p.id === projectStore.getActiveProjectId()
+    )
+    if (project) {
+      configManager.load(project.path)
+    } else {
+      configManager.reload()
+    }
+    const config = configManager.get()
+    chromeView.webContents.send('config:updated', config)
+    panelManager.broadcastConfig(config)
+  })
 }
 
 function setupShortcuts(): void {
@@ -519,6 +569,16 @@ function setupShortcuts(): void {
       ]
     },
     {
+      label: 'Config',
+      submenu: [
+        {
+          label: 'Reload Config',
+          accelerator: 'Command+Shift+,',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'reload-config' })
+        }
+      ]
+    },
+    {
       label: 'Edit',
       submenu: [
         { role: 'undo' as const },
@@ -548,6 +608,23 @@ function setupShortcuts(): void {
           accelerator: 'Command+]',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'browser-forward' })
         },
+        { type: 'separator' as const },
+        {
+          label: 'Zoom In',
+          accelerator: 'Command+=',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-in' })
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'Command+-',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-out' })
+        },
+        {
+          label: 'Reset Zoom',
+          accelerator: 'Command+0',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'zoom-reset' })
+        },
+        { type: 'separator' as const },
         { role: 'forceReload' as const },
         { role: 'toggleDevTools' as const }
       ]
@@ -557,9 +634,20 @@ function setupShortcuts(): void {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
-app.whenReady().then(() => {
+// Isolate dev instances to a separate userData directory
+// so they can't corrupt production electron-store data
+if (process.env['ELECTRON_RENDERER_URL']) {
+  app.setPath('userData', app.getPath('userData') + '-dev')
+}
+
+app.whenReady().then(async () => {
   installScripts(homedir())
-  createWindow()
+  await createWindow()
+
+  // Only check for updates in production builds
+  if (!process.env['ELECTRON_RENDERER_URL']) {
+    initAutoUpdater()
+  }
 })
 
 app.on('window-all-closed', () => {
