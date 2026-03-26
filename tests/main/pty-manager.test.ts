@@ -153,6 +153,45 @@ describe('PtyManager output buffering', () => {
   })
 })
 
+describe('PtyManager busy-to-idle detection', () => {
+  let manager: PtyManager
+  const mockSendToPanel = vi.fn()
+  const mockSendToChrome = vi.fn()
+  const mockOnBusyToIdle = vi.fn()
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers()
+    let onDataCb: ((data: string) => void) | null = null
+    let onExitCb: ((exit: { exitCode: number }) => void) | null = null
+    mockPty.onData = vi.fn((cb) => { onDataCb = cb; return { dispose: vi.fn() } })
+    mockPty.onExit = vi.fn((cb) => { onExitCb = cb; return { dispose: vi.fn() } })
+    mockPty.process = defaultShellName
+    ;(mockPty as any)._triggerData = (data: string) => onDataCb?.(data)
+    ;(mockPty as any)._triggerExit = (code: number) => onExitCb?.({ exitCode: code })
+    manager = new PtyManager(mockSendToPanel, mockSendToChrome, mockOnBusyToIdle)
+  })
+
+  afterEach(() => { manager.dispose(); vi.useRealTimers() })
+
+  it('calls onBusyToIdle when process returns to shell', () => {
+    manager.create('panel-1')
+    // Simulate: shell → npm (busy)
+    mockPty.process = 'npm'
+    vi.advanceTimersByTime(16 * 30) // trigger title check
+    // Simulate: npm → shell (idle)
+    mockPty.process = defaultShellName
+    vi.advanceTimersByTime(16 * 30) // trigger title check
+    expect(mockOnBusyToIdle).toHaveBeenCalledWith('panel-1')
+  })
+
+  it('does not call onBusyToIdle when process stays idle', () => {
+    manager.create('panel-1')
+    vi.advanceTimersByTime(16 * 30 * 3) // multiple title checks
+    expect(mockOnBusyToIdle).not.toHaveBeenCalled()
+  })
+})
+
 describe('PtyManager exit handling', () => {
   let manager: PtyManager
   const mockSendToPanel = vi.fn()
