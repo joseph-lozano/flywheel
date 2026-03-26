@@ -25,12 +25,12 @@ export default function App() {
 
   const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
   const [missingRow, setMissingRow] = createSignal<{ projectId: string; rowId: string; branch: string } | null>(null)
-  const [toast, setToast] = createSignal<string | null>(null)
+  const [toast, setToast] = createSignal<{ message: string; type: 'error' | 'info' } | null>(null)
   let toastTimer: ReturnType<typeof setTimeout>
 
-  function showToast(message: string): void {
+  function showToast(message: string, type: 'error' | 'info' = 'error'): void {
     clearTimeout(toastTimer)
-    setToast(message)
+    setToast({ message, type })
     toastTimer = setTimeout(() => setToast(null), 3000)
   }
 
@@ -175,9 +175,9 @@ export default function App() {
       for (const row of result.rows) {
         appStore.actions.addRow(projectId, row)
       }
-      showToast(`Discovered ${result.rows.length} worktree${result.rows.length > 1 ? 's' : ''}`)
+      showToast(`Discovered ${result.rows.length} worktree${result.rows.length > 1 ? 's' : ''}`, 'info')
     } else {
-      showToast('No new worktrees found')
+      showToast('No new worktrees found', 'info')
     }
   }
 
@@ -741,11 +741,11 @@ export default function App() {
       {toast() && (
         <div style={{
           position: 'fixed', bottom: '48px', left: '50%', transform: 'translateX(-50%)',
-          background: '#f43f5e', color: '#fff', padding: '8px 20px',
+          background: toast()!.type === 'error' ? '#f43f5e' : '#3b82f6', color: '#fff', padding: '8px 20px',
           'border-radius': '6px', 'font-size': '13px', 'font-family': 'monospace',
           'z-index': '2000', 'box-shadow': '0 4px 12px rgba(0,0,0,0.4)'
         }}>
-          {toast()}
+          {toast()!.message}
         </div>
       )}
     </>
