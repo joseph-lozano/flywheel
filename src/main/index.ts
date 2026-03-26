@@ -571,7 +571,7 @@ function setupShortcuts(): void {
         {
           label: 'Reload Config',
           accelerator: 'Command+Shift+,',
-          click: () => ipcMain.emit('config:reload')
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'reload-config' })
         }
       ]
     },
