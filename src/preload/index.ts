@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
+import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
 
 contextBridge.exposeInMainWorld('api', {
   // Existing panel management
@@ -100,7 +100,7 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   // Project management
-  addProject: (): Promise<{ id: string; name: string; path: string; missing?: boolean } | null> => {
+  addProject: (): Promise<Project | null> => {
     return ipcRenderer.invoke('project:add')
   },
   removeProject: (projectId: string, deleteWorktrees: boolean = false): Promise<{ errors: string[] }> => {
@@ -109,7 +109,7 @@ contextBridge.exposeInMainWorld('api', {
   switchProject: (projectId: string) => {
     ipcRenderer.send('project:switch', { projectId })
   },
-  listProjects: (): Promise<{ projects: { id: string; name: string; path: string; missing?: boolean }[]; activeProjectId: string | null }> => {
+  listProjects: (): Promise<{ projects: Project[]; activeProjectId: string | null }> => {
     return ipcRenderer.invoke('project:list')
   },
   createTerminalWithCwd: (panelId: string, cwd: string) => {

@@ -133,7 +133,7 @@ export default function Sidebar(props: SidebarProps) {
                   onMouseEnter={() => setHoveredId(project.id)}
                   onMouseLeave={() => setHoveredId(null)}
                 >
-                  <Show when={project.rows.length > 0}>
+                  <Show when={project.rows.length > 1}>
                     <span
                       style={{ cursor: 'pointer', display: 'flex', 'align-items': 'center', 'flex-shrink': 0 }}
                       onClick={(e) => { e.stopPropagation(); props.onToggleExpanded(project.id) }}

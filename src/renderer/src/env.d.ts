@@ -46,10 +46,10 @@ interface FlywheelAPI {
   }): void
 
   // Project management
-  addProject(): Promise<{ id: string; name: string; path: string; missing?: boolean } | null>
+  addProject(): Promise<import('../../../shared/types').Project | null>
   removeProject(projectId: string, deleteWorktrees?: boolean): Promise<{ errors: string[] }>
   switchProject(projectId: string): void
-  listProjects(): Promise<{ projects: { id: string; name: string; path: string; missing?: boolean }[]; activeProjectId: string | null }>
+  listProjects(): Promise<{ projects: import('../../../shared/types').Project[]; activeProjectId: string | null }>
   createTerminalWithCwd(panelId: string, cwd: string): void
   hidePanelsByPrefix(prefix: string): void
   showPanelsByPrefix(prefix: string): void
