@@ -17,90 +17,112 @@ declare global {
       getPanelId: () => string
       openUrl: (url: string) => void
       onChromeState: (callback: (state: { position: number; label: string; focused: boolean; busy?: boolean }) => void) => void
+      getConfig: () => Promise<{ terminal: { fontFamily: string; fontSize: number } }>
+      onConfigUpdated: (callback: (config: any) => void) => void
     }
   }
 }
 
 const panelId = window.pty.getPanelId()
 
-const terminal = new Terminal({
-  ...TERMINAL_DEFAULTS,
-  allowProposedApi: true,
-  scrollback: 5000
-})
+let terminal: Terminal
+let fitAddon: FitAddon
 
-const fitAddon = new FitAddon()
-terminal.loadAddon(fitAddon)
-terminal.loadAddon(new Unicode11Addon())
-terminal.unicode.activeVersion = '11'
+async function initTerminal(): Promise<void> {
+  const config = await window.pty.getConfig()
 
-const container = document.getElementById('terminal')!
-terminal.open(container)
-
-// Try WebGL, fall back to canvas
-try {
-  terminal.loadAddon(new WebglAddon())
-} catch (e) {
-  console.warn('WebGL addon failed, using canvas renderer:', e)
-}
-
-fitAddon.fit()
-terminal.focus()
-
-// Link detection — open URLs as browser panels instead of system browser.
-// The WebLinksAddon's default handler calls window.open() (about:blank) then
-// sets newWindow.location.href = uri. Override window.open so that the URL
-// is captured from the location.href setter and routed via IPC.
-window.open = () => {
-  const loc = {} as Location
-  Object.defineProperty(loc, 'href', {
-    set(url: string) { window.pty.openUrl(url) }
+  terminal = new Terminal({
+    fontFamily: config.terminal.fontFamily,
+    fontSize: config.terminal.fontSize,
+    theme: TERMINAL_DEFAULTS.theme,
+    allowProposedApi: true,
+    scrollback: 5000
   })
-  return { opener: null, location: loc } as unknown as Window
-}
-terminal.loadAddon(new WebLinksAddon())
 
-// Wire input: terminal → PTY
-terminal.onData((data) => {
-  window.pty.input(panelId, data)
-})
+  fitAddon = new FitAddon()
+  terminal.loadAddon(fitAddon)
+  terminal.loadAddon(new Unicode11Addon())
+  terminal.unicode.activeVersion = '11'
 
-// Wire output: PTY → terminal
-window.pty.onOutput((data) => {
-  terminal.write(data)
-})
+  const container = document.getElementById('terminal')!
+  terminal.open(container)
 
-// Wire exit: PTY exited
-window.pty.onExit((_exitCode) => {
-  terminal.write('\r\n\x1b[90m[Process exited]\x1b[0m\r\n')
-})
+  // Try WebGL, fall back to canvas
+  try {
+    terminal.loadAddon(new WebglAddon())
+  } catch (e) {
+    console.warn('WebGL addon failed, using canvas renderer:', e)
+  }
 
-// Wire resize: terminal → PTY
-function reportSize(): void {
-  window.pty.resize(panelId, terminal.cols, terminal.rows)
-}
-
-const resizeObserver = new ResizeObserver(() => {
   fitAddon.fit()
+  terminal.focus()
+
+  // Link detection — open URLs as browser panels instead of system browser.
+  // The WebLinksAddon's default handler calls window.open() (about:blank) then
+  // sets newWindow.location.href = uri. Override window.open so that the URL
+  // is captured from the location.href setter and routed via IPC.
+  window.open = () => {
+    const loc = {} as Location
+    Object.defineProperty(loc, 'href', {
+      set(url: string) { window.pty.openUrl(url) }
+    })
+    return { opener: null, location: loc } as unknown as Window
+  }
+  terminal.loadAddon(new WebLinksAddon())
+
+  // Wire input: terminal → PTY
+  terminal.onData((data) => {
+    window.pty.input(panelId, data)
+  })
+
+  // Wire output: PTY → terminal
+  window.pty.onOutput((data) => {
+    terminal.write(data)
+  })
+
+  // Wire exit: PTY exited
+  window.pty.onExit((_exitCode) => {
+    terminal.write('\r\n\x1b[90m[Process exited]\x1b[0m\r\n')
+  })
+
+  // Wire resize: terminal → PTY
+  function reportSize(): void {
+    window.pty.resize(panelId, terminal.cols, terminal.rows)
+  }
+
+  const resizeObserver = new ResizeObserver(() => {
+    fitAddon.fit()
+    reportSize()
+  })
+  resizeObserver.observe(container)
+
+  // Initial size report
   reportSize()
-})
-resizeObserver.observe(container)
 
-// Initial size report
-reportSize()
+  // Config reload — update font settings
+  window.pty.onConfigUpdated((config: any) => {
+    if (config.terminal) {
+      terminal.options.fontFamily = config.terminal.fontFamily
+      terminal.options.fontSize = config.terminal.fontSize
+      fitAddon.fit()
+    }
+  })
 
-// Chrome state → title bar with dot-grid divider
-const posLabel = document.getElementById('pos-label')!
-const dotGridWrap = document.getElementById('dot-grid')!
-const titleLabel = document.getElementById('title-label')!
+  // Chrome state → title bar with dot-grid divider
+  const posLabel = document.getElementById('pos-label')!
+  const dotGridWrap = document.getElementById('dot-grid')!
+  const titleLabel = document.getElementById('title-label')!
 
-initDotGrid(dotGridWrap)
+  initDotGrid(dotGridWrap)
 
-const titleBar = document.getElementById('panel-titlebar')!
+  const titleBar = document.getElementById('panel-titlebar')!
 
-window.pty.onChromeState((state) => {
-  posLabel.textContent = state.position <= 9 ? `${state.position}` : ''
-  titleLabel.textContent = state.label
-  titleBar.classList.toggle('focused', state.focused)
-  setDotGridBusy(dotGridWrap, !!state.busy)
-})
+  window.pty.onChromeState((state) => {
+    posLabel.textContent = state.position <= 9 ? `${state.position}` : ''
+    titleLabel.textContent = state.label
+    titleBar.classList.toggle('focused', state.focused)
+    setDotGridBusy(dotGridWrap, !!state.busy)
+  })
+}
+
+initTerminal()

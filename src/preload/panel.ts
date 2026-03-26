@@ -34,4 +34,10 @@ contextBridge.exposeInMainWorld('pty', {
   onChromeState: (callback: (state: { position: number; label: string; focused: boolean }) => void) => {
     ipcRenderer.on('panel:chrome-state', (_event, state) => callback(state))
   },
+  getConfig: (): Promise<{ terminal: { fontFamily: string; fontSize: number } }> => {
+    return ipcRenderer.invoke('config:get-all').then((config: any) => config.preferences)
+  },
+  onConfigUpdated: (callback: (config: any) => void) => {
+    ipcRenderer.on('config:updated', (_event, config) => callback(config))
+  },
 })
