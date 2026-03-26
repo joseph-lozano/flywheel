@@ -51,6 +51,7 @@ export class PanelManager {
         else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
         else if (input.key === 'ArrowUp') action = { type: 'prev-project' }
         else if (input.key === 'ArrowDown') action = { type: 'next-project' }
+        else if (input.key === 'n') action = { type: 'add-project' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'switch-project', index: parseInt(input.key) - 1 }
       } else {
         if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
@@ -63,7 +64,9 @@ export class PanelManager {
         else if (input.key === '[') action = { type: 'browser-back' }
         else if (input.key === ']') action = { type: 'browser-forward' }
         else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
-        else if (input.key === 'o') action = { type: 'add-project' }
+        else if (input.key === 'ArrowUp') action = { type: 'prev-row' }
+        else if (input.key === 'ArrowDown') action = { type: 'next-row' }
+        else if (input.key === 'n') action = { type: 'new-row' }
       }
 
       if (action) {

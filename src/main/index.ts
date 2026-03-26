@@ -3,12 +3,16 @@ import { join } from 'path'
 import { PanelManager } from './panel-manager'
 import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
+import { WorktreeManager } from './worktree-manager'
+import { randomUUID } from 'crypto'
+import { goldenAngleColor } from '../shared/constants'
 
 let mainWindow: BaseWindow
 let chromeView: WebContentsView
 let panelManager: PanelManager
 let ptyManager: PtyManager
 let projectStore: ProjectStore
+let worktreeManager: WorktreeManager
 
 function createWindow(): void {
   mainWindow = new BaseWindow({
@@ -45,10 +49,15 @@ function createWindow(): void {
     },
     (channel, data) => {
       chromeView.webContents.send(channel, data)
+    },
+    (panelId) => {
+      // Busy→idle: notify renderer to check branches
+      chromeView.webContents.send('pty:busy-to-idle', { panelId })
     }
   )
 
   projectStore = new ProjectStore()
+  worktreeManager = new WorktreeManager()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -257,6 +266,113 @@ function setupIpcHandlers(): void {
   ipcMain.on('panel:destroy-by-prefix', (_event, data: { prefix: string }) => {
     panelManager.destroyByPrefix(data.prefix)
   })
+
+  // Row management
+  ipcMain.handle('row:create', async (_event, data: { projectId: string }) => {
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (!project) return { error: 'Project not found' }
+
+    const isGit = await worktreeManager.isGitRepo(project.path)
+    if (!isGit) return { error: 'Not a git repository' }
+
+    const name = worktreeManager.generateName()
+    const worktreePath = worktreeManager.getWorktreePath(project.name, name)
+
+    try {
+      const base = await worktreeManager.resolveBase(project.path)
+      await worktreeManager.createWorktree(project.path, name, worktreePath, base)
+    } catch (err) {
+      return { error: `Failed to create worktree: ${(err as Error).message}` }
+    }
+
+    const row: import('../shared/types').Row = {
+      id: randomUUID(),
+      projectId: project.id,
+      branch: name,
+      path: worktreePath,
+      color: goldenAngleColor(project.rows.length),
+      isDefault: false
+    }
+
+    projectStore.addRow(project.id, row)
+    projectStore.setActiveRowId(project.id, row.id)
+
+    return { row }
+  })
+
+  ipcMain.handle('row:remove', async (_event, data: { rowId: string; deleteFromDisk: boolean }) => {
+    const projects = projectStore.getProjects()
+    let targetProject: import('../shared/types').Project | undefined
+    let targetRow: import('../shared/types').Row | undefined
+
+    for (const p of projects) {
+      const row = p.rows.find(r => r.id === data.rowId)
+      if (row) { targetProject = p; targetRow = row; break }
+    }
+
+    if (!targetProject || !targetRow) return { error: 'Row not found' }
+
+    // Kill PTYs and destroy panels for this row
+    ptyManager.killByPrefix(data.rowId)
+    panelManager.destroyByPrefix(data.rowId)
+
+    let diskError: string | undefined
+    if (data.deleteFromDisk) {
+      try {
+        await worktreeManager.removeWorktree(targetProject.path, targetRow.path)
+      } catch (err) {
+        diskError = (err as Error).message
+      }
+    }
+
+    projectStore.removeRow(targetProject.id, data.rowId)
+    return { error: diskError }
+  })
+
+  ipcMain.handle('row:discover', async (_event, data: { projectId: string }) => {
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (!project) return { rows: [] }
+
+    const worktrees = await worktreeManager.listWorktrees(project.path)
+    const existingPaths = new Set(project.rows.map(r => r.path))
+    const newRows: import('../shared/types').Row[] = []
+
+    for (const wt of worktrees) {
+      if (existingPaths.has(wt.path)) continue
+      if (wt.path === project.path) continue // Skip main worktree
+      const row: import('../shared/types').Row = {
+        id: randomUUID(),
+        projectId: project.id,
+        branch: wt.branch,
+        path: wt.path,
+        color: goldenAngleColor(project.rows.length + newRows.length),
+        isDefault: false
+      }
+      newRows.push(row)
+      projectStore.addRow(project.id, row)
+    }
+
+    return { rows: newRows }
+  })
+
+  ipcMain.handle('row:check-branches', async (_event, data: { projectId: string }) => {
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (!project) return { updates: [] }
+
+    const worktrees = await worktreeManager.listWorktrees(project.path)
+    const pathToBranch = new Map(worktrees.map(wt => [wt.path, wt.branch]))
+    const updates: { rowId: string; branch: string }[] = []
+
+    for (const row of project.rows) {
+      const currentBranch = pathToBranch.get(row.path)
+      if (currentBranch && currentBranch !== row.branch) {
+        updates.push({ rowId: row.id, branch: currentBranch })
+        projectStore.updateRowBranch(project.id, row.id, currentBranch)
+      }
+    }
+
+    return { updates }
+  })
 }
 
 function setupShortcuts(): void {
@@ -324,7 +440,7 @@ function setupShortcuts(): void {
       submenu: [
         {
           label: 'Add Project',
-          accelerator: 'CommandOrControl+O',
+          accelerator: 'CommandOrControl+Shift+N',
           click: () => chromeView.webContents.send('shortcut:action', { type: 'add-project' })
         },
         { type: 'separator' },
@@ -344,6 +460,27 @@ function setupShortcuts(): void {
           accelerator: `CommandOrControl+Shift+${i + 1}`,
           click: () => chromeView.webContents.send('shortcut:action', { type: 'switch-project', index: i })
         }))
+      ]
+    },
+    {
+      label: 'Rows',
+      submenu: [
+        {
+          label: 'New Worktree Row',
+          accelerator: 'CommandOrControl+N',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'new-row' })
+        },
+        { type: 'separator' },
+        {
+          label: 'Previous Row',
+          accelerator: 'Command+Up',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'prev-row' })
+        },
+        {
+          label: 'Next Row',
+          accelerator: 'Command+Down',
+          click: () => chromeView.webContents.send('shortcut:action', { type: 'next-row' })
+        }
       ]
     },
     {
