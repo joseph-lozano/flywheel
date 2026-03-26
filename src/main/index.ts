@@ -331,6 +331,7 @@ function setupIpcHandlers(): void {
     }
 
     if (!targetProject || !targetRow) return { error: 'Row not found' }
+    if (targetRow.isDefault) return { error: 'Cannot remove the default row' }
 
     // Kill PTYs and destroy panels for this row
     ptyManager.killByPrefix(data.rowId)
