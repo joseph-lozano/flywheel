@@ -47,6 +47,8 @@ interface SidebarProps {
   onRemoveRow: (rowId: string, deleteFromDisk: boolean) => void
   onDiscoverWorktrees: (projectId: string) => void
   isGitProject: (projectId: string) => boolean
+  onModalShow?: () => void
+  onModalHide?: () => void
 }
 
 export default function Sidebar(props: SidebarProps) {
@@ -224,7 +226,7 @@ export default function Sidebar(props: SidebarProps) {
               style={{ padding: '6px 16px', color: '#f43f5e', 'font-size': '11px', cursor: 'pointer' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(244,63,94,0.1)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              onClick={() => { setRemoveConfirm({ rowId: contextMenu()!.rowId! }); setContextMenu(null) }}
+              onClick={() => { setRemoveConfirm({ rowId: contextMenu()!.rowId! }); setContextMenu(null); props.onModalShow?.() }}
             >
               Remove Row
             </div>
@@ -248,13 +250,14 @@ export default function Sidebar(props: SidebarProps) {
               Remove this worktree row?
             </p>
             <div style={{ display: 'flex', gap: '12px', 'justify-content': 'flex-end', 'flex-wrap': 'wrap' }}>
-              <button onClick={() => setRemoveConfirm(null)} style={{
+              <button onClick={() => { setRemoveConfirm(null); props.onModalHide?.() }} style={{
                 background: '#1a1a2e', color: '#888', border: '1px solid #3a3a5c',
                 padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
               }}>Cancel</button>
               <button onClick={() => {
                 props.onRemoveRow(removeConfirm()!.rowId, false)
                 setRemoveConfirm(null)
+                props.onModalHide?.()
               }} style={{
                 background: '#1a1a2e', color: '#e0e0e0', border: '1px solid #3a3a5c',
                 padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'
@@ -262,6 +265,7 @@ export default function Sidebar(props: SidebarProps) {
               <button onClick={() => {
                 props.onRemoveRow(removeConfirm()!.rowId, true)
                 setRemoveConfirm(null)
+                props.onModalHide?.()
               }} style={{
                 background: '#f43f5e', color: '#fff', border: 'none',
                 padding: '6px 16px', 'border-radius': '4px', cursor: 'pointer', 'font-size': '13px'

@@ -654,6 +654,11 @@ export default function App() {
         onRemoveRow={(rowId, deleteFromDisk) => handleRemoveRow(rowId, deleteFromDisk)}
         onDiscoverWorktrees={(projectId) => handleDiscoverWorktrees(projectId)}
         isGitProject={() => true}
+        onModalShow={() => window.api.hideAllPanels()}
+        onModalHide={() => {
+          const project = appStore.actions.getActiveProject()
+          if (project) window.api.showPanelsByPrefix(project.activeRowId)
+        }}
       />
       <Strip
         layout={layout()}
