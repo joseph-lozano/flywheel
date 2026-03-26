@@ -277,6 +277,10 @@ function setupIpcHandlers(): void {
     panelManager.destroyByPrefix(data.prefix)
   })
 
+  ipcMain.on('project:set-expanded', (_event, data: { projectId: string; expanded: boolean }) => {
+    projectStore.setExpanded(data.projectId, data.expanded)
+  })
+
   // Row management
   ipcMain.handle('row:create', async (_event, data: { projectId: string }) => {
     const project = projectStore.getProjects().find(p => p.id === data.projectId)

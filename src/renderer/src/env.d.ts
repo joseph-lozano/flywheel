@@ -55,6 +55,7 @@ interface FlywheelAPI {
   showPanelsByPrefix(prefix: string): void
   destroyPanelsByPrefix(prefix: string): void
   setSidebarWidth(width: number): void
+  setExpanded(projectId: string, expanded: boolean): void
 
   // Row management
   createRow(projectId: string): Promise<unknown>

@@ -46,7 +46,6 @@ interface SidebarProps {
   onCreateRow: (projectId: string) => void
   onRemoveRow: (rowId: string, deleteFromDisk: boolean) => void
   onDiscoverWorktrees: (projectId: string) => void
-  isGitProject: (projectId: string) => boolean
   onModalShow?: () => void
   onModalHide?: () => void
 }
@@ -54,14 +53,14 @@ interface SidebarProps {
 export default function Sidebar(props: SidebarProps) {
   const [contextMenu, setContextMenu] = createSignal<{
     x: number; y: number;
-    projectId?: string; rowId?: string; isDefault?: boolean; isGit?: boolean
+    projectId?: string; rowId?: string; isDefault?: boolean
   } | null>(null)
   const [hoveredId, setHoveredId] = createSignal<string | null>(null)
   const [removeConfirm, setRemoveConfirm] = createSignal<{ rowId: string } | null>(null)
 
   function handleProjectContext(e: MouseEvent, projectId: string) {
     e.preventDefault()
-    setContextMenu({ x: e.clientX, y: e.clientY, projectId, isGit: props.isGitProject(projectId) })
+    setContextMenu({ x: e.clientX, y: e.clientY, projectId })
   }
 
   function handleRowContext(e: MouseEvent, rowId: string, isDefault: boolean) {
@@ -203,6 +202,22 @@ export default function Sidebar(props: SidebarProps) {
         >
           <Show when={contextMenu()!.projectId}>
             <div
+              style={{ padding: '6px 16px', color: '#e0e0e0', 'font-size': '11px', cursor: 'pointer' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              onClick={() => { props.onCreateRow(contextMenu()!.projectId!); setContextMenu(null) }}
+            >
+              New Row
+            </div>
+            <div
+              style={{ padding: '6px 16px', color: '#e0e0e0', 'font-size': '11px', cursor: 'pointer' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              onClick={() => { props.onDiscoverWorktrees(contextMenu()!.projectId!); setContextMenu(null) }}
+            >
+              Discover Worktrees
+            </div>
+            <div
               style={{ padding: '6px 16px', color: '#f43f5e', 'font-size': '11px', cursor: 'pointer' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(244,63,94,0.1)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -210,16 +225,6 @@ export default function Sidebar(props: SidebarProps) {
             >
               Remove Project
             </div>
-            <Show when={contextMenu()!.isGit}>
-              <div
-                style={{ padding: '6px 16px', color: '#e0e0e0', 'font-size': '11px', cursor: 'pointer' }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                onClick={() => { props.onDiscoverWorktrees(contextMenu()!.projectId!); setContextMenu(null) }}
-              >
-                Discover Worktrees
-              </div>
-            </Show>
           </Show>
           <Show when={contextMenu()!.rowId && !contextMenu()!.isDefault}>
             <div

@@ -22,6 +22,14 @@ export default function App() {
   let scrollEndTimer: ReturnType<typeof setTimeout>
 
   const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
+  const [toast, setToast] = createSignal<string | null>(null)
+  let toastTimer: ReturnType<typeof setTimeout>
+
+  function showToast(message: string): void {
+    clearTimeout(toastTimer)
+    setToast(message)
+    toastTimer = setTimeout(() => setToast(null), 3000)
+  }
 
   // --- Store helpers ---
 
@@ -107,11 +115,13 @@ export default function App() {
   }
 
   async function handleCreateRow(projectId: string): Promise<void> {
-    const result = await window.api.createRow(projectId)
-    if ('error' in (result as any)) return
-    const row = (result as { row: Row }).row
-    appStore.actions.addRow(projectId, row)
-    handleSwitchRow(projectId, row.id)
+    const result = await window.api.createRow(projectId) as { row: Row } | { error: string }
+    if ('error' in result) {
+      showToast(result.error)
+      return
+    }
+    appStore.actions.addRow(projectId, result.row)
+    handleSwitchRow(projectId, result.row.id)
   }
 
   async function handleRemoveRow(rowId: string, deleteFromDisk: boolean): Promise<void> {
@@ -648,12 +658,15 @@ export default function App() {
         onRemoveProject={handleRemoveProject}
         onToggleExpanded={(projectId) => {
           const project = appStore.state.projects.find(p => p.id === projectId)
-          if (project) appStore.actions.setExpanded(projectId, !project.expanded)
+          if (project) {
+            const newExpanded = !project.expanded
+            appStore.actions.setExpanded(projectId, newExpanded)
+            window.api.setExpanded(projectId, newExpanded)
+          }
         }}
         onCreateRow={(projectId) => handleCreateRow(projectId)}
         onRemoveRow={(rowId, deleteFromDisk) => handleRemoveRow(rowId, deleteFromDisk)}
         onDiscoverWorktrees={(projectId) => handleDiscoverWorktrees(projectId)}
-        isGitProject={() => true}
         onModalShow={() => window.api.hideAllPanels()}
         onModalHide={() => {
           const project = appStore.actions.getActiveProject()
@@ -685,6 +698,16 @@ export default function App() {
           onConfirm={() => handleConfirmResponse(true)}
           onCancel={() => handleConfirmResponse(false)}
         />
+      )}
+      {toast() && (
+        <div style={{
+          position: 'fixed', bottom: '48px', left: '50%', transform: 'translateX(-50%)',
+          background: '#f43f5e', color: '#fff', padding: '8px 20px',
+          'border-radius': '6px', 'font-size': '13px', 'font-family': 'monospace',
+          'z-index': '2000', 'box-shadow': '0 4px 12px rgba(0,0,0,0.4)'
+        }}>
+          {toast()}
+        </div>
       )}
     </>
   )

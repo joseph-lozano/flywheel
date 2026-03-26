@@ -127,6 +127,10 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.send('panel:set-sidebar-width', { width })
   },
 
+  setExpanded: (projectId: string, expanded: boolean) => {
+    ipcRenderer.send('project:set-expanded', { projectId, expanded })
+  },
+
   // Row management
   createRow: (projectId: string): Promise<unknown> => {
     return ipcRenderer.invoke('row:create', { projectId })
