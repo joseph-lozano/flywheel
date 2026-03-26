@@ -77,6 +77,16 @@ export class PanelManager {
 
     view.webContents.on('before-input-event', handleShortcutKey)
 
+    // Terminal panels handle links via WebLinksAddon + openUrl IPC, so just
+    // suppress any stray window.open() calls. Browser panels route target="_blank"
+    // to create new strip panels.
+    view.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
+      if (panelType === 'browser') {
+        this.chromeView.webContents.send('browser:open-url', { url: targetUrl })
+      }
+      return { action: 'deny' }
+    })
+
     if (panelType === 'terminal') {
       if (process.env['ELECTRON_RENDERER_URL']) {
         view.webContents.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/terminal/index.html?panelId=${id}`)
@@ -111,12 +121,6 @@ export class PanelManager {
 
       chromeStripView.webContents.on('focus', () => {
         this.chromeView.webContents.send('panel:focused', { panelId: id })
-      })
-
-      // Intercept target="_blank" / window.open → open as new strip panel
-      view.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
-        this.chromeView.webContents.send('browser:open-url', { url: targetUrl })
-        return { action: 'deny' }
       })
 
       // Track URL changes → update address bar in chrome view and chrome strip view.
