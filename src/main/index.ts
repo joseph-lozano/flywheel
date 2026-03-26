@@ -229,13 +229,27 @@ function setupIpcHandlers(): void {
       title: 'Add Project'
     })
     if (result.canceled || result.filePaths.length === 0) return null
-    const project = projectStore.addProject(result.filePaths[0])
+    const dirPath = result.filePaths[0]
+
+    let defaultBranch = 'main'
+    try {
+      defaultBranch = await worktreeManager.getDefaultBranch(dirPath)
+    } catch {
+      // Not a git repo or no branch — use 'main'
+    }
+
+    const project = projectStore.addProject(dirPath, defaultBranch)
     return project
   })
 
   ipcMain.on('project:remove', (_event, data: { projectId: string }) => {
-    ptyManager.killByPrefix(data.projectId)
-    panelManager.destroyByPrefix(data.projectId)
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (project) {
+      for (const row of project.rows) {
+        ptyManager.killByPrefix(row.id)
+        panelManager.destroyByPrefix(row.id)
+      }
+    }
     projectStore.removeProject(data.projectId)
   })
 
