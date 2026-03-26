@@ -3,7 +3,7 @@ import { createRoot } from 'solid-js'
 import { createStripStore } from '../../src/renderer/src/store/strip'
 
 function withStore(fn: (store: ReturnType<typeof createStripStore>) => void) {
-  createRoot((dispose) => { const store = createStripStore('test'); fn(store); dispose() })
+  createRoot((dispose) => { const store = createStripStore('test-row'); fn(store); dispose() })
 }
 
 describe('createStripStore', () => {
@@ -329,12 +329,12 @@ describe('browser panels', () => {
   })
 })
 
-describe('projectId panel ID generation', () => {
-  it('prefixes panel IDs with projectId', () => {
+describe('rowId panel ID generation', () => {
+  it('prefixes panel IDs with rowId', () => {
     createRoot((dispose) => {
-      const store = createStripStore('proj-abc')
+      const store = createStripStore('row-abc')
       const panel = store.actions.addPanel('terminal')
-      expect(panel.id).toMatch(/^proj-abc-panel-/)
+      expect(panel.id).toMatch(/^row-abc-panel-/)
       dispose()
     })
   })
@@ -343,7 +343,7 @@ describe('projectId panel ID generation', () => {
 describe('getSnapshot and restore', () => {
   it('snapshots current state', () => {
     createRoot((dispose) => {
-      const store = createStripStore('proj-1')
+      const store = createStripStore('row-1')
       store.actions.addPanel('terminal')
       store.actions.addPanel('terminal')
       store.actions.setScrollOffset(100)
@@ -357,13 +357,13 @@ describe('getSnapshot and restore', () => {
 
   it('restores from snapshot', () => {
     createRoot((dispose) => {
-      const store = createStripStore('proj-1')
+      const store = createStripStore('row-1')
       store.actions.addPanel('terminal')
       store.actions.addPanel('terminal')
       store.actions.setScrollOffset(100)
       const snapshot = store.getSnapshot()
 
-      const store2 = createStripStore('proj-1')
+      const store2 = createStripStore('row-1')
       store2.restore(snapshot)
       expect(store2.state.panels).toHaveLength(2)
       expect(store2.state.scrollOffset).toBe(100)
