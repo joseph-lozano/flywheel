@@ -63,17 +63,19 @@ export class WorktreeManager {
   async listWorktrees(projectPath: string): Promise<WorktreeInfo[]> {
     const output = await this.git(projectPath, ['worktree', 'list', '--porcelain'])
     const worktrees: WorktreeInfo[] = []
-    let current: Partial<WorktreeInfo> = {}
+    let current: Partial<WorktreeInfo & { head: string }> = {}
 
     for (const line of output.split('\n')) {
       if (line.startsWith('worktree ')) {
         current.path = line.slice('worktree '.length)
+      } else if (line.startsWith('HEAD ')) {
+        current.head = line.slice('HEAD '.length)
       } else if (line.startsWith('branch refs/heads/')) {
         current.branch = line.slice('branch refs/heads/'.length)
       } else if (line === '' && current.path) {
         worktrees.push({
           path: current.path,
-          branch: current.branch || 'detached'
+          branch: current.branch || current.head?.slice(0, 7) || 'detached'
         })
         current = {}
       }
@@ -83,7 +85,7 @@ export class WorktreeManager {
     if (current.path) {
       worktrees.push({
         path: current.path,
-        branch: current.branch || 'detached'
+        branch: current.branch || current.head?.slice(0, 7) || 'detached'
       })
     }
 

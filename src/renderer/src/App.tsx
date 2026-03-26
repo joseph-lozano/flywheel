@@ -590,6 +590,12 @@ export default function App() {
       if (project) refreshBranches(project.id)
     })
 
+    // Periodic branch checking (catches fast commands like git branch -m)
+    setInterval(() => {
+      const project = appStore.actions.getActiveProject()
+      if (project) refreshBranches(project.id)
+    }, 5000)
+
     // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
       appStore.actions.loadProjects(projects, activeProjectId)
