@@ -60,6 +60,14 @@ window.open = () => {
 }
 terminal.loadAddon(new WebLinksAddon())
 
+// OSC 7770 — BROWSER / open wrapper script sends URLs via this sequence.
+// The script writes: \033]7770;<url>\007 to /dev/tty, which flows through
+// the PTY into xterm.js. We parse it here and open as a browser panel.
+terminal.parser.registerOscHandler(7770, (data) => {
+  window.pty.openUrl(data)
+  return true
+})
+
 // Wire input: terminal → PTY
 terminal.onData((data) => {
   window.pty.input(panelId, data)
