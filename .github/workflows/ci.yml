@@ -7,6 +7,17 @@ on:
     branches: [main]
 
 jobs:
+  check-secrets:
+    runs-on: depot-ubuntu-24.04
+    steps:
+      - name: Check for expiring secrets
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          if [[ "$TODAY" > "2026-05-31" ]]; then
+            echo "::error::GH_TOKEN expires 2026-06-24. Rotate it now and update the secret."
+            exit 1
+          fi
+
   test:
     strategy:
       fail-fast: false
