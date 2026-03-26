@@ -221,7 +221,7 @@ export class PanelManager {
     panel.view.webContents.navigationHistory.goForward()
   }
 
-  zoomPanel(id: string, direction: 'in' | 'out' | 'reset', _defaultValue: number | undefined, config: FlywheelConfig): void {
+  zoomPanel(id: string, direction: 'in' | 'out' | 'reset', config: FlywheelConfig): void {
     const panel = this.panels.get(id)
     if (!panel) return
 
@@ -369,10 +369,10 @@ export class PanelManager {
     }
   }
 
-  broadcastConfig(preferences: { terminal: { fontFamily: string; fontSize: number }; browser: { defaultZoom: number }; app: { defaultZoom: number } }): void {
+  broadcastConfig(config: FlywheelConfig): void {
     for (const panel of this.panels.values()) {
       if (panel.type === 'terminal') {
-        panel.view.webContents.send('config:updated', preferences)
+        panel.view.webContents.send('config:updated', config)
       }
     }
   }

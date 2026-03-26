@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
 import type { FlywheelConfig } from '../shared/config'
 
@@ -155,7 +155,6 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.send('panel:zoom', { panelId, direction, defaultValue })
   },
   zoomApp: (direction: 'in' | 'out' | 'reset', defaultValue?: number) => {
-    const { webFrame } = require('electron')
     if (direction === 'in') {
       webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
     } else if (direction === 'out') {

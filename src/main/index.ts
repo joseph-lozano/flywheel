@@ -288,7 +288,7 @@ function setupIpcHandlers(): void {
     if (project) {
       configManager.load(project.path)
       chromeView.webContents.send('config:updated', configManager.get())
-      panelManager.broadcastConfig(configManager.get().preferences)
+      panelManager.broadcastConfig(configManager.get())
     }
   })
 
@@ -433,7 +433,7 @@ function setupIpcHandlers(): void {
   })
 
   ipcMain.on('panel:zoom', (_event, data: { panelId: string; direction: 'in' | 'out' | 'reset'; defaultValue?: number }) => {
-    panelManager.zoomPanel(data.panelId, data.direction, data.defaultValue, configManager.get())
+    panelManager.zoomPanel(data.panelId, data.direction, configManager.get())
   })
 
   // Config management
@@ -452,7 +452,7 @@ function setupIpcHandlers(): void {
     }
     const config = configManager.get()
     chromeView.webContents.send('config:updated', config)
-    panelManager.broadcastConfig(config.preferences)
+    panelManager.broadcastConfig(config)
   })
 }
 

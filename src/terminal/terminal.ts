@@ -102,9 +102,10 @@ async function initTerminal(): Promise<void> {
 
   // Config reload — update font settings
   window.pty.onConfigUpdated((config: any) => {
-    if (config.terminal) {
-      terminal.options.fontFamily = config.terminal.fontFamily
-      terminal.options.fontSize = config.terminal.fontSize
+    const prefs = config.preferences || config
+    if (prefs.terminal) {
+      terminal.options.fontFamily = prefs.terminal.fontFamily
+      terminal.options.fontSize = prefs.terminal.fontSize
       fitAddon.fit()
     }
   })
