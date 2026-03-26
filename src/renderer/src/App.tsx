@@ -235,7 +235,7 @@ export default function App() {
     }
 
     if (boundsUpdates.length > 0) {
-      window.api.updateBounds(boundsUpdates)
+      window.api.updateBounds(boundsUpdates, sidebarWidth)
     }
   })
 

@@ -114,7 +114,8 @@ function setupIpcHandlers(): void {
     panelId: string
     bounds: { x: number; y: number; width: number; height: number }
     visible: boolean
-  }>) => {
+  }>, sidebarWidth?: number) => {
+    if (sidebarWidth != null) panelManager.sidebarWidth = sidebarWidth
     panelManager.updateBounds(updates)
   })
 
