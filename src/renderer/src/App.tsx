@@ -27,6 +27,7 @@ export default function App() {
   const [missingRow, setMissingRow] = createSignal<{ projectId: string; rowId: string; branch: string } | null>(null)
   const [viewportHeight, setViewportHeight] = createSignal(window.innerHeight)
   const [toast, setToast] = createSignal<{ message: string; type: 'error' | 'info' } | null>(null)
+  const [appDefaultZoom, setAppDefaultZoom] = createSignal(0)
   let toastTimer: ReturnType<typeof setTimeout>
 
   function showToast(message: string, type: 'error' | 'info' = 'error'): void {
@@ -538,7 +539,7 @@ export default function App() {
       }
       case 'zoom-reset': {
         if (!strip || !strip.state.terminalFocused) {
-          window.api.zoomApp('reset')
+          window.api.zoomApp('reset', appDefaultZoom())
         } else {
           const focused = strip.state.panels[strip.state.focusedIndex]
           if (focused) window.api.zoomPanel(focused.id, 'reset')
@@ -664,6 +665,18 @@ export default function App() {
       if (project) refreshBranches(project.id)
     }, 5000)
     onCleanup(() => clearInterval(branchCheckInterval))
+
+    // Apply app zoom from config on startup
+    window.api.getConfig().then((config) => {
+      setAppDefaultZoom(config.preferences.app.defaultZoom)
+      window.api.zoomApp('reset', config.preferences.app.defaultZoom)
+    })
+
+    // Re-apply app zoom on config reload
+    window.api.onConfigUpdated((config) => {
+      setAppDefaultZoom(config.preferences.app.defaultZoom)
+      window.api.zoomApp('reset', config.preferences.app.defaultZoom)
+    })
 
     // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
