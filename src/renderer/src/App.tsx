@@ -25,6 +25,7 @@ export default function App() {
 
   const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
   const [missingRow, setMissingRow] = createSignal<{ projectId: string; rowId: string; branch: string } | null>(null)
+  const [viewportHeight, setViewportHeight] = createSignal(window.innerHeight)
   const [toast, setToast] = createSignal<{ message: string; type: 'error' | 'info' } | null>(null)
   let toastTimer: ReturnType<typeof setTimeout>
 
@@ -546,6 +547,7 @@ export default function App() {
     window.api.onWheelEvent((data) => handleWheel(data.deltaX))
     window.api.onShortcut((action) => handleShortcut(action))
     window.addEventListener('resize', () => {
+      setViewportHeight(window.innerHeight)
       // Update all strip stores with new viewport dimensions
       for (const store of stripStores.values()) {
         store.actions.setViewport(window.innerWidth, window.innerHeight)
@@ -682,7 +684,7 @@ export default function App() {
         projects={appStore.state.projects}
         activeProjectId={appStore.state.activeProjectId}
         sidebarWidth={sidebarWidth()}
-        viewportHeight={strip()?.state.viewportHeight || window.innerHeight}
+        viewportHeight={strip()?.state.viewportHeight || viewportHeight()}
         onSwitchProject={(id) => handleSwitchProject(id)}
         onSwitchRow={(projectId, rowId) => handleSwitchRow(projectId, rowId)}
         onAddProject={handleAddProject}
@@ -713,11 +715,11 @@ export default function App() {
         scrollOffset={strip()?.state.scrollOffset || 0}
         maxScroll={maxScroll()}
         viewportWidth={strip()?.state.viewportWidth || window.innerWidth}
-        viewportHeight={strip()?.state.viewportHeight || window.innerHeight}
+        viewportHeight={strip()?.state.viewportHeight || viewportHeight()}
         sidebarWidth={sidebarWidth()}
       />
       <HintBar
-        viewportHeight={strip()?.state.viewportHeight || window.innerHeight}
+        viewportHeight={strip()?.state.viewportHeight || viewportHeight()}
         panelCount={strip()?.state.panels.length || 0}
         hasProjects={appStore.state.projects.length > 0}
         sidebarWidth={sidebarWidth()}
