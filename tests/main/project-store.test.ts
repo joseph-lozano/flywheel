@@ -63,8 +63,8 @@ describe('ProjectStore', () => {
       id: '1',
       name: 'my-project',
       path: '/Users/test/my-project',
-      rows: [],
-      activeRowId: '',
+      rows: [{ id: 'r1', projectId: '1', branch: 'main', path: '/Users/test/my-project', color: 'hsl(0, 65%, 65%)', isDefault: true }],
+      activeRowId: 'r1',
       expanded: true
     }]
     store = new ProjectStore()
@@ -76,8 +76,8 @@ describe('ProjectStore', () => {
       id: 'abc',
       name: 'test',
       path: '/test',
-      rows: [],
-      activeRowId: '',
+      rows: [{ id: 'r1', projectId: 'abc', branch: 'main', path: '/test', color: 'hsl(0, 65%, 65%)', isDefault: true }],
+      activeRowId: 'r1',
       expanded: true
     }]
     storedActiveProjectId = 'abc'
@@ -100,8 +100,8 @@ describe('ProjectStore', () => {
 
   it('getProjects marks missing directories', () => {
     storedProjects = [
-      { id: '1', name: 'exists', path: '/Users/test/exists', rows: [], activeRowId: '', expanded: true },
-      { id: '2', name: 'gone', path: '/Users/test/gone/project', rows: [], activeRowId: '', expanded: true }
+      { id: '1', name: 'exists', path: '/Users/test/exists', rows: [{ id: 'r1', projectId: '1', branch: 'main', path: '/Users/test/exists', color: 'hsl(0, 65%, 65%)', isDefault: true }], activeRowId: 'r1', expanded: true },
+      { id: '2', name: 'gone', path: '/Users/test/gone/project', rows: [{ id: 'r2', projectId: '2', branch: 'main', path: '/Users/test/gone/project', color: 'hsl(0, 65%, 65%)', isDefault: true }], activeRowId: 'r2', expanded: true }
     ]
     store = new ProjectStore()
     const projects = store.getProjects()
