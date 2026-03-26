@@ -80,4 +80,38 @@ describe('ConfigManager', () => {
     manager.load('/some/project')
     expect(manager.get()).toEqual(DEFAULT_CONFIG)
   })
+
+  it('drops config values with wrong types and falls back to defaults', () => {
+    mockFiles.set('/some/project/flywheel.yaml', [
+      'preferences:',
+      '  terminal:',
+      '    fontFamily: 123',
+      '    fontSize: "big"',
+      '  browser:',
+      '    defaultZoom: true',
+      '  app:',
+      '    defaultZoom: "high"'
+    ].join('\n'))
+    const manager = new ConfigManager()
+    manager.load('/some/project')
+    const config = manager.get()
+    expect(config.preferences.terminal.fontFamily).toBe(DEFAULT_CONFIG.preferences.terminal.fontFamily)
+    expect(config.preferences.terminal.fontSize).toBe(DEFAULT_CONFIG.preferences.terminal.fontSize)
+    expect(config.preferences.browser.defaultZoom).toBe(DEFAULT_CONFIG.preferences.browser.defaultZoom)
+    expect(config.preferences.app.defaultZoom).toBe(DEFAULT_CONFIG.preferences.app.defaultZoom)
+  })
+
+  it('keeps valid values when sibling values have wrong types', () => {
+    mockFiles.set('/some/project/flywheel.yaml', [
+      'preferences:',
+      '  terminal:',
+      '    fontFamily: "JetBrains Mono"',
+      '    fontSize: "wrong"'
+    ].join('\n'))
+    const manager = new ConfigManager()
+    manager.load('/some/project')
+    const config = manager.get()
+    expect(config.preferences.terminal.fontFamily).toBe('JetBrains Mono')
+    expect(config.preferences.terminal.fontSize).toBe(DEFAULT_CONFIG.preferences.terminal.fontSize)
+  })
 })
