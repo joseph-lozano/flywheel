@@ -131,7 +131,8 @@ export default function App() {
     if (!project) return
     const wasActive = project.activeRowId === rowId
 
-    await window.api.removeRow(rowId, deleteFromDisk)
+    const removeResult = await window.api.removeRow(rowId, deleteFromDisk)
+    if (removeResult.error) showToast(removeResult.error)
 
     for (const id of [...createdPanelIds]) {
       if (id.startsWith(rowId)) createdPanelIds.delete(id)
