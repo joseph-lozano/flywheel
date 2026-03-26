@@ -4,3 +4,4 @@ out/
 dist/
 *.tsbuildinfo
 flywheel.local.yaml
+.DS_Store
