@@ -672,10 +672,14 @@ export default function App() {
       window.api.zoomApp('reset', config.preferences.app.defaultZoom)
     })
 
-    // Re-apply app zoom on config reload
+    // Re-apply app zoom on config reload (only if defaultZoom changed)
     window.api.onConfigUpdated((config) => {
-      setAppDefaultZoom(config.preferences.app.defaultZoom)
-      window.api.zoomApp('reset', config.preferences.app.defaultZoom)
+      const prev = appDefaultZoom()
+      const next = config.preferences.app.defaultZoom
+      setAppDefaultZoom(next)
+      if (prev !== next) {
+        window.api.zoomApp('reset', next)
+      }
     })
 
     // Load projects from persistence
