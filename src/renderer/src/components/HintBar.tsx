@@ -6,6 +6,7 @@ interface HintBarProps {
   panelCount: number
   hasProjects: boolean
   sidebarWidth: number
+  rowCount?: number
 }
 
 const PANEL_HINTS = [

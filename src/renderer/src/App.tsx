@@ -5,7 +5,7 @@ import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCentere
 import { animate, easeOut } from './scroll/animator'
 import type { AnimationHandle } from './scroll/animator'
 import type { StripSnapshot } from './store/strip'
-import type { PanelBoundsUpdate } from '../../../shared/types'
+import type { PanelBoundsUpdate, Row } from '../../../shared/types'
 import { LAYOUT } from '../../shared/constants'
 import Strip from './components/Strip'
 import ScrollIndicators from './components/ScrollIndicators'
@@ -25,32 +25,123 @@ export default function App() {
 
   // --- Store helpers ---
 
-  function getStripStore(projectId: string): ReturnType<typeof createStripStore> {
-    let store = stripStores.get(projectId)
+  function getStripStore(rowId: string): ReturnType<typeof createStripStore> {
+    let store = stripStores.get(rowId)
     if (!store) {
-      store = createStripStore(projectId)
+      store = createStripStore(rowId)
       store.actions.setViewport(window.innerWidth, window.innerHeight)
-      const snapshot = stripSnapshots.get(projectId)
+      const snapshot = stripSnapshots.get(rowId)
       if (snapshot) {
         store.restore(snapshot)
-        stripSnapshots.delete(projectId)
+        stripSnapshots.delete(rowId)
       }
-      stripStores.set(projectId, store)
+      stripStores.set(rowId, store)
     }
     return store
   }
 
   function activeStrip(): ReturnType<typeof createStripStore> | null {
-    const id = appStore.state.activeProjectId
-    if (!id) return null
-    return getStripStore(id)
+    const project = appStore.actions.getActiveProject()
+    if (!project) return null
+    return getStripStore(project.activeRowId)
   }
 
   function findStripByPanelId(panelId: string): ReturnType<typeof createStripStore> | null {
-    for (const [projectId, store] of stripStores) {
-      if (panelId.startsWith(projectId)) return store
+    for (const [rowId, store] of stripStores) {
+      if (panelId.startsWith(rowId)) return store
     }
     return null
+  }
+
+  // --- Branch checking ---
+
+  function refreshBranches(projectId: string): void {
+    window.api.checkBranches(projectId).then((result: any) => {
+      if (result?.updates) {
+        for (const update of result.updates) {
+          appStore.actions.updateBranch(projectId, update.rowId, update.branch)
+        }
+      }
+    })
+  }
+
+  // --- Row management ---
+
+  function handleSwitchRow(projectId: string, targetRowId: string): void {
+    const project = appStore.state.projects.find(p => p.id === projectId)
+    if (!project) return
+
+    // If different project, switch project first
+    if (projectId !== appStore.state.activeProjectId) {
+      handleSwitchProject(projectId)
+    }
+
+    const currentRowId = project.activeRowId
+    if (currentRowId === targetRowId) return
+
+    // Stash current row's strip
+    const currentStore = stripStores.get(currentRowId)
+    if (currentStore) stripSnapshots.set(currentRowId, currentStore.getSnapshot())
+    window.api.hidePanelsByPrefix(currentRowId)
+
+    // Switch row
+    appStore.actions.switchRow(projectId, targetRowId)
+
+    // Show target row panels
+    window.api.showPanelsByPrefix(targetRowId)
+
+    // Ensure strip store exists
+    const targetStore = getStripStore(targetRowId)
+
+    // If first visit to this row, create a terminal
+    if (targetStore.state.panels.length === 0) {
+      const row = project.rows.find(r => r.id === targetRowId)
+      if (row) {
+        const panel = targetStore.actions.addPanel('terminal')
+        window.api.createTerminalWithCwd(panel.id, row.path)
+      }
+    }
+
+    // Check for branch renames
+    refreshBranches(projectId)
+  }
+
+  async function handleCreateRow(projectId: string): Promise<void> {
+    const result = await window.api.createRow(projectId)
+    if ('error' in (result as any)) return
+    const row = (result as { row: Row }).row
+    appStore.actions.addRow(projectId, row)
+    handleSwitchRow(projectId, row.id)
+  }
+
+  async function handleRemoveRow(rowId: string, deleteFromDisk: boolean): Promise<void> {
+    const project = appStore.state.projects.find(p => p.rows.some(r => r.id === rowId))
+    if (!project) return
+    const wasActive = project.activeRowId === rowId
+
+    await window.api.removeRow(rowId, deleteFromDisk)
+
+    for (const id of [...createdPanelIds]) {
+      if (id.startsWith(rowId)) createdPanelIds.delete(id)
+    }
+    stripStores.delete(rowId)
+    stripSnapshots.delete(rowId)
+
+    appStore.actions.removeRow(project.id, rowId)
+
+    if (wasActive) {
+      const defaultRow = project.rows.find(r => r.isDefault)
+      if (defaultRow) handleSwitchRow(project.id, defaultRow.id)
+    }
+  }
+
+  async function handleDiscoverWorktrees(projectId: string): Promise<void> {
+    const result = await window.api.discoverWorktrees(projectId)
+    if ((result as any)?.rows) {
+      for (const row of (result as any).rows) {
+        appStore.actions.addRow(projectId, row)
+      }
+    }
   }
 
   // --- Layout effect ---
@@ -94,10 +185,11 @@ export default function App() {
       })
     }
 
-    // Only destroy panels belonging to the active project
-    const activeId = appStore.state.activeProjectId
+    // Only destroy panels belonging to the active row
+    const activeProject = appStore.actions.getActiveProject()
+    const activeRowId = activeProject?.activeRowId
     for (const id of [...createdPanelIds]) {
-      if (activeId && id.startsWith(activeId) && !desiredIds.has(id)) {
+      if (activeRowId && id.startsWith(activeRowId) && !desiredIds.has(id)) {
         window.api.destroyPanel(id)
         createdPanelIds.delete(id)
       }
@@ -229,9 +321,12 @@ export default function App() {
     if (!result) return
     const currentId = appStore.state.activeProjectId
     if (currentId) {
-      const currentStore = stripStores.get(currentId)
-      if (currentStore) stripSnapshots.set(currentId, currentStore.getSnapshot())
-      window.api.hidePanelsByPrefix(currentId)
+      const currentProject = appStore.state.projects.find(p => p.id === currentId)
+      if (currentProject) {
+        const currentStore = stripStores.get(currentProject.activeRowId)
+        if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
+        window.api.hidePanelsByPrefix(currentProject.activeRowId)
+      }
     }
     appStore.actions.addProject(result)
     window.api.switchProject(result.id)
@@ -241,48 +336,54 @@ export default function App() {
     const currentId = appStore.state.activeProjectId
     if (currentId === targetId) return
 
-    // Stash current strip
+    // Stash current row's strip
     if (currentId) {
-      const currentStore = stripStores.get(currentId)
-      if (currentStore) stripSnapshots.set(currentId, currentStore.getSnapshot())
-      window.api.hidePanelsByPrefix(currentId)
+      const currentProject = appStore.state.projects.find(p => p.id === currentId)
+      if (currentProject) {
+        const currentStore = stripStores.get(currentProject.activeRowId)
+        if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
+        window.api.hidePanelsByPrefix(currentProject.activeRowId)
+      }
     }
 
-    // Switch to target
     appStore.actions.switchProject(targetId)
     window.api.switchProject(targetId)
 
-    // Show target panels
-    window.api.showPanelsByPrefix(targetId)
-
-    // Ensure the strip store exists (restores snapshot if one was stashed)
-    getStripStore(targetId)
+    // Show target project's active row panels
+    const targetProject = appStore.state.projects.find(p => p.id === targetId)
+    if (targetProject) {
+      window.api.showPanelsByPrefix(targetProject.activeRowId)
+      getStripStore(targetProject.activeRowId)
+    }
   }
 
   function handleRemoveProject(projectId: string): void {
+    const project = appStore.state.projects.find(p => p.id === projectId)
     const wasActive = appStore.state.activeProjectId === projectId
 
-    // Tell main process to kill PTYs, destroy panels, and remove from persistence
     window.api.removeProject(projectId)
 
-    // Clean up created panel IDs
-    for (const id of [...createdPanelIds]) {
-      if (id.startsWith(projectId)) createdPanelIds.delete(id)
+    // Clean up all rows' panel IDs, strip stores, and snapshots
+    if (project) {
+      for (const row of project.rows) {
+        for (const id of [...createdPanelIds]) {
+          if (id.startsWith(row.id)) createdPanelIds.delete(id)
+        }
+        stripStores.delete(row.id)
+        stripSnapshots.delete(row.id)
+      }
     }
 
-    // Clean up stores and snapshots
-    stripStores.delete(projectId)
-    stripSnapshots.delete(projectId)
-
-    // Remove from app store (this may switch activeProjectId)
     appStore.actions.removeProject(projectId)
 
-    // If it was the active project, switch to the new active
     if (wasActive) {
       const newActiveId = appStore.state.activeProjectId
       if (newActiveId) {
-        window.api.switchProject(newActiveId)
-        window.api.showPanelsByPrefix(newActiveId)
+        const newProject = appStore.state.projects.find(p => p.id === newActiveId)
+        if (newProject) {
+          window.api.switchProject(newActiveId)
+          window.api.showPanelsByPrefix(newProject.activeRowId)
+        }
       }
     }
   }
@@ -299,10 +400,10 @@ export default function App() {
       case 'swap-right': strip?.actions.swapRight(); break
       case 'new-panel': {
         if (!strip) break
-        const activeProject = appStore.actions.getActiveProject()
+        const activeRow = appStore.actions.getActiveRow()
         const panel = strip.actions.addPanel('terminal')
-        if (activeProject) {
-          window.api.createTerminalWithCwd(panel.id, activeProject.path)
+        if (activeRow) {
+          window.api.createTerminalWithCwd(panel.id, activeRow.path)
         } else {
           window.api.createTerminal(panel.id)
         }
@@ -356,6 +457,26 @@ export default function App() {
         if (currentIdx >= 0 && currentIdx < projects.length - 1) handleSwitchProject(projects[currentIdx + 1].id)
         break
       }
+      case 'new-row': {
+        const project = appStore.actions.getActiveProject()
+        if (!project) break
+        handleCreateRow(project.id)
+        break
+      }
+      case 'prev-row': {
+        const project = appStore.actions.getActiveProject()
+        if (!project || project.rows.length <= 1) break
+        const currentIdx = project.rows.findIndex(r => r.id === project.activeRowId)
+        if (currentIdx > 0) handleSwitchRow(project.id, project.rows[currentIdx - 1].id)
+        break
+      }
+      case 'next-row': {
+        const project = appStore.actions.getActiveProject()
+        if (!project || project.rows.length <= 1) break
+        const currentIdx = project.rows.findIndex(r => r.id === project.activeRowId)
+        if (currentIdx < project.rows.length - 1) handleSwitchRow(project.id, project.rows[currentIdx + 1].id)
+        break
+      }
     }
   }
 
@@ -373,8 +494,8 @@ export default function App() {
         createdPanelIds.delete(data.panelId)
       }
       setConfirmClose(null)
-      const activeId = appStore.state.activeProjectId
-      if (activeId) window.api.showPanelsByPrefix(activeId)
+      const activeProject = appStore.actions.getActiveProject()
+      if (activeProject) window.api.showPanelsByPrefix(activeProject.activeRowId)
     }
   }
 
@@ -457,6 +578,18 @@ export default function App() {
       createdPanelIds.delete(data.panelId)
     })
 
+    // Branch checking on busy-to-idle
+    window.api.onBusyToIdle(() => {
+      const project = appStore.actions.getActiveProject()
+      if (project) refreshBranches(project.id)
+    })
+
+    // Branch checking on window focus
+    window.addEventListener('focus', () => {
+      const project = appStore.actions.getActiveProject()
+      if (project) refreshBranches(project.id)
+    })
+
     // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
       appStore.actions.loadProjects(projects, activeProjectId)
@@ -510,8 +643,17 @@ export default function App() {
         sidebarWidth={sidebarWidth()}
         viewportHeight={strip()?.state.viewportHeight || window.innerHeight}
         onSwitchProject={(id) => handleSwitchProject(id)}
+        onSwitchRow={(projectId, rowId) => handleSwitchRow(projectId, rowId)}
         onAddProject={handleAddProject}
         onRemoveProject={handleRemoveProject}
+        onToggleExpanded={(projectId) => {
+          const project = appStore.state.projects.find(p => p.id === projectId)
+          if (project) appStore.actions.setExpanded(projectId, !project.expanded)
+        }}
+        onCreateRow={(projectId) => handleCreateRow(projectId)}
+        onRemoveRow={(rowId, deleteFromDisk) => handleRemoveRow(rowId, deleteFromDisk)}
+        onDiscoverWorktrees={(projectId) => handleDiscoverWorktrees(projectId)}
+        isGitProject={() => true}
       />
       <Strip
         layout={layout()}
@@ -530,6 +672,7 @@ export default function App() {
         panelCount={strip()?.state.panels.length || 0}
         hasProjects={appStore.state.projects.length > 0}
         sidebarWidth={sidebarWidth()}
+        rowCount={appStore.actions.getActiveProject()?.rows.length || 0}
       />
       {confirmClose() && (
         <ConfirmDialog

@@ -55,6 +55,13 @@ interface FlywheelAPI {
   showPanelsByPrefix(prefix: string): void
   destroyPanelsByPrefix(prefix: string): void
   setSidebarWidth(width: number): void
+
+  // Row management
+  createRow(projectId: string): Promise<unknown>
+  removeRow(rowId: string, deleteFromDisk: boolean): Promise<unknown>
+  discoverWorktrees(projectId: string): Promise<unknown>
+  checkBranches(projectId: string): Promise<unknown>
+  onBusyToIdle(callback: (data: { panelId: string }) => void): void
 }
 
 declare global {
