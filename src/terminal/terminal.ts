@@ -45,6 +45,7 @@ try {
 }
 
 fitAddon.fit()
+terminal.focus()
 
 // Link detection — open URLs as browser panels instead of system browser
 terminal.loadAddon(new WebLinksAddon((_event, url) => {

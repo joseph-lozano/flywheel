@@ -31,7 +31,7 @@ export function createStripStore(rowId = 'default') {
 
   const [state, setState] = createStore<StripState>({
     panels: [], focusedIndex: 0, scrollOffset: 0, viewportWidth: 800, viewportHeight: 600,
-    terminalFocused: true
+    terminalFocused: false
   })
 
   const actions = {
