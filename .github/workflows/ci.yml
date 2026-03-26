@@ -7,8 +7,23 @@ on:
     branches: [main]
 
 jobs:
+  check-secrets:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check for expiring secrets
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          if [[ "$TODAY" > "2026-05-31" ]]; then
+            echo "::error::GH_TOKEN expires 2026-06-24. Rotate it now and update the secret."
+            exit 1
+          fi
+
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,7 +34,11 @@ jobs:
       - run: npm test
 
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
