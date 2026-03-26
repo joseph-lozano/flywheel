@@ -24,21 +24,34 @@ export class ProjectStore {
 
   getProjects(): Project[] {
     const projects = this.store.get('projects')
-    return projects.map((p) => ({
-      ...p,
-      missing: !existsSync(p.path),
-      // Migration: ensure rows exist for pre-Phase 4 data
-      rows: p.rows || [{
+    let needsPersist = false
+    const migrated = projects.map((p) => {
+      if (p.rows && p.rows.length > 0 && p.activeRowId) {
+        return { ...p, missing: !existsSync(p.path), expanded: p.expanded ?? true }
+      }
+      // Migration: pre-Phase 4 project — generate stable default row and persist
+      needsPersist = true
+      const defaultRow: Row = {
         id: randomUUID(),
         projectId: p.id,
         branch: 'main',
         path: p.path,
         color: goldenAngleColor(0),
         isDefault: true
-      }],
-      activeRowId: p.activeRowId || (p.rows?.[0]?.id || ''),
-      expanded: p.expanded ?? true
-    }))
+      }
+      return {
+        ...p,
+        missing: !existsSync(p.path),
+        rows: [defaultRow],
+        activeRowId: defaultRow.id,
+        expanded: true
+      }
+    })
+    if (needsPersist) {
+      // Write migrated data back so rows are stable across calls
+      this.store.set('projects', migrated.map(({ missing: _, ...rest }) => rest))
+    }
+    return migrated
   }
 
   getActiveProjectId(): string | null {
