@@ -26,7 +26,9 @@ const ROW_HINTS = [
 const NO_PROJECT_HINTS = [{ key: "\u2318\u21e7N", label: "Add Project" }];
 
 export default function HintBar(props: HintBarProps) {
-  const top = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT;
+  const isEmpty = () => !props.hasProjects;
+  const top = () => (isEmpty() ? 0 : props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT);
+  const height = () => (isEmpty() ? props.viewportHeight : LAYOUT.HINT_BAR_HEIGHT);
 
   const hints = () => {
     if (!props.hasProjects) return NO_PROJECT_HINTS;
@@ -67,9 +69,11 @@ export default function HintBar(props: HintBarProps) {
         left: `${props.sidebarWidth}px`,
         top: `${top()}px`,
         width: `calc(100% - ${props.sidebarWidth}px)`,
-        height: `${LAYOUT.HINT_BAR_HEIGHT}px`,
+        height: `${height()}px`,
         display: "flex",
-        "align-items": "center",
+        "align-items": isEmpty() ? "center" : "center",
+        "justify-content": isEmpty() ? "center" : undefined,
+        "flex-direction": isEmpty() ? "column" : undefined,
         background: "#1a1a2e",
         "border-top": "1px solid #252540",
         "user-select": "none",
