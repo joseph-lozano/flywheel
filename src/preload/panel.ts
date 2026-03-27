@@ -43,4 +43,7 @@ contextBridge.exposeInMainWorld('pty', {
   onSetFontSize: (callback: (data: { fontSize: number }) => void) => {
     ipcRenderer.on('terminal:set-font-size', (_event, data) => callback(data))
   },
+  closePanel: (panelId: string) => {
+    ipcRenderer.send('panel:close-request', { panelId })
+  },
 })

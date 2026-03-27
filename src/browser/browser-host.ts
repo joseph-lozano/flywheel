@@ -1,4 +1,4 @@
-import { ICONS } from './icons'
+import { ICONS } from '../shared/icons'
 import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
@@ -10,6 +10,7 @@ declare global {
       goBack: () => void
       goForward: () => void
       reload: () => void
+      closePanel: () => void
       onChromeState: (callback: (state: {
         position: number; label: string; focused: boolean;
         url: string; canGoBack: boolean; canGoForward: boolean;
@@ -27,6 +28,7 @@ const titleLabel = document.getElementById('title-label')!
 const btnBack = document.getElementById('btn-back') as HTMLButtonElement
 const btnForward = document.getElementById('btn-forward') as HTMLButtonElement
 const btnReload = document.getElementById('btn-reload') as HTMLButtonElement
+const btnClose = document.getElementById('btn-close') as HTMLButtonElement
 const urlDisplay = document.getElementById('url-display')!
 const urlInput = document.getElementById('url-input') as HTMLInputElement
 
@@ -39,11 +41,13 @@ globeIcon.innerHTML = ICONS.globe
 btnBack.innerHTML = ICONS.arrowLeft
 btnForward.innerHTML = ICONS.arrowRight
 btnReload.innerHTML = ICONS.rotateCw
+btnClose.innerHTML = ICONS.x
 
 // Nav button handlers
 btnBack.addEventListener('click', () => window.browserHost.goBack())
 btnForward.addEventListener('click', () => window.browserHost.goForward())
 btnReload.addEventListener('click', () => window.browserHost.reload())
+btnClose.addEventListener('click', () => window.browserHost.closePanel())
 
 // URL bar editing
 let editing = false

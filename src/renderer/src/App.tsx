@@ -194,6 +194,7 @@ export default function App() {
         appStore.actions.addRow(projectId, row)
       }
       showToast(`Discovered ${result.rows.length} worktree${result.rows.length > 1 ? 's' : ''}`, 'info')
+      refreshPrStatuses(projectId)
     } else {
       showToast('No new worktrees found', 'info')
     }
@@ -388,6 +389,7 @@ export default function App() {
     window.api.hideAllPanels()
     appStore.actions.addProject(result)
     window.api.switchProject(result.id)
+    refreshPrStatuses(result.id)
   }
 
   function handleSwitchProject(targetId: string): void {
@@ -737,6 +739,8 @@ export default function App() {
     // Load projects from persistence
     window.api.listProjects().then(({ projects, activeProjectId }) => {
       appStore.actions.loadProjects(projects, activeProjectId)
+      const active = appStore.actions.getActiveProject()
+      if (active) refreshPrStatuses(active.id)
     })
   })
 
