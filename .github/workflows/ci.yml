@@ -33,6 +33,7 @@ jobs:
       - run: npm test
 
   build:
+    needs: test
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     strategy:
       fail-fast: false
