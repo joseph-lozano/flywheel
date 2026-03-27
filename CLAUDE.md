@@ -20,6 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - TypeScript strict mode — no `any` casts without justification
 - Solid.js for renderer UI — follow reactive patterns (signals, effects, memos), not React idioms
 - Conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`
+- Always create PRs as drafts first (`gh pr create --draft`)
 - Squash-merge PRs with `gh pr merge --delete-branch --squash`
 
 ## Electron Architecture
