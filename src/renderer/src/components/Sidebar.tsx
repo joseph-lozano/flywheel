@@ -179,7 +179,7 @@ export default function Sidebar(props: SidebarProps) {
                           <Show when={row.prStatus} fallback={
                             <Show when={row.isDefault}>
                               <svg width="10" height="10" viewBox="0 0 10 10">
-                                <circle cx="5" cy="5" r="4" fill={row.color} />
+                                <circle cx="5" cy="5" r="4" fill={isActiveRow() ? '#e0e0e0' : '#666'} />
                               </svg>
                             </Show>
                           }>
