@@ -8,6 +8,7 @@ import type { Project, Row } from "../shared/types";
 import { initAutoUpdater } from "./auto-updater";
 import { ConfigManager } from "./config-manager";
 import { filterDiscoveredWorktrees } from "./discover";
+import { fixPath } from "./fix-path";
 import { PanelManager } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
@@ -732,6 +733,7 @@ if (process.env.ELECTRON_RENDERER_URL) {
 }
 
 void app.whenReady().then(async () => {
+  fixPath();
   installScripts(homedir());
   await createWindow();
 
