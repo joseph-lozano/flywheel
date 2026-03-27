@@ -19,11 +19,7 @@ jobs:
           fi
 
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,7 +33,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+        include:
+          - os: macos-15
+            platform: mac
+          - os: ubuntu-24.04
+            platform: linux
+          - os: ubuntu-24.04-arm
+            platform: linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -47,3 +49,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx electron-vite build
+      - run: npx electron-builder --${{ matrix.platform }} --publish never

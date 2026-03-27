@@ -35,6 +35,24 @@ dmg:
   sign: true
   artifactName: ${name}-${version}-arm64.${ext}
 
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+        - arm64
+    - target: deb
+      arch:
+        - x64
+        - arm64
+  category: Development
+
+appImage:
+  artifactName: ${name}-${version}-${arch}.${ext}
+
+deb:
+  artifactName: ${name}-${version}-${arch}.${ext}
+
 publish:
   provider: github
   owner: joseph-lozano

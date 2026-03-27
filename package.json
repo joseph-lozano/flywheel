@@ -2,6 +2,10 @@
   "name": "flywheel",
   "version": "0.1.0-alpha.1",
   "description": "Development Command Center",
+  "author": {
+    "name": "Joseph Lozano",
+    "email": "me@lozanojoseph.com"
+  },
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -10,7 +14,9 @@
     "test:watch": "vitest",
     "postinstall": "npx @electron/rebuild -m node_modules/node-pty",
     "package": "electron-vite build && electron-builder --mac",
-    "package:dir": "electron-vite build && electron-builder --mac --dir"
+    "package:dir": "electron-vite build && electron-builder --mac --dir",
+    "package:linux": "electron-vite build && electron-builder --linux",
+    "package:linux:dir": "electron-vite build && electron-builder --linux --dir"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
