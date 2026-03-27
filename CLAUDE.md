@@ -32,7 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project State
 
-- Alpha (0.1.0-alpha.1), macOS arm64 + Linux x64/arm64 — greenfield rules apply: no migrations needed, wipe old data freely
+- Alpha, macOS arm64 + Linux x64/arm64 — greenfield rules apply: no migrations needed, wipe old data freely
 - Release tags must exactly match `package.json` version
 - Design specs and implementation plans live in `docs/superpowers/`
 
