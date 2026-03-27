@@ -5,6 +5,7 @@ import { Unicode11Addon } from '@xterm/addon-unicode11'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { TERMINAL_DEFAULTS } from '../shared/constants'
+import { ICONS } from '../shared/icons'
 import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
@@ -145,8 +146,7 @@ async function initTerminal(): Promise<void> {
 
   // Close button
   const btnClose = document.getElementById('btn-close') as HTMLButtonElement
-  const svgX = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>'
-  btnClose.innerHTML = svgX
+  btnClose.innerHTML = ICONS.x
   btnClose.addEventListener('click', () => {
     window.pty.closePanel(panelId)
   })

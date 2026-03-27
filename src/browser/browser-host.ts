@@ -1,4 +1,4 @@
-import { ICONS } from './icons'
+import { ICONS } from '../shared/icons'
 import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
