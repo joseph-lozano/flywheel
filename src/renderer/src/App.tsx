@@ -82,11 +82,16 @@ export default function App() {
   // --- Branch checking ---
 
   function refreshBranches(projectId: string): void {
-    void window.api.checkBranches(projectId).then((result) => {
-      for (const update of result.updates) {
-        appStore.actions.updateBranch(projectId, update.rowId, update.branch);
-      }
-    });
+    void window.api
+      .checkBranches(projectId)
+      .then((result) => {
+        for (const update of result.updates) {
+          appStore.actions.updateBranch(projectId, update.rowId, update.branch);
+        }
+      })
+      .catch(() => {
+        // git worktree list may fail if the repo is in a transient state
+      });
   }
 
   function refreshPrStatuses(projectId: string): void {
