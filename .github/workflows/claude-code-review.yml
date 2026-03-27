@@ -35,5 +35,5 @@ jobs:
           plugins: "superpowers@claude-plugins-official"
           track_progress: true
           use_sticky_comment: true
-          claude_args: "--max-turns 30"
+          claude_args: "--max-turns 30 --model claude-opus-4-1-20250805"
           prompt: "/superpowers:requesting-code-review"
