@@ -88,17 +88,18 @@ export function createAppStore() {
     },
 
     switchRow(projectId: string, rowId: string): void {
-      const idx = state.projects.findIndex((p) => p.id === projectId);
-      if (idx < 0) return;
-      setState("projects", idx, "activeRowId", rowId);
+      setState("projects", (p) => p.id === projectId, "activeRowId", rowId);
     },
 
     updateBranch(projectId: string, rowId: string, branch: string): void {
-      const idx = state.projects.findIndex((p) => p.id === projectId);
-      if (idx < 0) return;
-      const rowIdx = state.projects[idx].rows.findIndex((r) => r.id === rowId);
-      if (rowIdx < 0) return;
-      setState("projects", idx, "rows", rowIdx, "branch", branch);
+      setState(
+        "projects",
+        (p) => p.id === projectId,
+        "rows",
+        (r) => r.id === rowId,
+        "branch",
+        branch,
+      );
       setState("sidebarWidth", computeSidebarWidth([...state.projects]));
     },
 
@@ -106,21 +107,21 @@ export function createAppStore() {
       projectId: string,
       updates: { rowId: string; prStatus: PrStatus | undefined }[],
     ): void {
-      const idx = state.projects.findIndex((p) => p.id === projectId);
-      if (idx < 0) return;
       const updateMap = new Map(updates.map((u) => [u.rowId, u.prStatus]));
-      for (let i = 0; i < state.projects[idx].rows.length; i++) {
-        const row = state.projects[idx].rows[i];
-        if (updateMap.has(row.id)) {
-          setState("projects", idx, "rows", i, "prStatus", updateMap.get(row.id));
-        }
+      for (const [rowId, prStatus] of updateMap) {
+        setState(
+          "projects",
+          (p) => p.id === projectId,
+          "rows",
+          (r) => r.id === rowId,
+          "prStatus",
+          prStatus,
+        );
       }
     },
 
     setExpanded(projectId: string, expanded: boolean): void {
-      const idx = state.projects.findIndex((p) => p.id === projectId);
-      if (idx < 0) return;
-      setState("projects", idx, "expanded", expanded);
+      setState("projects", (p) => p.id === projectId, "expanded", expanded);
       setState("sidebarWidth", computeSidebarWidth([...state.projects]));
     },
 
