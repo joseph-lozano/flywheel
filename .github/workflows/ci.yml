@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   check-secrets:
@@ -41,13 +42,11 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  build:
+  build-linux:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: macos-15
-            platform: mac
           - os: ubuntu-24.04
             platform: linux
           - os: ubuntu-24.04-arm
@@ -62,3 +61,16 @@ jobs:
       - run: npm ci
       - run: npx electron-vite build
       - run: npx electron-builder --${{ matrix.platform }} --publish never
+
+  build-mac:
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx electron-vite build
+      - run: npx electron-builder --mac --publish never
