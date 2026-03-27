@@ -14,8 +14,7 @@ The sidebar currently shows a colored git-branch icon for every row regardless o
 | Draft | Pull-request | `#8b949e` (muted gray) |
 | Open | Pull-request | `#3fb950` (green) |
 | Merged | Pull-request | `#a371f7` (purple) |
-
-- Closed-without-merge PRs are treated as "no PR" (no icon).
+| Closed | Pull-request | `#f85149` (red) |
 - If multiple PRs exist for a branch, the most recent one wins.
 
 ## Architecture
@@ -35,11 +34,10 @@ gh pr list --json headRefName,state,isDraft,updatedAt --state all --limit 100
 The `--state all` flag includes open, closed, and merged PRs. The function:
 
 1. Parses the JSON output into an array of PR objects.
-2. Filters out closed-without-merge PRs (`state === 'CLOSED'`).
-3. Groups remaining PRs by `headRefName`.
-4. For each branch, selects the most recent PR (by `updatedAt`).
-5. Maps state: `isDraft: true` -> `'draft'`, `state: 'MERGED'` -> `'merged'`, `state: 'OPEN'` and not draft -> `'open'`.
-6. Returns `Map<branchName, 'draft' | 'open' | 'merged'>`.
+2. Groups PRs by `headRefName`.
+3. For each branch, selects the most recent PR (by `updatedAt`).
+4. Maps state: `isDraft: true` -> `'draft'`, `state: 'MERGED'` -> `'merged'`, `state: 'CLOSED'` -> `'closed'`, `state: 'OPEN'` and not draft -> `'open'`.
+5. Returns `Map<branchName, 'draft' | 'open' | 'merged' | 'closed' | 'closed'>`.
 
 The command is run with `cwd` set to the project path so `gh` resolves the correct repo automatically (no need to parse the remote URL).
 
@@ -50,7 +48,7 @@ Add an ephemeral (non-persisted) field to the `Row` interface in `src/shared/typ
 ```ts
 export interface Row {
   // ... existing fields
-  prStatus?: 'draft' | 'open' | 'merged'
+  prStatus?: 'draft' | 'open' | 'merged' | 'closed'
 }
 ```
 
@@ -62,7 +60,7 @@ This field is not saved to electron-store. It exists only in the renderer's runt
 
 **Request:** `{ projectId: string }`
 
-**Response:** `{ updates: { rowId: string; prStatus: 'draft' | 'open' | 'merged' | undefined }[] }`
+**Response:** `{ updates: { rowId: string; prStatus: 'draft' | 'open' | 'merged' | 'closed' | undefined }[] }`
 
 The handler:
 
