@@ -58,12 +58,12 @@ export function createPrStatus() {
 
             const result = new Map<string, PrStatus>();
             for (const [branch, pr] of byBranch) {
-              if (pr.isDraft) {
-                result.set(branch, "draft");
-              } else if (pr.state === "MERGED") {
+              if (pr.state === "MERGED") {
                 result.set(branch, "merged");
               } else if (pr.state === "CLOSED") {
                 result.set(branch, "closed");
+              } else if (pr.isDraft) {
+                result.set(branch, "draft");
               } else {
                 result.set(branch, "open");
               }

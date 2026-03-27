@@ -244,3 +244,40 @@ describe("PR status updates", () => {
     });
   });
 });
+
+describe("updateBranch with addRow interaction", () => {
+  it("updateBranch works on rows added via addRow", () => {
+    withAppStore(({ state, actions }) => {
+      actions.addProject(mkProject("p1", "test"));
+      const row: Row = {
+        id: "row-wt",
+        projectId: "p1",
+        branch: "old-bear-0xn",
+        path: "/wt",
+        color: "hsl(137, 65%, 65%)",
+        isDefault: false,
+      };
+      actions.addRow("p1", row);
+      actions.updateBranch("p1", "row-wt", "feat/drag-and-drop-files");
+      expect(state.projects[0].rows[1].branch).toBe("feat/drag-and-drop-files");
+    });
+  });
+
+  it("updateBranch works after loadProjects", () => {
+    withAppStore(({ state, actions }) => {
+      const p = mkProject("p1", "test");
+      const row: Row = {
+        id: "row-wt",
+        projectId: "p1",
+        branch: "old-bear-0xn",
+        path: "/wt",
+        color: "hsl(137, 65%, 65%)",
+        isDefault: false,
+      };
+      p.rows.push(row);
+      actions.loadProjects([p], "p1");
+      actions.updateBranch("p1", "row-wt", "feat/drag-and-drop-files");
+      expect(state.projects[0].rows[1].branch).toBe("feat/drag-and-drop-files");
+    });
+  });
+});
