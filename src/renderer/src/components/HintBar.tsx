@@ -31,7 +31,7 @@ export default function HintBar(props: HintBarProps) {
   const height = () => (isEmpty() ? props.viewportHeight : LAYOUT.HINT_BAR_HEIGHT);
 
   const hints = () => {
-    if (!props.hasProjects) return NO_PROJECT_HINTS;
+    if (isEmpty()) return NO_PROJECT_HINTS;
     if (props.rowCount && props.rowCount > 1) return [...PANEL_HINTS, ...ROW_HINTS];
     return PANEL_HINTS;
   };
@@ -117,7 +117,8 @@ export default function HintBar(props: HintBarProps) {
           display: "flex",
           gap: "12px",
           "flex-shrink": 0,
-          ...(isEmpty() ? { "padding-bottom": "8px", "align-self": "flex-end" } : {}),
+          "padding-bottom": isEmpty() ? "8px" : undefined,
+          "align-self": isEmpty() ? "flex-end" : undefined,
         }}
       >
         <span>
