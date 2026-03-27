@@ -127,7 +127,8 @@ jobs:
 
           # Clean up notes: keep only feat/fix entries, strip PR links (private repo)
           BODY=$(gh release view "$TAG" --json body -q .body)
-          BODY=$(echo "$BODY" | grep -E '^\* (feat|fix)' | sed -E 's/ in https:\/\/[^ ]*//g; s/ \(#[0-9]+\)//g' || true)
+          BODY=$(echo "$BODY" | grep -E '^\* (feat|fix)' | sed -E 's/ in https:\/\/[^ ]*//g; s/ \(#[0-9]+\)//g; s/ by @[^ ]*//g' || true)
+          BODY=$(echo "$BODY" | sed '/^\*\*Full Changelog\*\*/d')
           gh release edit "$TAG" --notes "$BODY"
 
       - name: Copy release notes to flywheel-releases
