@@ -42,7 +42,7 @@
       "eslint",
       "prettier --check"
     ],
-    "*.{js,json,css,html}": [
+    "*.{js,json,css,html,md}": [
       "prettier --check"
     ]
   },
