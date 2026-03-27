@@ -7,8 +7,12 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check-secrets:
+  test:
     runs-on: ubuntu-24.04
     steps:
       - name: Check for expiring secrets
@@ -18,10 +22,6 @@ jobs:
             echo "::error::GH_TOKEN expires 2026-06-24. Rotate it now and update the secret."
             exit 1
           fi
-
-  lint:
-    runs-on: ubuntu-24.04
-    steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -30,16 +30,6 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
-
-  test:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
       - run: npm test
 
   build-linux:
