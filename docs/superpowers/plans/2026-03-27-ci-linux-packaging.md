@@ -13,6 +13,7 @@
 ### Task 1: Add Linux targets to electron-builder.yml
 
 **Files:**
+
 - Modify: `electron-builder.yml:20-42`
 
 - [ ] **Step 1: Add linux, appImage, and deb sections**
@@ -49,14 +50,14 @@ directories:
   buildResources: build
 
 files:
-  - '!src/**/*'
-  - '!docs/**/*'
-  - '!tests/**/*'
-  - '!scripts/**/*'
-  - '!.github/**/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-  - '!{vitest.config.ts,ROADMAP.md}'
+  - "!src/**/*"
+  - "!docs/**/*"
+  - "!tests/**/*"
+  - "!scripts/**/*"
+  - "!.github/**/*"
+  - "!electron.vite.config.{js,ts,mjs,cjs}"
+  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+  - "!{vitest.config.ts,ROADMAP.md}"
 
 asarUnpack:
   - node_modules/node-pty/**
@@ -117,6 +118,7 @@ git commit -m "feat: add Linux AppImage and deb targets to electron-builder"
 ### Task 2: Add Linux package scripts to package.json
 
 **Files:**
+
 - Modify: `package.json:6-14` (scripts section)
 
 - [ ] **Step 1: Add package:linux and package:linux:dir scripts**
@@ -156,6 +158,7 @@ git commit -m "feat: add package:linux scripts"
 ### Task 3: Restructure CI workflow
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Replace test job — single runner, no matrix**
@@ -163,16 +166,16 @@ git commit -m "feat: add package:linux scripts"
 Replace the entire `test` job (lines 21-34) with:
 
 ```yaml
-  test:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
+test:
+  runs-on: ubuntu-24.04
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+    - run: npm ci
+    - run: npm test
 ```
 
 - [ ] **Step 2: Replace build job — 3-entry matrix with packaging**
@@ -180,27 +183,27 @@ Replace the entire `test` job (lines 21-34) with:
 Replace the entire `build` job (lines 36-49) with:
 
 ```yaml
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-15
-            platform: mac
-          - os: ubuntu-24.04
-            platform: linux
-          - os: ubuntu-24.04-arm
-            platform: linux
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx electron-vite build
-      - run: npx electron-builder --${{ matrix.platform }} --publish never
+build:
+  strategy:
+    fail-fast: false
+    matrix:
+      include:
+        - os: macos-15
+          platform: mac
+        - os: ubuntu-24.04
+          platform: linux
+        - os: ubuntu-24.04-arm
+          platform: linux
+  runs-on: ${{ matrix.os }}
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+    - run: npm ci
+    - run: npx electron-vite build
+    - run: npx electron-builder --${{ matrix.platform }} --publish never
 ```
 
 The full `ci.yml` should now read:
@@ -272,6 +275,7 @@ git commit -m "feat: restructure CI — single-runner tests, 3-entry build matri
 ### Task 4: Add Linux job to release workflow
 
 **Files:**
+
 - Modify: `.github/workflows/release.yml`
 
 - [ ] **Step 1: Rename existing job from `package` to `package-mac`**
@@ -283,51 +287,51 @@ Change line 10 from `package:` to `package-mac:`. No other changes to the macOS 
 Append the following job after `package-mac`:
 
 ```yaml
-  package-linux:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-24.04
-            arch: x64
-          - os: ubuntu-24.04-arm
-            arch: arm64
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
+package-linux:
+  strategy:
+    matrix:
+      include:
+        - os: ubuntu-24.04
+          arch: x64
+        - os: ubuntu-24.04-arm
+          arch: arm64
+  runs-on: ${{ matrix.os }}
+  steps:
+    - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
 
-      - run: npm ci
+    - run: npm ci
 
-      - name: Verify tag matches package.json version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
-            exit 1
-          fi
+    - name: Verify tag matches package.json version
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+        PKG_VERSION=$(node -p "require('./package.json').version")
+        if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+          echo "::error::Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
+          exit 1
+        fi
 
-      - name: Build
-        run: npx electron-vite build
+    - name: Build
+      run: npx electron-vite build
 
-      - name: Package and publish
-        run: npx electron-builder --linux --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    - name: Package and publish
+      run: npx electron-builder --linux --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Upload test artifact
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
-        with:
-          name: flywheel-test-linux-${{ matrix.arch }}
-          path: |
-            dist/*.AppImage
-            dist/*.deb
+    - name: Upload test artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: flywheel-test-linux-${{ matrix.arch }}
+        path: |
+          dist/*.AppImage
+          dist/*.deb
 ```
 
 The full `release.yml` should now read:
@@ -338,7 +342,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -446,6 +450,7 @@ git commit -m "feat: add Linux packaging job to release workflow"
 ### Task 5: Update CLAUDE.md with new scripts
 
 **Files:**
+
 - Modify: `CLAUDE.md:11-12`
 
 - [ ] **Step 1: Add Linux package commands to Build & Run section**
