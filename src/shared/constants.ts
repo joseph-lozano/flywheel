@@ -26,8 +26,6 @@ export const PANEL_COLORS = [
 
 
 export const TERMINAL_DEFAULTS = {
-  fontFamily: 'monospace',
-  fontSize: 14,
   theme: {
     background: '#1a1a2e',
     foreground: '#e0e0e0',

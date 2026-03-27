@@ -1,5 +1,6 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
+import type { FlywheelConfig } from '../shared/config'
 
 contextBridge.exposeInMainWorld('api', {
   // Existing panel management
@@ -12,8 +13,19 @@ contextBridge.exposeInMainWorld('api', {
   destroyPanel: (id: string) => {
     ipcRenderer.send('panel:destroy', id)
   },
-  updateBounds: (updates: Array<{ panelId: string; bounds: { x: number; y: number; width: number; height: number }; visible: boolean }>) => {
-    ipcRenderer.send('panel:update-bounds', updates)
+  updateBounds: (updates: Array<{ panelId: string; bounds: { x: number; y: number; width: number; height: number }; visible: boolean }>, sidebarWidth?: number) => {
+    const factor = webFrame.getZoomFactor()
+    const scaledSidebar = sidebarWidth != null ? Math.round(sidebarWidth * factor) : undefined
+    const scaledUpdates = factor === 1 ? updates : updates.map(u => ({
+      ...u,
+      bounds: {
+        x: Math.round(u.bounds.x * factor),
+        y: Math.round(u.bounds.y * factor),
+        width: Math.round(u.bounds.width * factor),
+        height: Math.round(u.bounds.height * factor)
+      }
+    }))
+    ipcRenderer.send('panel:update-bounds', scaledUpdates, scaledSidebar)
   },
   onWheelEvent: (callback: (data: { deltaX: number }) => void) => {
     ipcRenderer.on('scroll:wheel', (_event, data) => callback(data))
@@ -125,7 +137,8 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.send('panel:destroy-by-prefix', { prefix })
   },
   setSidebarWidth: (width: number) => {
-    ipcRenderer.send('panel:set-sidebar-width', { width })
+    const factor = webFrame.getZoomFactor()
+    ipcRenderer.send('panel:set-sidebar-width', { width: Math.round(width * factor) })
   },
 
   setExpanded: (projectId: string, expanded: boolean) => {
@@ -147,5 +160,30 @@ contextBridge.exposeInMainWorld('api', {
   },
   checkRowPath: (path: string): Promise<{ exists: boolean }> => {
     return ipcRenderer.invoke('row:check-path', { path })
+  },
+
+  // Zoom
+  zoomPanel: (panelId: string, direction: 'in' | 'out' | 'reset', defaultValue?: number) => {
+    ipcRenderer.send('panel:zoom', { panelId, direction, defaultValue })
+  },
+  zoomApp: (direction: 'in' | 'out' | 'reset', defaultValue?: number) => {
+    if (direction === 'in') {
+      webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
+    } else if (direction === 'out') {
+      webFrame.setZoomLevel(webFrame.getZoomLevel() - 1)
+    } else {
+      webFrame.setZoomLevel(defaultValue ?? 0)
+    }
+  },
+
+  // Config
+  getConfig: (): Promise<FlywheelConfig> => {
+    return ipcRenderer.invoke('config:get-all')
+  },
+  reloadConfig: () => {
+    ipcRenderer.send('config:reload')
+  },
+  onConfigUpdated: (callback: (config: FlywheelConfig) => void) => {
+    ipcRenderer.on('config:updated', (_event, config) => callback(config))
   },
 })
