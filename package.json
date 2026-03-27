@@ -10,7 +10,9 @@
     "test:watch": "vitest",
     "postinstall": "npx @electron/rebuild -m node_modules/node-pty",
     "package": "electron-vite build && electron-builder --mac",
-    "package:dir": "electron-vite build && electron-builder --mac --dir"
+    "package:dir": "electron-vite build && electron-builder --mac --dir",
+    "package:linux": "electron-vite build && electron-builder --linux",
+    "package:linux:dir": "electron-vite build && electron-builder --linux --dir"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
