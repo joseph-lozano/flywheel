@@ -6,6 +6,7 @@ import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 import { TERMINAL_DEFAULTS } from "../shared/constants";
 import { initDotGrid, setDotGridBusy } from "../shared/dot-grid";
+import { ICONS } from "../shared/icons";
 
 declare global {
   interface Window {
@@ -27,6 +28,7 @@ declare global {
       getConfig: () => Promise<{ terminal: { fontFamily: string; fontSize: number } }>;
       onConfigUpdated: (callback: (config: any) => void) => void;
       onSetFontSize: (callback: (data: { fontSize: number }) => void) => void;
+      closePanel: (panelId: string) => void;
     };
   }
 }
@@ -149,6 +151,13 @@ async function initTerminal(): Promise<void> {
     titleLabel.textContent = state.label;
     titleBar.classList.toggle("focused", state.focused);
     setDotGridBusy(dotGridWrap, !!state.busy);
+  });
+
+  // Close button
+  const btnClose = document.getElementById("btn-close") as HTMLButtonElement;
+  btnClose.innerHTML = ICONS.x;
+  btnClose.addEventListener("click", () => {
+    window.pty.closePanel(panelId);
   });
 }
 

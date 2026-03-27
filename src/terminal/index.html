@@ -43,6 +43,32 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      #btn-close {
+        flex-shrink: 0;
+        margin-left: 6px;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #555;
+        padding: 0;
+        opacity: 0;
+        transition:
+          opacity 0.1s,
+          color 0.1s;
+      }
+      #panel-titlebar:hover #btn-close {
+        opacity: 1;
+      }
+      #btn-close:hover {
+        color: #e0e0e0;
+        background: rgba(255, 255, 255, 0.08);
+      }
       #terminal {
         width: calc(100% - 16px);
         height: calc(100% - 40px);
@@ -55,6 +81,7 @@
       <span id="pos-label"></span>
       <span id="dot-grid"></span>
       <span id="title-label"></span>
+      <button id="btn-close" title="Close panel"></button>
     </div>
     <div id="terminal"></div>
     <script type="module" src="./terminal.ts"></script>

@@ -65,4 +65,7 @@ contextBridge.exposeInMainWorld("pty", {
       callback(data);
     });
   },
+  closePanel: (panelId: string) => {
+    ipcRenderer.send("panel:close-request", { panelId });
+  },
 });

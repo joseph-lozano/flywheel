@@ -7,6 +7,7 @@ import { goldenAngleColor } from "../shared/constants";
 import type { Project, Row } from "../shared/types";
 import { initAutoUpdater } from "./auto-updater";
 import { ConfigManager } from "./config-manager";
+import { filterDiscoveredWorktrees } from "./discover";
 import { PanelManager } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
@@ -431,22 +432,13 @@ function setupIpcHandlers(): void {
     const project = projectStore.getProjects().find((p) => p.id === data.projectId);
     if (!project) return { rows: [] };
 
-    const worktrees = await worktreeManager.listWorktrees(project.path);
-    const existingPaths = new Set(project.rows.map((r) => r.path));
-    const newRows: Row[] = [];
+    const [worktrees, prStatuses] = await Promise.all([
+      worktreeManager.listWorktrees(project.path),
+      prStatusChecker.fetchPrStatuses(project.path),
+    ]);
 
-    for (const wt of worktrees) {
-      if (existingPaths.has(wt.path)) continue;
-      if (wt.path === project.path) continue; // Skip main worktree
-      const row: Row = {
-        id: randomUUID(),
-        projectId: project.id,
-        branch: wt.branch,
-        path: wt.path,
-        color: goldenAngleColor(project.rows.length + newRows.length),
-        isDefault: false,
-      };
-      newRows.push(row);
+    const newRows = filterDiscoveredWorktrees(project, worktrees, prStatuses);
+    for (const row of newRows) {
       projectStore.addRow(project.id, row);
     }
 

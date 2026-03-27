@@ -54,6 +54,32 @@
       #titlebar.focused .title {
         color: #c0c0c0;
       }
+      #btn-close {
+        flex-shrink: 0;
+        margin-left: 6px;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #555;
+        padding: 0;
+        opacity: 0;
+        transition:
+          opacity 0.1s,
+          color 0.1s;
+      }
+      #titlebar:hover #btn-close {
+        opacity: 1;
+      }
+      #btn-close:hover {
+        color: #e0e0e0;
+        background: rgba(255, 255, 255, 0.08);
+      }
       #navbar {
         height: 28px;
         display: flex;
@@ -122,6 +148,7 @@
       <span id="dot-grid"></span>
       <span class="globe" id="globe-icon"></span>
       <span class="title" id="title-label">about:blank</span>
+      <button id="btn-close" title="Close panel"></button>
     </div>
     <div id="navbar">
       <button class="nav-btn" id="btn-back" disabled></button>
