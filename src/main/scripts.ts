@@ -4,14 +4,24 @@ import { join } from "path";
 const FLYWHEEL_OPEN = `#!/bin/sh
 case "$1" in
   http://*|https://*)
-    printf '\\033]7770;%s\\007' "$1" > /dev/tty ;;
+    if [ -w /dev/tty ]; then
+      printf '\\033]7770;%s\\007' "$1" > /dev/tty
+    elif command -v open > /dev/null 2>&1; then
+      open "$1"
+    elif command -v xdg-open > /dev/null 2>&1; then
+      xdg-open "$1"
+    fi ;;
 esac
 `;
 
 const OPEN_WRAPPER = `#!/bin/sh
 case "$1" in
   http://*|https://*)
-    printf '\\033]7770;%s\\007' "$1" > /dev/tty ;;
+    if [ -w /dev/tty ]; then
+      printf '\\033]7770;%s\\007' "$1" > /dev/tty
+    else
+      /usr/bin/open "$1"
+    fi ;;
   *)
     /usr/bin/open "$@" ;;
 esac
@@ -20,7 +30,11 @@ esac
 const XDG_OPEN_WRAPPER = `#!/bin/sh
 case "$1" in
   http://*|https://*)
-    printf '\\033]7770;%s\\007' "$1" > /dev/tty ;;
+    if [ -w /dev/tty ]; then
+      printf '\\033]7770;%s\\007' "$1" > /dev/tty
+    else
+      /usr/bin/xdg-open "$1"
+    fi ;;
   *)
     /usr/bin/xdg-open "$@" ;;
 esac

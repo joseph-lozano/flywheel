@@ -23,6 +23,15 @@ describe("installScripts", () => {
     expect(script).toContain("/dev/tty");
   });
 
+  it("flywheel-open falls back when /dev/tty is unavailable", () => {
+    installScripts(tempDir);
+    const binDir = join(tempDir, ".flywheel", "bin");
+    const script = readFileSync(join(binDir, "flywheel-open"), "utf-8");
+    expect(script).toContain("[ -w /dev/tty ]");
+    expect(script).toContain("command -v open");
+    expect(script).toContain("command -v xdg-open");
+  });
+
   it("makes scripts executable (mode 0o755)", () => {
     installScripts(tempDir);
     const binDir = join(tempDir, ".flywheel", "bin");
@@ -47,10 +56,30 @@ describe("installScripts", () => {
     expect(script).toContain("7770");
   });
 
+  it("open wrapper falls back to /usr/bin/open when /dev/tty is unavailable", () => {
+    installScripts(tempDir, "darwin");
+    const binDir = join(tempDir, ".flywheel", "bin");
+    const script = readFileSync(join(binDir, "open"), "utf-8");
+    expect(script).toContain("[ -w /dev/tty ]");
+    // Should call /usr/bin/open as fallback for HTTP URLs too
+    const httpBlock = script.slice(script.indexOf("http://"));
+    expect(httpBlock).toContain("/usr/bin/open");
+  });
+
   it("does not write open wrapper on linux", () => {
     installScripts(tempDir, "linux");
     const binDir = join(tempDir, ".flywheel", "bin");
     expect(() => statSync(join(binDir, "open"))).toThrow();
+  });
+
+  it("xdg-open wrapper falls back to /usr/bin/xdg-open when /dev/tty is unavailable", () => {
+    installScripts(tempDir, "linux");
+    const binDir = join(tempDir, ".flywheel", "bin");
+    const script = readFileSync(join(binDir, "xdg-open"), "utf-8");
+    expect(script).toContain("[ -w /dev/tty ]");
+    // Should call /usr/bin/xdg-open as fallback for HTTP URLs too
+    const httpBlock = script.slice(script.indexOf("http://"));
+    expect(httpBlock).toContain("/usr/bin/xdg-open");
   });
 
   it("does not write xdg-open wrapper on darwin", () => {
