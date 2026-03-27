@@ -7,6 +7,7 @@ import { PtyManager } from './pty-manager'
 import { ProjectStore } from './project-store'
 import { WorktreeManager } from './worktree-manager'
 import { ConfigManager } from './config-manager'
+import { createPrStatus } from './pr-status'
 import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
@@ -20,6 +21,7 @@ let ptyManager: PtyManager
 let projectStore: ProjectStore
 let worktreeManager: WorktreeManager
 let configManager: ConfigManager
+let prStatusChecker: ReturnType<typeof createPrStatus>
 
 async function createWindow(): Promise<void> {
   worktreeManager = new WorktreeManager()
@@ -73,6 +75,7 @@ async function createWindow(): Promise<void> {
 
   projectStore = new ProjectStore()
   configManager = new ConfigManager()
+  prStatusChecker = createPrStatus()
 
   setupIpcHandlers()
   setupShortcuts()
@@ -432,6 +435,19 @@ function setupIpcHandlers(): void {
         projectStore.updateRowBranch(project.id, row.id, currentBranch)
       }
     }
+
+    return { updates }
+  })
+
+  ipcMain.handle('row:check-pr-status', async (_event, data: { projectId: string }) => {
+    const project = projectStore.getProjects().find(p => p.id === data.projectId)
+    if (!project) return { updates: [] }
+
+    const statuses = await prStatusChecker.fetchPrStatuses(project.path)
+    const updates = project.rows.map(row => ({
+      rowId: row.id,
+      prStatus: statuses.get(row.branch)
+    }))
 
     return { updates }
   })

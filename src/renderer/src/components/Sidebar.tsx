@@ -23,16 +23,23 @@ function ChevronRight(props: { size?: number; color?: string }) {
   )
 }
 
-function GitBranch(props: { size?: number; color?: string }) {
+function PullRequest(props: { size?: number; color?: string }) {
   return (
     <svg width={props.size || 14} height={props.size || 14} viewBox="0 0 24 24" fill="none"
       stroke={props.color || '#888'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="6" y1="3" x2="6" y2="15" />
-      <circle cx="18" cy="6" r="3" />
-      <circle cx="6" cy="18" r="3" />
-      <path d="M18 9a9 9 0 0 1-9 9" />
+      <circle cx="18" cy="18" r="3" />
+      <circle cx="6" cy="6" r="3" />
+      <path d="M13 6h3a2 2 0 0 1 2 2v7" />
+      <line x1="6" y1="9" x2="6" y2="21" />
     </svg>
   )
+}
+
+const PR_STATUS_COLORS: Record<string, string> = {
+  draft: '#8b949e',
+  open: '#3fb950',
+  merged: '#a371f7',
+  closed: '#f85149'
 }
 
 interface SidebarProps {
@@ -169,7 +176,15 @@ export default function Sidebar(props: SidebarProps) {
                           onMouseEnter={() => setHoveredId(row.id)}
                           onMouseLeave={() => setHoveredId(null)}
                         >
-                          <GitBranch color={row.color} />
+                          <Show when={row.prStatus} fallback={
+                            <Show when={row.isDefault}>
+                              <svg width="10" height="10" viewBox="0 0 10 10">
+                                <circle cx="5" cy="5" r="4" fill={isActiveRow() ? '#e0e0e0' : '#666'} />
+                              </svg>
+                            </Show>
+                          }>
+                            <PullRequest color={PR_STATUS_COLORS[row.prStatus!]} />
+                          </Show>
                           <span style={{ overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{row.branch}</span>
                         </div>
                       )

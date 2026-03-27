@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
-import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult } from '../shared/types'
+import type { Project, CreateRowResult, RemoveRowResult, DiscoverWorktreesResult, CheckBranchesResult, CheckPrStatusResult } from '../shared/types'
 import type { FlywheelConfig } from '../shared/config'
 
 contextBridge.exposeInMainWorld('api', {
@@ -157,6 +157,9 @@ contextBridge.exposeInMainWorld('api', {
   },
   checkBranches: (projectId: string): Promise<CheckBranchesResult> => {
     return ipcRenderer.invoke('row:check-branches', { projectId })
+  },
+  checkPrStatus: (projectId: string): Promise<CheckPrStatusResult> => {
+    return ipcRenderer.invoke('row:check-pr-status', { projectId })
   },
   checkRowPath: (path: string): Promise<{ exists: boolean }> => {
     return ipcRenderer.invoke('row:check-path', { path })

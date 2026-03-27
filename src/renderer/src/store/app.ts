@@ -1,5 +1,5 @@
 import { createStore } from 'solid-js/store'
-import type { Project, Row } from '../../../shared/types'
+import type { Project, Row, PrStatus } from '../../../shared/types'
 import { SIDEBAR } from '../../../shared/constants'
 
 export interface AppState {
@@ -99,6 +99,18 @@ export function createAppStore() {
       if (rowIdx < 0) return
       setState('projects', idx, 'rows', rowIdx, 'branch', branch)
       setState('sidebarWidth', computeSidebarWidth([...state.projects]))
+    },
+
+    updatePrStatuses(projectId: string, updates: { rowId: string; prStatus: PrStatus | undefined }[]): void {
+      const idx = state.projects.findIndex((p) => p.id === projectId)
+      if (idx < 0) return
+      const updateMap = new Map(updates.map(u => [u.rowId, u.prStatus]))
+      for (let i = 0; i < state.projects[idx].rows.length; i++) {
+        const row = state.projects[idx].rows[i]
+        if (updateMap.has(row.id)) {
+          setState('projects', idx, 'rows', i, 'prStatus', updateMap.get(row.id))
+        }
+      }
     },
 
     setExpanded(projectId: string, expanded: boolean): void {
