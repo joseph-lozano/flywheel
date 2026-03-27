@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./node_modules/.bin/prettier --write $CLAUDE_FILE_PATH"
+            "command": "jq -r '.tool_input.file_path' | xargs ./node_modules/.bin/prettier --write"
           }
         ]
       }
