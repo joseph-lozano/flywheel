@@ -23,6 +23,8 @@ export default function App() {
   let currentAnimation: AnimationHandle | null = null
   let scrollEndTimer: ReturnType<typeof setTimeout>
 
+  let switchEpoch = 0 // Concurrency guard: "latest wins" for async row/project switches
+
   const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
   const [missingRow, setMissingRow] = createSignal<{ projectId: string; rowId: string; branch: string } | null>(null)
   const [viewportHeight, setViewportHeight] = createSignal(window.innerHeight)
@@ -79,6 +81,8 @@ export default function App() {
   // --- Row management ---
 
   async function handleSwitchRow(projectId: string, targetRowId: string): Promise<void> {
+    const epoch = ++switchEpoch
+
     const project = appStore.state.projects.find(p => p.id === projectId)
     if (!project) return
 
@@ -93,7 +97,6 @@ export default function App() {
         if (currentProject) {
           const currentStore = stripStores.get(currentProject.activeRowId)
           if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
-          window.api.hidePanelsByPrefix(currentProject.activeRowId)
         }
       }
       appStore.actions.switchProject(projectId)
@@ -107,6 +110,10 @@ export default function App() {
     const targetRow = project.rows.find(r => r.id === targetRowId)
     if (targetRow && !targetRow.isDefault) {
       const { exists } = await window.api.checkRowPath(targetRow.path)
+
+      // A newer switch has superseded this one — bail out
+      if (epoch !== switchEpoch) return
+
       if (!exists) {
         // For cross-project, we already switched — show the current active row
         if (crossProject) {
@@ -122,8 +129,11 @@ export default function App() {
     if (!crossProject) {
       const currentStore = stripStores.get(currentRowId)
       if (currentStore) stripSnapshots.set(currentRowId, currentStore.getSnapshot())
-      window.api.hidePanelsByPrefix(currentRowId)
     }
+
+    // Hide ALL panels before showing target to clean up any orphaned visible panels
+    // from prior race conditions (instead of just hidePanelsByPrefix for the current row)
+    window.api.hideAllPanels()
 
     // Switch row
     appStore.actions.switchRow(projectId, targetRowId)
@@ -358,15 +368,18 @@ export default function App() {
   async function handleAddProject(): Promise<void> {
     const result = await window.api.addProject()
     if (!result) return
+
+    switchEpoch++ // Cancel any in-flight async switches
+
     const currentId = appStore.state.activeProjectId
     if (currentId) {
       const currentProject = appStore.state.projects.find(p => p.id === currentId)
       if (currentProject) {
         const currentStore = stripStores.get(currentProject.activeRowId)
         if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
-        window.api.hidePanelsByPrefix(currentProject.activeRowId)
       }
     }
+    window.api.hideAllPanels()
     appStore.actions.addProject(result)
     window.api.switchProject(result.id)
   }
@@ -375,20 +388,22 @@ export default function App() {
     const currentId = appStore.state.activeProjectId
     if (currentId === targetId) return
 
+    switchEpoch++ // Cancel any in-flight async row switches
+
     // Stash current row's strip
     if (currentId) {
       const currentProject = appStore.state.projects.find(p => p.id === currentId)
       if (currentProject) {
         const currentStore = stripStores.get(currentProject.activeRowId)
         if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
-        window.api.hidePanelsByPrefix(currentProject.activeRowId)
       }
     }
 
     appStore.actions.switchProject(targetId)
     window.api.switchProject(targetId)
 
-    // Show target project's active row panels
+    // Hide all panels (cleans up any orphaned panels from prior races), then show target
+    window.api.hideAllPanels()
     const targetProject = appStore.state.projects.find(p => p.id === targetId)
     if (targetProject) {
       window.api.showPanelsByPrefix(targetProject.activeRowId)
