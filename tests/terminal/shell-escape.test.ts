@@ -50,4 +50,14 @@ describe("shellEscape", () => {
     expect(shellEscape("/tmp/*.txt")).toBe("/tmp/\\*.txt");
     expect(shellEscape("/tmp/file?.txt")).toBe("/tmp/file\\?.txt");
   });
+
+  it("escapes tabs, newlines, and carriage returns", () => {
+    expect(shellEscape("/tmp/has\ttab")).toBe("/tmp/has\\\ttab");
+    expect(shellEscape("/tmp/has\nnewline")).toBe("/tmp/has\\\nnewline");
+    expect(shellEscape("/tmp/has\rreturn")).toBe("/tmp/has\\\rreturn");
+  });
+
+  it("handles empty string", () => {
+    expect(shellEscape("")).toBe("");
+  });
 });

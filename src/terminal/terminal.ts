@@ -166,23 +166,36 @@ async function initTerminal(): Promise<void> {
 }
 
 function setupFileDrop(container: HTMLElement, term: Terminal): void {
-  const el = term.element;
-  if (!el) return;
+  // Document-level prevention ensures Chromium treats the page as a valid drop target
+  document.addEventListener("dragover", (e) => e.preventDefault());
+  document.addEventListener("drop", (e) => e.preventDefault());
 
-  el.addEventListener("dragover", (e) => {
+  // Attach to container (stable) instead of term.element (xterm can replace it)
+  let dragCounter = 0;
+
+  container.addEventListener("dragenter", (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    if (!e.dataTransfer?.types.includes("Files")) return;
+    dragCounter++;
     container.classList.add("drag-over");
   });
 
-  el.addEventListener("dragleave", (e) => {
+  container.addEventListener("dragover", (e) => {
     e.preventDefault();
-    container.classList.remove("drag-over");
   });
 
-  el.addEventListener("drop", (e) => {
+  container.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) {
+      container.classList.remove("drag-over");
+    }
+  });
+
+  container.addEventListener("drop", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    dragCounter = 0;
     container.classList.remove("drag-over");
 
     const files = e.dataTransfer?.files;
