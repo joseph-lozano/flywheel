@@ -14,7 +14,8 @@ export function filterDiscoveredWorktrees(
   for (const wt of worktrees) {
     if (existingPaths.has(wt.path)) continue;
     if (wt.path === project.path) continue;
-    if (prStatuses.get(wt.branch) === "merged") continue;
+    const prStatus = prStatuses.get(wt.branch);
+    if (prStatus === "merged" || prStatus === "closed") continue;
     const row: Row = {
       id: randomUUID(),
       projectId: project.id,
