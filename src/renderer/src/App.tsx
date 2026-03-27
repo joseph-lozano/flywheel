@@ -78,6 +78,12 @@ export default function App() {
     })
   }
 
+  function refreshPrStatuses(projectId: string): void {
+    window.api.checkPrStatus(projectId).then((result) => {
+      appStore.actions.updatePrStatuses(projectId, result.updates)
+    })
+  }
+
   // --- Row management ---
 
   async function handleSwitchRow(projectId: string, targetRowId: string): Promise<void> {
@@ -680,6 +686,37 @@ export default function App() {
       if (project) refreshBranches(project.id)
     }, 5000)
     onCleanup(() => clearInterval(branchCheckInterval))
+
+    // PR status polling — runs every 15s while window is focused
+    let prStatusInterval: ReturnType<typeof setInterval> | null = null
+
+    function startPrPolling(): void {
+      if (prStatusInterval) return
+      const project = appStore.actions.getActiveProject()
+      if (project) refreshPrStatuses(project.id)
+      prStatusInterval = setInterval(() => {
+        const project = appStore.actions.getActiveProject()
+        if (project) refreshPrStatuses(project.id)
+      }, 15_000)
+    }
+
+    function stopPrPolling(): void {
+      if (prStatusInterval) {
+        clearInterval(prStatusInterval)
+        prStatusInterval = null
+      }
+    }
+
+    // Start polling immediately (app starts focused)
+    startPrPolling()
+
+    window.addEventListener('focus', startPrPolling)
+    window.addEventListener('blur', stopPrPolling)
+    onCleanup(() => {
+      stopPrPolling()
+      window.removeEventListener('focus', startPrPolling)
+      window.removeEventListener('blur', stopPrPolling)
+    })
 
     // Apply app zoom from config on startup
     window.api.getConfig().then((config) => {
