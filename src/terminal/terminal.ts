@@ -7,6 +7,7 @@ import "@xterm/xterm/css/xterm.css";
 import { TERMINAL_DEFAULTS } from "../shared/constants";
 import { initDotGrid, setDotGridBusy } from "../shared/dot-grid";
 import { ICONS } from "../shared/icons";
+import { getImagePathsFromDrop } from "./drag-drop";
 
 declare global {
   interface Window {
@@ -56,6 +57,24 @@ async function initTerminal(): Promise<void> {
 
   const container = document.getElementById("terminal")!;
   terminal.open(container);
+
+  // Drag-and-drop: paste absolute image paths into the terminal input stream.
+  container.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "copy";
+    }
+  });
+
+  container.addEventListener("drop", (event) => {
+    event.preventDefault();
+    const files = event.dataTransfer?.files;
+    if (!files?.length) return;
+    const paths = getImagePathsFromDrop(files);
+    if (paths.length === 0) return;
+    window.pty.input(panelId, paths.join(" "));
+    terminal.focus();
+  });
 
   // Try WebGL, fall back to canvas
   try {

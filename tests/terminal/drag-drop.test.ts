@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getImagePathsFromDrop } from "../../src/terminal/drag-drop";
 
 /** Build a duck-typed FileList from plain objects. */
-function makeFileList(files: Array<{ name: string; path: string }>): FileList {
+function makeFileList(files: { name: string; path: string }[]): FileList {
   const fileObjs = files.map(({ name, path }) => {
     const f = new File([], name) as File & { path: string };
     Object.defineProperty(f, "path", { value: path, writable: false });
