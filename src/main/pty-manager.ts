@@ -43,7 +43,7 @@ export class PtyManager {
       PATH: `${binDir}:${process.env.PATH ?? ""}`,
       FLYWHEEL: "1",
     } as Record<string, string>;
-    const ptyProcess = pty.spawn(shell, [], {
+    const ptyProcess = pty.spawn(shell, ["-l"], {
       cols: 80,
       rows: 24,
       cwd: cwd ?? process.cwd(),
