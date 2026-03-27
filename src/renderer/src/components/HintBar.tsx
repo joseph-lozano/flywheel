@@ -71,11 +71,10 @@ export default function HintBar(props: HintBarProps) {
         width: `calc(100% - ${props.sidebarWidth}px)`,
         height: `${height()}px`,
         display: "flex",
-        "align-items": isEmpty() ? "center" : "center",
-        "justify-content": isEmpty() ? "center" : undefined,
         "flex-direction": isEmpty() ? "column" : undefined,
+        "align-items": "center",
         background: "#1a1a2e",
-        "border-top": "1px solid #252540",
+        "border-top": isEmpty() ? undefined : "1px solid #252540",
         "user-select": "none",
         "font-size": "12px",
         "padding-left": "16px",
@@ -87,6 +86,7 @@ export default function HintBar(props: HintBarProps) {
           flex: 1,
           display: "flex",
           "justify-content": "center",
+          "align-items": isEmpty() ? "center" : undefined,
           gap: "16px",
           overflow: "hidden",
         }}
@@ -112,7 +112,14 @@ export default function HintBar(props: HintBarProps) {
           )}
         </For>
       </div>
-      <div style={{ display: "flex", gap: "12px", "flex-shrink": 0 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          "flex-shrink": 0,
+          ...(isEmpty() ? { "padding-bottom": "8px", "align-self": "flex-end" } : {}),
+        }}
+      >
         <span>
           <span style={dimStyle}>panels </span>
           <span style={valStyle}>{props.panelCount}</span>
