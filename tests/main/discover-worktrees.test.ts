@@ -29,6 +29,7 @@ describe("filterDiscoveredWorktrees", () => {
   const worktrees = [
     { path: "/Users/test/project", branch: "main" },
     { path: "/Users/test/.flywheel/worktrees/project/feat-merged", branch: "feat-merged" },
+    { path: "/Users/test/.flywheel/worktrees/project/feat-closed", branch: "feat-closed" },
     { path: "/Users/test/.flywheel/worktrees/project/feat-open", branch: "feat-open" },
     { path: "/Users/test/.flywheel/worktrees/project/feat-no-pr", branch: "feat-no-pr" },
   ];
@@ -43,25 +44,27 @@ describe("filterDiscoveredWorktrees", () => {
     const branches = rows.map((r) => r.branch);
 
     expect(branches).not.toContain("feat-merged");
+    expect(branches).toContain("feat-closed");
     expect(branches).toContain("feat-open");
     expect(branches).toContain("feat-no-pr");
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
   });
 
-  it("adds worktrees with open, draft, or closed PRs", () => {
+  it("skips worktrees whose branch has a closed or merged PR", () => {
     const prStatuses = new Map<string, PrStatus>([
-      ["feat-merged", "open"],
+      ["feat-merged", "merged"],
+      ["feat-closed", "closed"],
       ["feat-open", "draft"],
-      ["feat-no-pr", "closed"],
     ]);
 
     const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses);
     const branches = rows.map((r) => r.branch);
 
-    expect(branches).toContain("feat-merged");
+    expect(branches).not.toContain("feat-merged");
+    expect(branches).not.toContain("feat-closed");
     expect(branches).toContain("feat-open");
     expect(branches).toContain("feat-no-pr");
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(2);
   });
 
   it("adds all worktrees when gh is unavailable (empty map)", () => {
@@ -71,8 +74,9 @@ describe("filterDiscoveredWorktrees", () => {
     const branches = rows.map((r) => r.branch);
 
     expect(branches).toContain("feat-merged");
+    expect(branches).toContain("feat-closed");
     expect(branches).toContain("feat-open");
     expect(branches).toContain("feat-no-pr");
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(4);
   });
 });

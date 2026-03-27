@@ -160,6 +160,32 @@ describe("createPrStatus", () => {
       expect(result.get("feat-d")).toBe("closed");
     });
 
+    it("maps closed draft PR to closed status", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          if (Array.isArray(args) && args.includes("--version")) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          callback(
+            null,
+            JSON.stringify([
+              {
+                headRefName: "feat-draft-closed",
+                state: "CLOSED",
+                isDraft: true,
+                updatedAt: "2026-03-26T00:00:00Z",
+              },
+            ]),
+          );
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchPrStatuses("/test/project");
+      expect(result.get("feat-draft-closed")).toBe("closed");
+    });
+
     it("picks most recent PR when multiple exist for same branch", async () => {
       mockExecFile.mockImplementation(
         (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
