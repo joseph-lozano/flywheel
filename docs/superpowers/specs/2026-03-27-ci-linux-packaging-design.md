@@ -35,11 +35,11 @@ Unit tests are pure JS/TS — no platform-specific behavior to validate across r
 
 #### build job — 3-entry matrix with real packaging
 
-| Runner | Platform flag | Artifacts produced |
-|--------|--------------|-------------------|
-| `macos-15` | `--mac` | DMG (arm64) |
-| `ubuntu-24.04` | `--linux` | AppImage (x64), deb (x64) |
-| `ubuntu-24.04-arm` | `--linux` | AppImage (arm64), deb (arm64) |
+| Runner             | Platform flag | Artifacts produced            |
+| ------------------ | ------------- | ----------------------------- |
+| `macos-15`         | `--mac`       | DMG (arm64)                   |
+| `ubuntu-24.04`     | `--linux`     | AppImage (x64), deb (x64)     |
+| `ubuntu-24.04-arm` | `--linux`     | AppImage (arm64), deb (arm64) |
 
 Each entry runs `electron-builder` with `--publish never` so CI never pushes to the release repo.
 
