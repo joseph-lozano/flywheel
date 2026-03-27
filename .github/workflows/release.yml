@@ -30,7 +30,10 @@ jobs:
           fi
 
       - name: Install Apple intermediate certificate
-        run: curl -sO https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer && sudo security import DeveloperIDG2CA.cer -k /Library/Keychains/System.keychain && rm DeveloperIDG2CA.cer
+        run: |
+          curl -sO https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+          sudo security import DeveloperIDG2CA.cer -k /Library/Keychains/System.keychain || echo "Certificate already in keychain, skipping"
+          rm DeveloperIDG2CA.cer
 
       - name: Build
         run: npx electron-vite build
