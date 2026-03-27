@@ -13,107 +13,108 @@
 ### Task 1: Write tests for merged-PR filtering in discovery
 
 **Files:**
+
 - Create: `tests/main/discover-worktrees.test.ts`
 
 - [ ] **Step 1: Write the test file with three test cases**
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { randomUUID } from 'crypto'
-import type { Row, Project, PrStatus } from '../../src/shared/types'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { randomUUID } from "crypto";
+import type { Row, Project, PrStatus } from "../../src/shared/types";
 
 // Helpers to build test data
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
-    id: 'proj-1',
-    name: 'test-project',
-    path: '/Users/test/project',
+    id: "proj-1",
+    name: "test-project",
+    path: "/Users/test/project",
     rows: [
       {
-        id: 'row-default',
-        projectId: 'proj-1',
-        branch: 'main',
-        path: '/Users/test/project',
-        color: 'hsl(0, 70%, 60%)',
-        isDefault: true
-      }
+        id: "row-default",
+        projectId: "proj-1",
+        branch: "main",
+        path: "/Users/test/project",
+        color: "hsl(0, 70%, 60%)",
+        isDefault: true,
+      },
     ],
-    activeRowId: 'row-default',
+    activeRowId: "row-default",
     expanded: true,
-    ...overrides
-  }
+    ...overrides,
+  };
 }
 
 // Simulate the discovery logic extracted from the handler
 function discoverNewRows(
   project: Project,
   worktrees: { path: string; branch: string }[],
-  prStatuses: Map<string, PrStatus>
+  prStatuses: Map<string, PrStatus>,
 ): Row[] {
-  const existingPaths = new Set(project.rows.map(r => r.path))
-  const newRows: Row[] = []
+  const existingPaths = new Set(project.rows.map((r) => r.path));
+  const newRows: Row[] = [];
 
   for (const wt of worktrees) {
-    if (existingPaths.has(wt.path)) continue
-    if (wt.path === project.path) continue
-    if (prStatuses.get(wt.branch) === 'merged') continue
+    if (existingPaths.has(wt.path)) continue;
+    if (wt.path === project.path) continue;
+    if (prStatuses.get(wt.branch) === "merged") continue;
     const row: Row = {
       id: randomUUID(),
       projectId: project.id,
       branch: wt.branch,
       path: wt.path,
-      color: 'hsl(137, 70%, 60%)',
-      isDefault: false
-    }
-    newRows.push(row)
+      color: "hsl(137, 70%, 60%)",
+      isDefault: false,
+    };
+    newRows.push(row);
   }
 
-  return newRows
+  return newRows;
 }
 
-describe('discover worktrees — merged PR filtering', () => {
-  const project = makeProject()
+describe("discover worktrees — merged PR filtering", () => {
+  const project = makeProject();
 
   const worktrees = [
-    { path: '/Users/test/project', branch: 'main' },
-    { path: '/Users/test/.flywheel/worktrees/project/feat-merged', branch: 'feat-merged' },
-    { path: '/Users/test/.flywheel/worktrees/project/feat-open', branch: 'feat-open' },
-    { path: '/Users/test/.flywheel/worktrees/project/feat-no-pr', branch: 'feat-no-pr' }
-  ]
+    { path: "/Users/test/project", branch: "main" },
+    { path: "/Users/test/.flywheel/worktrees/project/feat-merged", branch: "feat-merged" },
+    { path: "/Users/test/.flywheel/worktrees/project/feat-open", branch: "feat-open" },
+    { path: "/Users/test/.flywheel/worktrees/project/feat-no-pr", branch: "feat-no-pr" },
+  ];
 
-  it('skips worktrees whose branch has a merged PR', () => {
+  it("skips worktrees whose branch has a merged PR", () => {
     const prStatuses = new Map<string, PrStatus>([
-      ['feat-merged', 'merged'],
-      ['feat-open', 'open']
-    ])
+      ["feat-merged", "merged"],
+      ["feat-open", "open"],
+    ]);
 
-    const rows = discoverNewRows(project, worktrees, prStatuses)
-    const branches = rows.map(r => r.branch)
+    const rows = discoverNewRows(project, worktrees, prStatuses);
+    const branches = rows.map((r) => r.branch);
 
-    expect(branches).not.toContain('feat-merged')
-    expect(branches).toContain('feat-open')
-    expect(branches).toContain('feat-no-pr')
-    expect(rows).toHaveLength(2)
-  })
+    expect(branches).not.toContain("feat-merged");
+    expect(branches).toContain("feat-open");
+    expect(branches).toContain("feat-no-pr");
+    expect(rows).toHaveLength(2);
+  });
 
-  it('adds worktrees with open, draft, or closed PRs', () => {
+  it("adds worktrees with open, draft, or closed PRs", () => {
     const prStatuses = new Map<string, PrStatus>([
-      ['feat-merged', 'open'],
-      ['feat-open', 'draft'],
-      ['feat-no-pr', 'closed']
-    ])
+      ["feat-merged", "open"],
+      ["feat-open", "draft"],
+      ["feat-no-pr", "closed"],
+    ]);
 
-    const rows = discoverNewRows(project, worktrees, prStatuses)
-    expect(rows).toHaveLength(3)
-  })
+    const rows = discoverNewRows(project, worktrees, prStatuses);
+    expect(rows).toHaveLength(3);
+  });
 
-  it('adds all worktrees when gh is unavailable (empty map)', () => {
-    const prStatuses = new Map<string, PrStatus>()
+  it("adds all worktrees when gh is unavailable (empty map)", () => {
+    const prStatuses = new Map<string, PrStatus>();
 
-    const rows = discoverNewRows(project, worktrees, prStatuses)
-    expect(rows).toHaveLength(3)
-  })
-})
+    const rows = discoverNewRows(project, worktrees, prStatuses);
+    expect(rows).toHaveLength(3);
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -135,6 +136,7 @@ git commit -m "test: add discover-worktrees merged PR filtering tests"
 ### Task 2: Add merged-PR filter to the discovery handler
 
 **Files:**
+
 - Modify: `src/main/index.ts:397-421`
 
 - [ ] **Step 1: Add the `fetchPrStatuses` call and filter**
@@ -142,36 +144,37 @@ git commit -m "test: add discover-worktrees merged PR filtering tests"
 Replace the current `row:discover` handler (lines 397–421) with:
 
 ```typescript
-  ipcMain.handle('row:discover', async (_event, data: { projectId: string }) => {
-    const project = projectStore.getProjects().find(p => p.id === data.projectId)
-    if (!project) return { rows: [] }
+ipcMain.handle("row:discover", async (_event, data: { projectId: string }) => {
+  const project = projectStore.getProjects().find((p) => p.id === data.projectId);
+  if (!project) return { rows: [] };
 
-    const worktrees = await worktreeManager.listWorktrees(project.path)
-    const prStatuses = await prStatusChecker.fetchPrStatuses(project.path)
-    const existingPaths = new Set(project.rows.map(r => r.path))
-    const newRows: Row[] = []
+  const worktrees = await worktreeManager.listWorktrees(project.path);
+  const prStatuses = await prStatusChecker.fetchPrStatuses(project.path);
+  const existingPaths = new Set(project.rows.map((r) => r.path));
+  const newRows: Row[] = [];
 
-    for (const wt of worktrees) {
-      if (existingPaths.has(wt.path)) continue
-      if (wt.path === project.path) continue // Skip main worktree
-      if (prStatuses.get(wt.branch) === 'merged') continue // Skip merged PRs
-      const row: Row = {
-        id: randomUUID(),
-        projectId: project.id,
-        branch: wt.branch,
-        path: wt.path,
-        color: goldenAngleColor(project.rows.length + newRows.length),
-        isDefault: false
-      }
-      newRows.push(row)
-      projectStore.addRow(project.id, row)
-    }
+  for (const wt of worktrees) {
+    if (existingPaths.has(wt.path)) continue;
+    if (wt.path === project.path) continue; // Skip main worktree
+    if (prStatuses.get(wt.branch) === "merged") continue; // Skip merged PRs
+    const row: Row = {
+      id: randomUUID(),
+      projectId: project.id,
+      branch: wt.branch,
+      path: wt.path,
+      color: goldenAngleColor(project.rows.length + newRows.length),
+      isDefault: false,
+    };
+    newRows.push(row);
+    projectStore.addRow(project.id, row);
+  }
 
-    return { rows: newRows }
-  })
+  return { rows: newRows };
+});
 ```
 
 The only changes from the original are:
+
 1. Added `const prStatuses = await prStatusChecker.fetchPrStatuses(project.path)` after listing worktrees
 2. Added `if (prStatuses.get(wt.branch) === 'merged') continue` in the filter loop
 

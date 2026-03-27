@@ -34,10 +34,10 @@ If `gh` CLI is unavailable or the `fetchPrStatuses` call fails, it returns an em
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
+| File                | Change                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
 | `src/main/index.ts` | Import `prStatusChecker`, add `fetchPrStatuses` call and merged-branch filter in `row:discover` handler |
-| `tests/main/` | Add tests for: merged PR skipped, open/no PR added, gh unavailable fallback |
+| `tests/main/`       | Add tests for: merged PR skipped, open/no PR added, gh unavailable fallback                             |
 
 ## Testing
 

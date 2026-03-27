@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "command": "npx prettier --write $CLAUDE_FILE_PATH"
+      }
+    ]
+  }
+}

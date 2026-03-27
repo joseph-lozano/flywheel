@@ -6,9 +6,9 @@ Add keyboard shortcuts to swap the focused panel with its neighbor, allowing use
 
 ## Shortcuts
 
-| Shortcut | Action | Boundary behavior |
-|----------|--------|-------------------|
-| Cmd+Shift+Left | Swap focused panel with left neighbor | No-op at leftmost position |
+| Shortcut        | Action                                 | Boundary behavior           |
+| --------------- | -------------------------------------- | --------------------------- |
+| Cmd+Shift+Left  | Swap focused panel with left neighbor  | No-op at leftmost position  |
 | Cmd+Shift+Right | Swap focused panel with right neighbor | No-op at rightmost position |
 
 Both shortcuts work in terminal-focused and strip (blurred) modes, matching the behavior of Cmd+Left/Right navigation.
@@ -57,12 +57,12 @@ Add swap shortcuts to the hint bar for discoverability.
 
 ## Edge Cases
 
-| Scenario | Behavior |
-|----------|----------|
-| Single panel, either direction | No-op |
-| Leftmost panel, swap left | No-op |
-| Rightmost panel, swap right | No-op |
-| Two panels, swap | Panels exchange positions, focus follows |
+| Scenario                       | Behavior                                 |
+| ------------------------------ | ---------------------------------------- |
+| Single panel, either direction | No-op                                    |
+| Leftmost panel, swap left      | No-op                                    |
+| Rightmost panel, swap right    | No-op                                    |
+| Two panels, swap               | Panels exchange positions, focus follows |
 
 ## Files to Modify
 

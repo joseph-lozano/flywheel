@@ -1,55 +1,63 @@
 export interface FlywheelConfig {
   preferences: {
     terminal: {
-      fontFamily: string
-      fontSize: number
-    }
+      fontFamily: string;
+      fontSize: number;
+    };
     browser: {
-      defaultZoom: number
-    }
+      defaultZoom: number;
+    };
     app: {
-      defaultZoom: number
-    }
-  }
+      defaultZoom: number;
+    };
+  };
 }
 
 export const DEFAULT_CONFIG: FlywheelConfig = {
   preferences: {
     terminal: {
-      fontFamily: 'monospace',
-      fontSize: 14
+      fontFamily: "monospace",
+      fontSize: 14,
     },
     browser: {
-      defaultZoom: 0
+      defaultZoom: 0,
     },
     app: {
-      defaultZoom: 0
-    }
-  }
-}
+      defaultZoom: 0,
+    },
+  },
+};
 
-function deepMerge(target: any, source: any): any {
-  const result = { ...target }
+function deepMerge(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...target };
   for (const key of Object.keys(source)) {
+    const sourceVal = source[key];
+    const targetVal = target[key];
     if (
-      source[key] !== null &&
-      typeof source[key] === 'object' &&
-      !Array.isArray(source[key]) &&
-      typeof target[key] === 'object' &&
-      target[key] !== null
+      sourceVal !== null &&
+      typeof sourceVal === "object" &&
+      !Array.isArray(sourceVal) &&
+      typeof targetVal === "object" &&
+      targetVal !== null
     ) {
-      result[key] = deepMerge(target[key], source[key])
+      result[key] = deepMerge(
+        targetVal as Record<string, unknown>,
+        sourceVal as Record<string, unknown>,
+      );
     } else {
-      result[key] = source[key]
+      result[key] = sourceVal;
     }
   }
-  return result
+  return result;
 }
 
 export function mergeConfigs(layers: Partial<FlywheelConfig>[]): FlywheelConfig {
-  let result: FlywheelConfig = structuredClone(DEFAULT_CONFIG)
+  let result = structuredClone(DEFAULT_CONFIG) as Record<string, unknown>;
   for (let i = layers.length - 1; i >= 0; i--) {
-    result = deepMerge(result, layers[i])
+    result = deepMerge(result, layers[i] as Record<string, unknown>);
   }
-  return result
+  return result as unknown as FlywheelConfig;
 }

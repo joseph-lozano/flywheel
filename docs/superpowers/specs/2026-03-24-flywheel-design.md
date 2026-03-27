@@ -25,6 +25,7 @@ Each project has a default row tied to its working directory. Additional rows ca
 Windows are arranged as columns in an infinite horizontal strip within each row. The viewport scrolls left/right to reveal windows, Niri-style.
 
 **Key properties:**
+
 - Opening or closing a window never causes other windows to resize
 - New windows appear to the right of the currently focused window
 - Windows have a fixed default width as a percentage of viewport (configurable preset: half, third, or two-thirds). Per-window resize is a stretch goal.
@@ -110,6 +111,7 @@ The project config file lives in the project root. Format TBD — the important 
 All app-level shortcuts use a modifier key to avoid conflicts with terminal input. Exact bindings are configurable; sensible defaults TBD.
 
 **Conceptual mapping:**
+
 - **Mod+Left/Right** — Move focus between windows in the strip. Focus follows scroll (the strip auto-scrolls to center the focused window).
 - **Mod+Up/Down** — Switch between rows (worktrees). Replaces current strip.
 - **Mod+T** — New terminal to the right of focused window

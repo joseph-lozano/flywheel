@@ -1,5 +1,6 @@
-import { render } from 'solid-js/web'
-import './global.css'
-import App from './App'
+import { render } from "solid-js/web";
+import App from "./App";
+import "./global.css";
 
-render(() => <App />, document.getElementById('root')!)
+const root = document.getElementById("root");
+if (root) render(() => <App />, root);

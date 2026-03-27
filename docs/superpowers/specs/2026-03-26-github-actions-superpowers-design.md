@@ -3,6 +3,7 @@
 ## Goal
 
 Integrate the superpowers plugin into GitHub Actions workflows so that:
+
 1. PR code reviews use the superpowers requesting-code-review skill
 2. Labeling an issue `claude-auto-pr` triggers Claude to autonomously plan, implement, and open a draft PR
 
@@ -14,14 +15,14 @@ Integrate the superpowers plugin into GitHub Actions workflows so that:
 
 ## Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Autonomous trigger | `claude-auto-pr` label | Clear intent signal, visible on issue, cleanly separated from interactive `@claude` workflow |
-| Autonomous pipeline | Plan → execute (skip brainstorming) | Issues are small; brainstorming is designed for dialogue and adds overhead without a human partner |
-| PR type from autonomous | Draft PR | Gives the user a chance to review before code review triggers |
-| Code review trigger | All non-draft PRs | Draft PRs (including Claude's auto-PRs) are excluded until manually promoted |
-| Interactive workflow | Unchanged | No need to add superpowers to conversational `@claude` usage |
-| Plugin delivery | `plugin_marketplaces` + `plugins` params | Official plugin system, stays in sync with upstream skill updates |
+| Decision                | Choice                                   | Rationale                                                                                          |
+| ----------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Autonomous trigger      | `claude-auto-pr` label                   | Clear intent signal, visible on issue, cleanly separated from interactive `@claude` workflow       |
+| Autonomous pipeline     | Plan → execute (skip brainstorming)      | Issues are small; brainstorming is designed for dialogue and adds overhead without a human partner |
+| PR type from autonomous | Draft PR                                 | Gives the user a chance to review before code review triggers                                      |
+| Code review trigger     | All non-draft PRs                        | Draft PRs (including Claude's auto-PRs) are excluded until manually promoted                       |
+| Interactive workflow    | Unchanged                                | No need to add superpowers to conversational `@claude` usage                                       |
+| Plugin delivery         | `plugin_marketplaces` + `plugins` params | Official plugin system, stays in sync with upstream skill updates                                  |
 
 ## Workflow Architecture
 
@@ -34,12 +35,14 @@ Three workflow files, cleanly separated by purpose:
 **Permissions:** `contents: read`, `pull-requests: write`, `issues: read`, `id-token: write`
 
 **Behavior:**
+
 - Installs superpowers plugin via marketplace
 - Prompts Claude to invoke the `requesting-code-review` skill
 - The skill dispatches a code-reviewer subagent with structured severity categories (Critical, Important, Minor)
 - Review output is posted as PR comments
 
 **Changes from current:**
+
 - Replaces `code-review@claude-code-plugins` plugin with `superpowers@claude-plugins-official`
 - Replaces marketplace URL from `https://github.com/anthropics/claude-code.git` to `https://github.com/anthropics/claude-plugins-official`
 - Adds `if: github.event.pull_request.draft == false` filter
@@ -51,6 +54,7 @@ Three workflow files, cleanly separated by purpose:
 **Permissions:** `contents: write`, `pull-requests: write`, `issues: write`, `id-token: write`
 
 **Behavior:**
+
 - Installs superpowers plugin via marketplace
 - Reads the issue title and body
 - Prompts Claude to:
@@ -60,6 +64,7 @@ Three workflow files, cleanly separated by purpose:
 - Claude makes all decisions autonomously (no clarifying questions, no waiting for approval)
 
 **Prompt structure:**
+
 ```
 Read issue #<number>: <title>
 

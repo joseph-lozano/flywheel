@@ -13,6 +13,7 @@
 ### Task 1: Update Code Review Workflow
 
 **Files:**
+
 - Modify: `.github/workflows/claude-code-review.yml`
 
 - [ ] **Step 1: Replace the entire contents of `.github/workflows/claude-code-review.yml`**
@@ -68,6 +69,7 @@ git commit -m "feat: switch code review to superpowers requesting-code-review sk
 ### Task 2: Create Autonomous Issue-to-Draft-PR Workflow
 
 **Files:**
+
 - Create: `.github/workflows/claude-auto-pr.yml`
 
 - [ ] **Step 1: Create `.github/workflows/claude-auto-pr.yml` with the following contents**
@@ -128,6 +130,7 @@ git commit -m "feat: add claude-auto-pr workflow for autonomous issue-to-draft-P
 ### Task 3: Format All Workflow Files with Prettier
 
 **Files:**
+
 - Modify: `.github/workflows/claude-code-review.yml`
 - Modify: `.github/workflows/claude-auto-pr.yml`
 - Modify: `.github/workflows/claude.yml`

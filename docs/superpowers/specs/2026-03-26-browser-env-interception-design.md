@@ -75,9 +75,9 @@ In `terminal.ts`, register a custom OSC 7770 handler:
 
 ```ts
 terminal.parser.registerOscHandler(7770, (data) => {
-  window.pty.openUrl(data)
-  return true
-})
+  window.pty.openUrl(data);
+  return true;
+});
 ```
 
 The `data` parameter is the URL string between the OSC opener (`\033]7770;`) and the terminator (`\007`). Feeds into the existing `openUrl` -> `browser:open-url-from-terminal` -> `browser:open-url` -> `activeStrip().addPanel('browser', url)` pipeline.
@@ -100,8 +100,8 @@ This spec covers the new entry point only. The existing URL-opening pipeline (`a
 
 ## Files changed
 
-| File | Change |
-|------|--------|
-| `src/main/index.ts` | Script installation at startup |
-| `src/main/pty-manager.ts` | Inject `BROWSER`, `PATH`, `FLYWHEEL` into PTY env |
-| `src/terminal/terminal.ts` | Register OSC 7770 handler |
+| File                       | Change                                            |
+| -------------------------- | ------------------------------------------------- |
+| `src/main/index.ts`        | Script installation at startup                    |
+| `src/main/pty-manager.ts`  | Inject `BROWSER`, `PATH`, `FLYWHEEL` into PTY env |
+| `src/terminal/terminal.ts` | Register OSC 7770 handler                         |

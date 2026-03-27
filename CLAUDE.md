@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` — dev server with hot reload
 - `npm test` — run all tests (`vitest run`)
 - `npm run test:watch` — watch mode
+- `npm run lint` — run ESLint (strict type-checked rules)
+- `npm run format` — format with Prettier (double quotes, semis, organize-imports)
 - `npm run package:dir` — fast unsigned app bundle for local testing
 - `npm run package` — signed + notarized DMG (requires code-signing env vars)
 - `npm run package:linux` — Linux AppImage + deb (runs on Linux host)

@@ -113,12 +113,12 @@ Responsibilities:
 
 ### New shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Cmd+= | Zoom in focused panel or app chrome |
-| Cmd+- | Zoom out focused panel or app chrome |
-| Cmd+0 | Reset zoom to config default |
-| Cmd+Shift+, | Reload config from disk |
+| Shortcut    | Action                               |
+| ----------- | ------------------------------------ |
+| Cmd+=       | Zoom in focused panel or app chrome  |
+| Cmd+-       | Zoom out focused panel or app chrome |
+| Cmd+0       | Reset zoom to config default         |
+| Cmd+Shift+, | Reload config from disk              |
 
 ### Registration
 

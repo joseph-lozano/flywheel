@@ -12,18 +12,18 @@ Add rows to Flywheel so that each project can have multiple independent strips o
 
 ## Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Row–worktree relationship | Worktree-first with default row | Default row is the main checkout. Additional rows always create worktrees. Non-git projects get a single row with no ability to add more. |
-| Worktree location | `~/.flywheel/worktrees/<project>/<name>/` | Centralized, out of the way, doesn't clutter the project directory. Configurable later (Phase 5 config). |
-| Worktree base commit | `origin/HEAD`, fallback to default branch HEAD | Branching from remote HEAD gives the freshest base without needing to pull. Falls back gracefully for repos with no remote. |
-| Row creation UX | Cmd+N, zero prompts, random name | Instant creation with `adjective-noun-NNN` name. User renames the branch with `git branch -m` if desired. |
-| Sidebar tree | Colored Lucide git-branch icon per row | Golden-angle hue spacing for distinct colors. Lucide chevron-down/chevron-right for expand/collapse. |
-| Row deletion | Confirmation with two options | "Remove from Flywheel" (sidebar only) vs "Remove and delete from disk" (also runs `git worktree remove`). |
-| Worktree discovery | Manual via right-click menu | "Discover Worktrees" runs `git worktree list` and adds found worktrees as rows. Not automatic. |
-| Branch rename detection | Event-driven checks | Check on: row switch, window focus, Cmd+N, terminal busy→idle. Match rows by path, update branch name if changed. |
-| Non-git projects | Graceful degradation | Single default row, no expand/collapse, Cmd+N does nothing. Behaves like Phase 3. |
-| Strip store keying | By row ID | `stripStores` and `stripSnapshots` maps key on `rowId` instead of `projectId`. |
+| Decision                  | Choice                                         | Rationale                                                                                                                                 |
+| ------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Row–worktree relationship | Worktree-first with default row                | Default row is the main checkout. Additional rows always create worktrees. Non-git projects get a single row with no ability to add more. |
+| Worktree location         | `~/.flywheel/worktrees/<project>/<name>/`      | Centralized, out of the way, doesn't clutter the project directory. Configurable later (Phase 5 config).                                  |
+| Worktree base commit      | `origin/HEAD`, fallback to default branch HEAD | Branching from remote HEAD gives the freshest base without needing to pull. Falls back gracefully for repos with no remote.               |
+| Row creation UX           | Cmd+N, zero prompts, random name               | Instant creation with `adjective-noun-NNN` name. User renames the branch with `git branch -m` if desired.                                 |
+| Sidebar tree              | Colored Lucide git-branch icon per row         | Golden-angle hue spacing for distinct colors. Lucide chevron-down/chevron-right for expand/collapse.                                      |
+| Row deletion              | Confirmation with two options                  | "Remove from Flywheel" (sidebar only) vs "Remove and delete from disk" (also runs `git worktree remove`).                                 |
+| Worktree discovery        | Manual via right-click menu                    | "Discover Worktrees" runs `git worktree list` and adds found worktrees as rows. Not automatic.                                            |
+| Branch rename detection   | Event-driven checks                            | Check on: row switch, window focus, Cmd+N, terminal busy→idle. Match rows by path, update branch name if changed.                         |
+| Non-git projects          | Graceful degradation                           | Single default row, no expand/collapse, Cmd+N does nothing. Behaves like Phase 3.                                                         |
+| Strip store keying        | By row ID                                      | `stripStores` and `stripSnapshots` maps key on `rowId` instead of `projectId`.                                                            |
 
 ## Data Model
 
@@ -31,26 +31,27 @@ Add rows to Flywheel so that each project can have multiple independent strips o
 
 ```typescript
 interface Row {
-  id: string           // e.g., "row-abc123"
-  projectId: string
-  branch: string       // git branch name, kept in sync
-  path: string         // absolute path — default row uses project.path
-  color: string        // HSL string from golden-angle generator
-  isDefault: boolean   // true for main working directory row
+  id: string; // e.g., "row-abc123"
+  projectId: string;
+  branch: string; // git branch name, kept in sync
+  path: string; // absolute path — default row uses project.path
+  color: string; // HSL string from golden-angle generator
+  isDefault: boolean; // true for main working directory row
 }
 
 interface Project {
-  id: string
-  name: string
-  path: string
-  missing?: boolean
-  rows: Row[]          // always has at least one (isDefault: true)
-  activeRowId: string  // always points to a valid row
-  expanded: boolean    // sidebar expand/collapse state
+  id: string;
+  name: string;
+  path: string;
+  missing?: boolean;
+  rows: Row[]; // always has at least one (isDefault: true)
+  activeRowId: string; // always points to a valid row
+  expanded: boolean; // sidebar expand/collapse state
 }
 ```
 
 When a project is first added, a default row is created automatically:
+
 ```typescript
 {
   id: generateId(),
@@ -67,10 +68,10 @@ When a project is first added, a default row is created automatically:
 ```typescript
 // One per row, held in Map<rowId, StripState>
 interface StripState {
-  panels: Panel[]
-  focusedIndex: number
-  scrollOffset: number
-  terminalFocused: boolean
+  panels: Panel[];
+  focusedIndex: number;
+  scrollOffset: number;
+  terminalFocused: boolean;
 }
 ```
 
@@ -83,6 +84,7 @@ Panel IDs change from `{projectId}-panel-N` to `{rowId}-panel-N`. Existing prefi
 Handles all git worktree operations. Isolated from panel/PTY management.
 
 **Responsibilities:**
+
 - Create worktrees: `git worktree add -b <name> <path> <base>`
 - Remove worktrees: `git worktree remove <path>`
 - List worktrees: `git worktree list --porcelain`
@@ -92,6 +94,7 @@ Handles all git worktree operations. Isolated from panel/PTY management.
 - Ensure `~/.flywheel/worktrees/<project>/` directory exists before creating worktrees
 
 **Name generation:**
+
 - Two word lists: ~50 adjectives, ~50 nouns
 - Three-digit zero-padded random number
 - Example: `brave-eagle-042`, `swift-river-117`, `quiet-pine-803`
@@ -103,8 +106,8 @@ Golden-angle hue rotation for maximally distinct colors:
 
 ```typescript
 function goldenAngleColor(index: number): string {
-  const hue = (index * 137.508) % 360
-  return `hsl(${hue}, 65%, 65%)`
+  const hue = (index * 137.508) % 360;
+  return `hsl(${hue}, 65%, 65%)`;
 }
 ```
 
@@ -113,6 +116,7 @@ Fixed saturation and lightness tuned for readability on dark backgrounds. Each n
 ### Store Changes
 
 **App store** gains row management:
+
 - `addRow(projectId, row)` — append to project's rows, persist
 - `removeRow(projectId, rowId)` — remove from rows, persist. If removed row was active, switch to default row.
 - `switchRow(projectId, rowId)` — update `activeRowId`, persist
@@ -121,6 +125,7 @@ Fixed saturation and lightness tuned for readability on dark backgrounds. Each n
 - `discoverWorktrees(projectId, rows)` — merge discovered rows into project
 
 **Strip store** keying changes:
+
 - `stripStores: Map<rowId, StripState>` (was `Map<projectId, StripState>`)
 - `stripSnapshots: Map<rowId, StripSnapshot>` (was `Map<projectId, StripSnapshot>`)
 - `findStripByPanelId()` matches on `rowId` prefix (was `projectId`)
@@ -128,6 +133,7 @@ Fixed saturation and lightness tuned for readability on dark backgrounds. Each n
 ### Panel ID Migration
 
 Existing panels use `{projectId}-panel-N`. After Phase 4, all panels use `{rowId}-panel-N`. On first launch after upgrade:
+
 1. For each project, create the default row with a new `rowId`
 2. Existing in-memory panels won't exist (app restart), so no panel migration is needed
 3. Strip snapshots are ephemeral (in-memory only), so no snapshot migration
@@ -138,20 +144,20 @@ This is a clean transition — no persisted panel IDs need updating.
 
 ### New Channels
 
-| Channel | Direction | Payload | Purpose |
-|---------|-----------|---------|---------|
-| `row:create` | renderer → main (invoke) | `{ projectId }` | Create worktree + row. Returns `{ row: Row }` or `{ error: string }`. |
-| `row:remove` | renderer → main (invoke) | `{ rowId, deleteFromDisk: boolean }` | Remove row. Returns `{ error?: string }`. If `deleteFromDisk`, runs `git worktree remove` — error returned if git refuses (uncommitted changes). Row is still removed from sidebar regardless. |
-| `row:discover` | renderer → main (invoke) | `{ projectId }` | Discover existing worktrees via `git worktree list`. Returns `{ rows: Row[] }`. |
-| `row:check-branches` | renderer → main (invoke) | `{ projectId }` | Check for branch renames. Returns `{ updates: { rowId: string, branch: string }[] }`. |
+| Channel              | Direction                | Payload                              | Purpose                                                                                                                                                                                        |
+| -------------------- | ------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `row:create`         | renderer → main (invoke) | `{ projectId }`                      | Create worktree + row. Returns `{ row: Row }` or `{ error: string }`.                                                                                                                          |
+| `row:remove`         | renderer → main (invoke) | `{ rowId, deleteFromDisk: boolean }` | Remove row. Returns `{ error?: string }`. If `deleteFromDisk`, runs `git worktree remove` — error returned if git refuses (uncommitted changes). Row is still removed from sidebar regardless. |
+| `row:discover`       | renderer → main (invoke) | `{ projectId }`                      | Discover existing worktrees via `git worktree list`. Returns `{ rows: Row[] }`.                                                                                                                |
+| `row:check-branches` | renderer → main (invoke) | `{ projectId }`                      | Check for branch renames. Returns `{ updates: { rowId: string, branch: string }[] }`.                                                                                                          |
 
 ### Changed Channels
 
-| Channel | Change |
-|---------|--------|
-| `pty:create` | No interface change. Renderer now passes `row.path` as `cwd` instead of `project.path`. |
-| `panel:hide-by-prefix` / `panel:show-by-prefix` | No interface change. Prefix is now a `rowId` instead of `projectId`. |
-| `project:add` | After creating the project, also creates the default row and returns it as part of the project data. |
+| Channel                                         | Change                                                                                               |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `pty:create`                                    | No interface change. Renderer now passes `row.path` as `cwd` instead of `project.path`.              |
+| `panel:hide-by-prefix` / `panel:show-by-prefix` | No interface change. Prefix is now a `rowId` instead of `projectId`.                                 |
+| `project:add`                                   | After creating the project, also creates the default row and returns it as part of the project data. |
 
 ### Preload Additions
 
@@ -178,6 +184,7 @@ Same pattern as project switching, one level deeper. **Project switching now del
 7. Trigger branch name check (`row:check-branches`)
 
 What stays alive in hidden rows:
+
 - PTYs keep running
 - Browser panels keep loaded pages
 - Terminal scrollback preserved
@@ -232,12 +239,14 @@ The default row (isDefault: true) cannot be removed. The context menu does not s
 ## Branch Rename Detection
 
 **Triggers:**
+
 - Row switch (step 7 in Row Switching Flow)
 - Window focus (`BrowserWindow` `focus` event)
 - Cmd+N (after creating new row)
 - Terminal busy→idle transition (any terminal in the active project's active row)
 
 **Detection logic:**
+
 1. Run `git -C <project.path> worktree list --porcelain`
 2. Parse output into `Map<path, branch>`
 3. For each row in `project.rows`:
@@ -264,11 +273,13 @@ PROJECTS
 ```
 
 **Project header row:**
+
 - Lucide `chevron-down` (expanded) or `chevron-right` (collapsed) icon — click to toggle
 - Project name — click to switch to this project (activates its active row)
 - Active project: white text. Inactive: dimmed.
 
 **Row entries (when expanded):**
+
 - Lucide `git-branch` icon colored with the row's golden-angle color
 - Branch name as text
 - Active row: highlighted background + white text
@@ -276,6 +287,7 @@ PROJECTS
 - Click to switch to this row (also switches project if different)
 
 **Non-git projects:**
+
 - No expand/collapse chevron
 - No row entries
 - Behaves like Phase 3 — just a project name in the list
@@ -283,10 +295,12 @@ PROJECTS
 ### Context Menus
 
 **Right-click on project:**
+
 - Remove Project (existing)
 - Discover Worktrees (new — only shown for git projects)
 
 **Right-click on worktree row:**
+
 - Remove Row (opens two-option confirmation dialog)
 - Not shown for the default row
 
@@ -298,26 +312,26 @@ Same responsive logic as Phase 3 (180px–280px clamped to longest name), now co
 
 ### New Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Cmd+N | Create new worktree row in active project |
-| Cmd+Up | Switch to previous row |
-| Cmd+Down | Switch to next row |
+| Shortcut | Action                                    |
+| -------- | ----------------------------------------- |
+| Cmd+N    | Create new worktree row in active project |
+| Cmd+Up   | Switch to previous row                    |
+| Cmd+Down | Switch to next row                        |
 
 ### Changed Shortcuts
 
-| Shortcut | Was | Now |
-|----------|-----|-----|
-| Cmd+O | Add project | *(removed)* |
-| Cmd+Shift+N | *(unused)* | Add project (replaces Cmd+O) |
+| Shortcut    | Was         | Now                          |
+| ----------- | ----------- | ---------------------------- |
+| Cmd+O       | Add project | _(removed)_                  |
+| Cmd+Shift+N | _(unused)_  | Add project (replaces Cmd+O) |
 
 ### Unchanged Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Cmd+Shift+Up | Previous project |
-| Cmd+Shift+Down | Next project |
-| Cmd+Shift+1-9 | Jump to project by position |
+| Shortcut       | Action                      |
+| -------------- | --------------------------- |
+| Cmd+Shift+Up   | Previous project            |
+| Cmd+Shift+Down | Next project                |
+| Cmd+Shift+1-9  | Jump to project by position |
 
 ### Shortcut Hierarchy
 
@@ -327,6 +341,7 @@ Same responsive logic as Phase 3 (180px–280px clamped to longest name), now co
 ### Hint Bar
 
 The hint bar becomes context-aware for rows:
+
 - Single row (default only): existing hints, no row hints
 - Multiple rows: adds `Cmd+↑↓ Switch Row`, `Cmd+N New Worktree`
 
