@@ -47,7 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: depot-macos-15
+          - os: macos-15 # macOS stays on GitHub Actions — Depot CI is Linux-only
             platform: mac
           - os: depot-ubuntu-24.04
             platform: linux
