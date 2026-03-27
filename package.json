@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "prepare": "husky",
     "postinstall": "npx @electron/rebuild -m node_modules/node-pty",
     "package": "electron-vite build && electron-builder --mac",
     "package:dir": "electron-vite build && electron-builder --mac --dir",
@@ -36,6 +37,15 @@
     "sqids": "^0.3.0",
     "yaml": "^2.8.3"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint",
+      "prettier --check"
+    ],
+    "*.{js,json,css,html}": [
+      "prettier --check"
+    ]
+  },
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
     "electron": "^41.0.0",
@@ -44,6 +54,8 @@
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-solid": "^0.14.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "typescript": "^5.7.0",
