@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { randomUUID } from 'crypto'
-import type { Row, Project, PrStatus } from '../../src/shared/types'
+import type { Project, PrStatus } from '../../src/shared/types'
+import { filterDiscoveredWorktrees } from '../../src/main/discover'
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
@@ -23,34 +23,7 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   }
 }
 
-// Simulate the discovery logic from the row:discover handler
-function discoverNewRows(
-  project: Project,
-  worktrees: { path: string; branch: string }[],
-  prStatuses: Map<string, PrStatus>
-): Row[] {
-  const existingPaths = new Set(project.rows.map(r => r.path))
-  const newRows: Row[] = []
-
-  for (const wt of worktrees) {
-    if (existingPaths.has(wt.path)) continue
-    if (wt.path === project.path) continue
-    if (prStatuses.get(wt.branch) === 'merged') continue
-    const row: Row = {
-      id: randomUUID(),
-      projectId: project.id,
-      branch: wt.branch,
-      path: wt.path,
-      color: 'hsl(137, 70%, 60%)',
-      isDefault: false
-    }
-    newRows.push(row)
-  }
-
-  return newRows
-}
-
-describe('discover worktrees — merged PR filtering', () => {
+describe('filterDiscoveredWorktrees', () => {
   const project = makeProject()
 
   const worktrees = [
@@ -66,7 +39,7 @@ describe('discover worktrees — merged PR filtering', () => {
       ['feat-open', 'open']
     ])
 
-    const rows = discoverNewRows(project, worktrees, prStatuses)
+    const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses)
     const branches = rows.map(r => r.branch)
 
     expect(branches).not.toContain('feat-merged')
@@ -82,14 +55,24 @@ describe('discover worktrees — merged PR filtering', () => {
       ['feat-no-pr', 'closed']
     ])
 
-    const rows = discoverNewRows(project, worktrees, prStatuses)
+    const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses)
+    const branches = rows.map(r => r.branch)
+
+    expect(branches).toContain('feat-merged')
+    expect(branches).toContain('feat-open')
+    expect(branches).toContain('feat-no-pr')
     expect(rows).toHaveLength(3)
   })
 
   it('adds all worktrees when gh is unavailable (empty map)', () => {
     const prStatuses = new Map<string, PrStatus>()
 
-    const rows = discoverNewRows(project, worktrees, prStatuses)
+    const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses)
+    const branches = rows.map(r => r.branch)
+
+    expect(branches).toContain('feat-merged')
+    expect(branches).toContain('feat-open')
+    expect(branches).toContain('feat-no-pr')
     expect(rows).toHaveLength(3)
   })
 })

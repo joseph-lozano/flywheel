@@ -8,6 +8,7 @@ import { ProjectStore } from './project-store'
 import { WorktreeManager } from './worktree-manager'
 import { ConfigManager } from './config-manager'
 import { createPrStatus } from './pr-status'
+import { filterDiscoveredWorktrees } from './discover'
 import { randomUUID } from 'crypto'
 import { existsSync } from 'fs'
 import { goldenAngleColor } from '../shared/constants'
@@ -398,24 +399,13 @@ function setupIpcHandlers(): void {
     const project = projectStore.getProjects().find(p => p.id === data.projectId)
     if (!project) return { rows: [] }
 
-    const worktrees = await worktreeManager.listWorktrees(project.path)
-    const prStatuses = await prStatusChecker.fetchPrStatuses(project.path)
-    const existingPaths = new Set(project.rows.map(r => r.path))
-    const newRows: Row[] = []
+    const [worktrees, prStatuses] = await Promise.all([
+      worktreeManager.listWorktrees(project.path),
+      prStatusChecker.fetchPrStatuses(project.path),
+    ])
 
-    for (const wt of worktrees) {
-      if (existingPaths.has(wt.path)) continue
-      if (wt.path === project.path) continue // Skip main worktree
-      if (prStatuses.get(wt.branch) === 'merged') continue // Skip merged PRs
-      const row: Row = {
-        id: randomUUID(),
-        projectId: project.id,
-        branch: wt.branch,
-        path: wt.path,
-        color: goldenAngleColor(project.rows.length + newRows.length),
-        isDefault: false
-      }
-      newRows.push(row)
+    const newRows = filterDiscoveredWorktrees(project, worktrees, prStatuses)
+    for (const row of newRows) {
       projectStore.addRow(project.id, row)
     }
 
