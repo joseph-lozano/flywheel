@@ -22,8 +22,8 @@ jobs:
             echo "::error::GH_TOKEN expires 2026-06-24. Rotate it now and update the secret."
             exit 1
           fi
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -32,35 +32,25 @@ jobs:
       - run: npm run lint
       - run: npm test
 
-  build-linux:
+  build:
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     strategy:
       fail-fast: false
       matrix:
         include:
+          - os: macos-15
+            platform: mac
           - os: ubuntu-24.04
             platform: linux
           - os: ubuntu-24.04-arm
             platform: linux
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npx electron-vite build
       - run: npx electron-builder --${{ matrix.platform }} --publish never
-
-  build-mac:
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx electron-vite build
-      - run: npx electron-builder --mac --publish never
