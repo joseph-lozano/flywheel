@@ -59,11 +59,11 @@ describe("PtyManager", () => {
     manager.dispose();
   });
 
-  it("creates a PTY session", () => {
+  it("creates a PTY session as a login shell", () => {
     manager.create("panel-1");
     expect(nodePty.spawn).toHaveBeenCalledWith(
       expect.any(String),
-      [],
+      ["-l"],
       expect.objectContaining({ cols: 80, rows: 24, cwd: expect.any(String) as string }),
     );
   });
@@ -118,7 +118,7 @@ describe("PtyManager", () => {
     manager.create("panel-1", "/Users/test/my-project");
     expect(nodePty.spawn).toHaveBeenCalledWith(
       expect.any(String),
-      [],
+      ["-l"],
       expect.objectContaining({ cwd: "/Users/test/my-project" }),
     );
   });
@@ -127,7 +127,7 @@ describe("PtyManager", () => {
     manager.create("panel-1");
     expect(nodePty.spawn).toHaveBeenCalledWith(
       expect.any(String),
-      [],
+      ["-l"],
       expect.objectContaining({ cwd: process.cwd() }),
     );
   });
