@@ -20,6 +20,7 @@ declare global {
       getConfig: () => Promise<{ terminal: { fontFamily: string; fontSize: number } }>
       onConfigUpdated: (callback: (config: any) => void) => void
       onSetFontSize: (callback: (data: { fontSize: number }) => void) => void
+      closePanel: (panelId: string) => void
     }
   }
 }
