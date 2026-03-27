@@ -10,6 +10,7 @@ declare global {
       goBack: () => void
       goForward: () => void
       reload: () => void
+      closePanel: () => void
       onChromeState: (callback: (state: {
         position: number; label: string; focused: boolean;
         url: string; canGoBack: boolean; canGoForward: boolean;
