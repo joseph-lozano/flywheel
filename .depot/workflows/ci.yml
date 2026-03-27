@@ -47,11 +47,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-15
+          - os: depot-macos-15
             platform: mac
-          - os: ubuntu-24.04
+          - os: depot-ubuntu-24.04
             platform: linux
-          - os: ubuntu-24.04-arm
+          - os: depot-ubuntu-24.04-arm
             platform: linux
     runs-on: ${{ matrix.os }}
     steps:
