@@ -12,16 +12,17 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `src/main/scripts.ts` | Update `FLYWHEEL_OPEN`, `OPEN_WRAPPER`, `XDG_OPEN_WRAPPER` constants with TTY guard + fallback |
-| `tests/main/scripts.test.ts` | Update existing TTY assertion; add tests for fallback content |
+| File                         | Change                                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/main/scripts.ts`        | Update `FLYWHEEL_OPEN`, `OPEN_WRAPPER`, `XDG_OPEN_WRAPPER` constants with TTY guard + fallback |
+| `tests/main/scripts.test.ts` | Update existing TTY assertion; add tests for fallback content                                  |
 
 ---
 
 ### Task 1: Update `FLYWHEEL_OPEN` script constant
 
 **Files:**
+
 - Modify: `src/main/scripts.ts:4-9`
 - Test: `tests/main/scripts.test.ts`
 
@@ -87,6 +88,7 @@ git commit -m "fix: guard flywheel-open against missing /dev/tty"
 ### Task 2: Update `OPEN_WRAPPER` script constant (macOS)
 
 **Files:**
+
 - Modify: `src/main/scripts.ts:11-18`
 - Test: `tests/main/scripts.test.ts`
 
@@ -153,6 +155,7 @@ git commit -m "fix: guard open wrapper against missing /dev/tty on macOS"
 ### Task 3: Update `XDG_OPEN_WRAPPER` script constant (Linux)
 
 **Files:**
+
 - Modify: `src/main/scripts.ts:20-27`
 - Test: `tests/main/scripts.test.ts`
 

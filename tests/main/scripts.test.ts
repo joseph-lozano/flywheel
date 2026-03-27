@@ -27,7 +27,8 @@ describe("installScripts", () => {
     installScripts(tempDir);
     const binDir = join(tempDir, ".flywheel", "bin");
     const script = readFileSync(join(binDir, "flywheel-open"), "utf-8");
-    expect(script).toContain("[ -w /dev/tty ]");
+    // Uses try-and-fallback: attempt write to /dev/tty, suppress errors, fall back
+    expect(script).toContain("> /dev/tty 2>/dev/null");
     expect(script).toContain("command -v open");
     expect(script).toContain("command -v xdg-open");
   });
@@ -60,7 +61,7 @@ describe("installScripts", () => {
     installScripts(tempDir, "darwin");
     const binDir = join(tempDir, ".flywheel", "bin");
     const script = readFileSync(join(binDir, "open"), "utf-8");
-    expect(script).toContain("[ -w /dev/tty ]");
+    expect(script).toContain("> /dev/tty 2>/dev/null");
     // Should call /usr/bin/open as fallback for HTTP URLs too
     const httpBlock = script.slice(script.indexOf("http://"));
     expect(httpBlock).toContain("/usr/bin/open");
@@ -76,7 +77,7 @@ describe("installScripts", () => {
     installScripts(tempDir, "linux");
     const binDir = join(tempDir, ".flywheel", "bin");
     const script = readFileSync(join(binDir, "xdg-open"), "utf-8");
-    expect(script).toContain("[ -w /dev/tty ]");
+    expect(script).toContain("> /dev/tty 2>/dev/null");
     // Should call /usr/bin/xdg-open as fallback for HTTP URLs too
     const httpBlock = script.slice(script.indexOf("http://"));
     expect(httpBlock).toContain("/usr/bin/xdg-open");
