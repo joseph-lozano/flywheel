@@ -176,7 +176,13 @@ export default function Sidebar(props: SidebarProps) {
                           onMouseEnter={() => setHoveredId(row.id)}
                           onMouseLeave={() => setHoveredId(null)}
                         >
-                          <Show when={row.prStatus}>
+                          <Show when={row.prStatus} fallback={
+                            <Show when={row.isDefault}>
+                              <svg width="10" height="10" viewBox="0 0 10 10">
+                                <circle cx="5" cy="5" r="4" fill={row.color} />
+                              </svg>
+                            </Show>
+                          }>
                             <PullRequest color={PR_STATUS_COLORS[row.prStatus!]} />
                           </Show>
                           <span style={{ overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{row.branch}</span>
