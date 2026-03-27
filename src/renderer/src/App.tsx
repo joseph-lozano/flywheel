@@ -96,7 +96,6 @@ export default function App() {
         if (currentProject) {
           const currentStore = stripStores.get(currentProject.activeRowId)
           if (currentStore) stripSnapshots.set(currentProject.activeRowId, currentStore.getSnapshot())
-          window.api.hidePanelsByPrefix(currentProject.activeRowId)
         }
       }
       appStore.actions.switchProject(projectId)
