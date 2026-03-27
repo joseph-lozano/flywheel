@@ -8,7 +8,7 @@ export const DOT_GRID_SVG = `<svg class="dot-grid" width="10" height="14" viewBo
   <circle cx="15" cy="12" r="1.5"/>
   <circle cx="9" cy="19" r="1.5"/>
   <circle cx="15" cy="19" r="1.5"/>
-</svg>`
+</svg>`;
 
 export const DOT_GRID_CSS = `
 .dot-grid-wrap {
@@ -44,16 +44,16 @@ export const DOT_GRID_CSS = `
   30% { opacity: 1; fill: #a5b4fc; transform: scale(1.5); }
   60% { opacity: 0.2; fill: #6366f1; transform: scale(1); }
 }
-`
+`;
 
 export function initDotGrid(wrap: HTMLElement): void {
-  wrap.className = 'dot-grid-wrap'
-  wrap.innerHTML = DOT_GRID_SVG
-  const style = document.createElement('style')
-  style.textContent = DOT_GRID_CSS
-  document.head.appendChild(style)
+  wrap.className = "dot-grid-wrap";
+  wrap.innerHTML = DOT_GRID_SVG;
+  const style = document.createElement("style");
+  style.textContent = DOT_GRID_CSS;
+  document.head.appendChild(style);
 }
 
 export function setDotGridBusy(wrap: HTMLElement, busy: boolean): void {
-  wrap.classList.toggle('busy', busy)
+  wrap.classList.toggle("busy", busy);
 }

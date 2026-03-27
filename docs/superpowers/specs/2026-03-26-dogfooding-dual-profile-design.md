@@ -23,12 +23,13 @@ Electron stores all app data (electron-store config, caches, etc.) under a singl
 In the main process, before any store access:
 
 ```ts
-if (process.env['ELECTRON_RENDERER_URL']) {
-  app.setPath('userData', app.getPath('userData') + '-dev')
+if (process.env["ELECTRON_RENDERER_URL"]) {
+  app.setPath("userData", app.getPath("userData") + "-dev");
 }
 ```
 
 This means:
+
 - **Production** userData: `~/Library/Application Support/flywheel/` (the default)
 - **Dev** userData: `~/Library/Application Support/flywheel-dev/`
 

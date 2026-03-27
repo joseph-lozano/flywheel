@@ -13,29 +13,32 @@
 ## File Structure
 
 ### New files
-| File | Responsibility |
-|------|---------------|
+
+| File                      | Responsibility                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `src/browser/dot-grid.ts` | Shared dot-grid SVG string, CSS animation string, and `setDotGridBusy()` toggle function (~40 lines) |
 
 ### Modified files
-| File | Changes |
-|------|---------|
-| `src/shared/types.ts` | Add `busy?: boolean` to `PanelChromeState` |
-| `src/main/pty-manager.ts` | Change `TITLE_CHECK_INTERVAL` from 60 to 30 (~0.5s); send `busy` alongside title changes |
-| `src/main/panel-manager.ts` | Add `did-start-loading`/`did-stop-loading` hooks; add `busy?` to `sendChromeState` signature |
-| `src/main/index.ts` | Enrich `panel:send-chrome-state` with `ptyManager.isBusy()` for terminals; add `busy?` to inline type |
-| `src/preload/index.ts` | Add `busy?` to `sendChromeState` inline type |
-| `src/renderer/src/env.d.ts` | Add `busy?` to `FlywheelAPI` chrome state type |
-| `src/terminal/index.html` | Add `<span>` elements for position, dot-grid, and title in `#panel-titlebar` |
-| `src/terminal/terminal.ts` | Import dot-grid, replace `/` divider, wire up busy toggle |
-| `src/browser/browser-host.html` | Add `<span id="dot-grid">` between pos and globe |
-| `src/browser/browser-host.ts` | Import dot-grid, wire up busy toggle |
+
+| File                            | Changes                                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/shared/types.ts`           | Add `busy?: boolean` to `PanelChromeState`                                                            |
+| `src/main/pty-manager.ts`       | Change `TITLE_CHECK_INTERVAL` from 60 to 30 (~0.5s); send `busy` alongside title changes              |
+| `src/main/panel-manager.ts`     | Add `did-start-loading`/`did-stop-loading` hooks; add `busy?` to `sendChromeState` signature          |
+| `src/main/index.ts`             | Enrich `panel:send-chrome-state` with `ptyManager.isBusy()` for terminals; add `busy?` to inline type |
+| `src/preload/index.ts`          | Add `busy?` to `sendChromeState` inline type                                                          |
+| `src/renderer/src/env.d.ts`     | Add `busy?` to `FlywheelAPI` chrome state type                                                        |
+| `src/terminal/index.html`       | Add `<span>` elements for position, dot-grid, and title in `#panel-titlebar`                          |
+| `src/terminal/terminal.ts`      | Import dot-grid, replace `/` divider, wire up busy toggle                                             |
+| `src/browser/browser-host.html` | Add `<span id="dot-grid">` between pos and globe                                                      |
+| `src/browser/browser-host.ts`   | Import dot-grid, wire up busy toggle                                                                  |
 
 ---
 
 ### Task 1: Create the dot-grid component
 
 **Files:**
+
 - Create: `src/browser/dot-grid.ts`
 
 - [ ] **Step 1: Create `src/browser/dot-grid.ts`**
@@ -51,7 +54,7 @@ export const DOT_GRID_SVG = `<svg class="dot-grid" width="10" height="14" viewBo
   <circle cx="15" cy="12" r="1.5"/>
   <circle cx="9" cy="19" r="1.5"/>
   <circle cx="15" cy="19" r="1.5"/>
-</svg>`
+</svg>`;
 
 export const DOT_GRID_CSS = `
 .dot-grid-wrap {
@@ -86,10 +89,10 @@ export const DOT_GRID_CSS = `
   30% { opacity: 1; fill: #a5b4fc; transform: scale(1.5); }
   60% { opacity: 0.2; fill: #6366f1; transform: scale(1); }
 }
-`
+`;
 
 export function setDotGridBusy(wrap: HTMLElement, busy: boolean): void {
-  wrap.classList.toggle('busy', busy)
+  wrap.classList.toggle("busy", busy);
 }
 ```
 
@@ -110,6 +113,7 @@ git commit -m "feat: add shared dot-grid divider component"
 ### Task 2: Add `busy` to type signatures
 
 **Files:**
+
 - Modify: `src/shared/types.ts`
 - Modify: `src/main/panel-manager.ts`
 - Modify: `src/main/index.ts`
@@ -122,15 +126,15 @@ In `src/shared/types.ts`, add `busy?: boolean` to the `PanelChromeState` interfa
 
 ```ts
 export interface PanelChromeState {
-  panelId: string
-  position: number
-  label: string
-  focused: boolean
-  type: 'terminal' | 'placeholder' | 'browser'
-  url?: string
-  canGoBack?: boolean
-  canGoForward?: boolean
-  busy?: boolean
+  panelId: string;
+  position: number;
+  label: string;
+  focused: boolean;
+  type: "terminal" | "placeholder" | "browser";
+  url?: string;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
+  busy?: boolean;
 }
 ```
 
@@ -195,6 +199,7 @@ git commit -m "feat: add busy field to PanelChromeState type signatures"
 ### Task 3: Wire busy signal — browser loading
 
 **Files:**
+
 - Modify: `src/main/panel-manager.ts`
 
 - [ ] **Step 1: Add `did-start-loading` and `did-stop-loading` hooks**
@@ -203,12 +208,12 @@ In `src/main/panel-manager.ts`, inside the `createPanel` browser branch, after t
 
 ```ts
 // Loading state → animate dot grid in chrome strip
-view.webContents.on('did-start-loading', () => {
-  chromeStripView.webContents.send('panel:chrome-state', { busy: true })
-})
-view.webContents.on('did-stop-loading', () => {
-  chromeStripView.webContents.send('panel:chrome-state', { busy: false })
-})
+view.webContents.on("did-start-loading", () => {
+  chromeStripView.webContents.send("panel:chrome-state", { busy: true });
+});
+view.webContents.on("did-stop-loading", () => {
+  chromeStripView.webContents.send("panel:chrome-state", { busy: false });
+});
 ```
 
 - [ ] **Step 2: Verify build succeeds**
@@ -228,6 +233,7 @@ git commit -m "feat: send busy state on browser loading events"
 ### Task 4: Wire busy signal — terminal process
 
 **Files:**
+
 - Modify: `src/main/pty-manager.ts`
 - Modify: `src/main/index.ts`
 
@@ -236,7 +242,7 @@ git commit -m "feat: send busy state on browser loading events"
 In `src/main/pty-manager.ts`, line 18, change:
 
 ```ts
-const TITLE_CHECK_INTERVAL = 30 // check every ~30 flushes (~0.5s)
+const TITLE_CHECK_INTERVAL = 30; // check every ~30 flushes (~0.5s)
 ```
 
 - [ ] **Step 2: Send busy alongside title in `checkTitles`**
@@ -249,16 +255,29 @@ In `src/main/index.ts`, update the `panel:send-chrome-state` handler to enrich t
 
 ```ts
 // Chrome view → send chrome state to a panel's views
-ipcMain.on('panel:send-chrome-state', (_event, data: {
-  panelId: string; position: number; label: string; focused: boolean;
-  type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean; busy?: boolean
-}) => {
-  // Enrich terminal panels with busy state from PTY
-  if (data.type === 'terminal') {
-    data.busy = ptyManager.isBusy(data.panelId)
-  }
-  panelManager.sendChromeState(data.panelId, data)
-})
+ipcMain.on(
+  "panel:send-chrome-state",
+  (
+    _event,
+    data: {
+      panelId: string;
+      position: number;
+      label: string;
+      focused: boolean;
+      type: string;
+      url?: string;
+      canGoBack?: boolean;
+      canGoForward?: boolean;
+      busy?: boolean;
+    },
+  ) => {
+    // Enrich terminal panels with busy state from PTY
+    if (data.type === "terminal") {
+      data.busy = ptyManager.isBusy(data.panelId);
+    }
+    panelManager.sendChromeState(data.panelId, data);
+  },
+);
 ```
 
 - [ ] **Step 4: Verify build succeeds**
@@ -278,6 +297,7 @@ git commit -m "feat: send terminal busy state via chrome state IPC"
 ### Task 5: Integrate dot-grid into terminal title bar
 
 **Files:**
+
 - Modify: `src/terminal/index.html`
 - Modify: `src/terminal/terminal.ts`
 
@@ -298,9 +318,14 @@ In `src/terminal/index.html`, replace the `<div id="panel-titlebar"></div>` (lin
 In `src/terminal/index.html`, add these rules inside the existing `<style>` block, after the `#panel-titlebar.focused` rule (after line 18):
 
 ```css
-#pos-label { flex-shrink: 0; }
+#pos-label {
+  flex-shrink: 0;
+}
 #title-label {
-  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 ```
 
@@ -309,33 +334,33 @@ In `src/terminal/index.html`, add these rules inside the existing `<style>` bloc
 In `src/terminal/terminal.ts`, add the imports at the top (after the existing imports):
 
 ```ts
-import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from '../browser/dot-grid'
+import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from "../browser/dot-grid";
 ```
 
 Replace the chrome state section at the bottom of the file (the `titleBar`, `onChromeState` block, lines 82-89) with:
 
 ```ts
 // Chrome state → title bar with dot-grid divider
-const posLabel = document.getElementById('pos-label')!
-const dotGridWrap = document.getElementById('dot-grid')!
-const titleLabel = document.getElementById('title-label')!
+const posLabel = document.getElementById("pos-label")!;
+const dotGridWrap = document.getElementById("dot-grid")!;
+const titleLabel = document.getElementById("title-label")!;
 
 // Inject dot-grid SVG and CSS
-dotGridWrap.className = 'dot-grid-wrap'
-dotGridWrap.innerHTML = DOT_GRID_SVG
-const style = document.createElement('style')
-style.textContent = DOT_GRID_CSS
-document.head.appendChild(style)
+dotGridWrap.className = "dot-grid-wrap";
+dotGridWrap.innerHTML = DOT_GRID_SVG;
+const style = document.createElement("style");
+style.textContent = DOT_GRID_CSS;
+document.head.appendChild(style);
 
-const titleBar = document.getElementById('panel-titlebar')!
+const titleBar = document.getElementById("panel-titlebar")!;
 
 window.pty.onChromeState((state) => {
-  posLabel.textContent = state.position <= 9 ? `${state.position}` : ''
-  dotGridWrap.style.display = state.position <= 9 ? '' : 'none'
-  titleLabel.textContent = state.label
-  titleBar.classList.toggle('focused', state.focused)
-  setDotGridBusy(dotGridWrap, !!state.busy)
-})
+  posLabel.textContent = state.position <= 9 ? `${state.position}` : "";
+  dotGridWrap.style.display = state.position <= 9 ? "" : "none";
+  titleLabel.textContent = state.label;
+  titleBar.classList.toggle("focused", state.focused);
+  setDotGridBusy(dotGridWrap, !!state.busy);
+});
 ```
 
 - [ ] **Step 4: Add `busy` to the `onChromeState` callback type in terminal.ts**
@@ -363,6 +388,7 @@ git commit -m "feat: replace / divider with animated dot-grid in terminal title 
 ### Task 6: Integrate dot-grid into browser title bar
 
 **Files:**
+
 - Modify: `src/browser/browser-host.html`
 - Modify: `src/browser/browser-host.ts`
 
@@ -384,34 +410,34 @@ In `src/browser/browser-host.html`, update the `#titlebar` div (line 52) to add 
 In `src/browser/browser-host.ts`, add import at the top (after `import { ICONS } from './icons'`):
 
 ```ts
-import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from './dot-grid'
+import { DOT_GRID_SVG, DOT_GRID_CSS, setDotGridBusy } from "./dot-grid";
 ```
 
 After the existing element selectors (after line 29), add:
 
 ```ts
-const dotGridWrap = document.getElementById('dot-grid')!
+const dotGridWrap = document.getElementById("dot-grid")!;
 
 // Inject dot-grid SVG and CSS
-dotGridWrap.className = 'dot-grid-wrap'
-dotGridWrap.innerHTML = DOT_GRID_SVG
-const dotGridStyle = document.createElement('style')
-dotGridStyle.textContent = DOT_GRID_CSS
-document.head.appendChild(dotGridStyle)
+dotGridWrap.className = "dot-grid-wrap";
+dotGridWrap.innerHTML = DOT_GRID_SVG;
+const dotGridStyle = document.createElement("style");
+dotGridStyle.textContent = DOT_GRID_CSS;
+document.head.appendChild(dotGridStyle);
 ```
 
 In the `onChromeState` callback (line 84), update the `posLabel` line and add the busy toggle. Replace:
 
 ```ts
-posLabel.textContent = s.position <= 9 ? `${s.position} /` : ''
+posLabel.textContent = s.position <= 9 ? `${s.position} /` : "";
 ```
 
 With:
 
 ```ts
-posLabel.textContent = s.position <= 9 ? `${s.position}` : ''
-dotGridWrap.style.display = s.position <= 9 ? '' : 'none'
-setDotGridBusy(dotGridWrap, !!s.busy)
+posLabel.textContent = s.position <= 9 ? `${s.position}` : "";
+dotGridWrap.style.display = s.position <= 9 ? "" : "none";
+setDotGridBusy(dotGridWrap, !!s.busy);
 ```
 
 - [ ] **Step 3: Add `busy` to `currentState` and the `onChromeState` type**
@@ -420,10 +446,14 @@ In `src/browser/browser-host.ts`, update `currentState` (line 79) to include `bu
 
 ```ts
 let currentState = {
-  position: 0, label: '', focused: false,
-  url: 'about:blank', canGoBack: false, canGoForward: false,
-  busy: false
-}
+  position: 0,
+  label: "",
+  focused: false,
+  url: "about:blank",
+  canGoBack: false,
+  canGoForward: false,
+  busy: false,
+};
 ```
 
 And update the `Window.browserHost.onChromeState` callback type in the `declare global` block to include `busy`:

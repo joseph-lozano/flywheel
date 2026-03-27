@@ -6,20 +6,20 @@ Replace Phase 1's colored placeholder panels with real terminal emulators. Each 
 
 ## Decisions Made
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| IPC architecture | **Buffered output, unbuffered input** | Battle-tested pattern (Hyper, Terminus). Keystrokes relay immediately for responsiveness. PTY output buffers at ~16ms intervals to handle throughput spikes (e.g., `cat` large file). |
-| xterm.js addons | **fit + webgl + unicode11** | `fit` auto-sizes rows/cols to panel bounds. `webgl` gives GPU-accelerated rendering (canvas fallback). `unicode11` for proper wide-char handling. |
-| Scroll disambiguation | **Mouse-position-based** | Scroll events over panel content go to the terminal. Scroll events over chrome (title bars, gaps, hint bar) go to the strip. No modifier keys needed. |
-| Panel blur | **⌘G** | Unfocuses the active terminal, returning to "strip mode" where keyboard/scroll controls the strip. Re-focus via click or Enter. Home row position chosen for ergonomics. |
-| Off-screen panels | **Hide, never destroy** | `setVisible(false)` when off-screen. PTY stays alive, xterm.js buffer preserved. Simplest approach; optimization deferred (see TODOs). |
-| Close behavior | **Kill immediately, confirm if busy** | `⌘W` on idle shell: kill + remove. If a foreground process is running: show confirmation dialog. |
-| Shell exit | **Auto-remove panel** | When the shell process exits (user types `exit`, script finishes), the panel is automatically removed from the strip. |
-| Terminal appearance | **Dark default, configurable** | Dark theme matching chrome UI. Settings for font family, font size, and color scheme. WebGL renderer with canvas fallback. |
-| Panel width | **Fixed 50%** | Same as Phase 1. Per-panel width presets deferred. |
-| Shell startup | **$SHELL in cwd** | Launch user's default login shell, inherit environment, start in project working directory. Per-project config deferred to Phase 4. |
-| Link detection | **Deferred to Phase 3** | Only useful once browser panels exist to open links into. |
-| Terminal serialization | **Deferred** | No panel destruction means no serialization needed yet. Captured as a TODO for when we optimize panel lifecycle. |
+| Decision               | Choice                                | Rationale                                                                                                                                                                             |
+| ---------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IPC architecture       | **Buffered output, unbuffered input** | Battle-tested pattern (Hyper, Terminus). Keystrokes relay immediately for responsiveness. PTY output buffers at ~16ms intervals to handle throughput spikes (e.g., `cat` large file). |
+| xterm.js addons        | **fit + webgl + unicode11**           | `fit` auto-sizes rows/cols to panel bounds. `webgl` gives GPU-accelerated rendering (canvas fallback). `unicode11` for proper wide-char handling.                                     |
+| Scroll disambiguation  | **Mouse-position-based**              | Scroll events over panel content go to the terminal. Scroll events over chrome (title bars, gaps, hint bar) go to the strip. No modifier keys needed.                                 |
+| Panel blur             | **⌘G**                                | Unfocuses the active terminal, returning to "strip mode" where keyboard/scroll controls the strip. Re-focus via click or Enter. Home row position chosen for ergonomics.              |
+| Off-screen panels      | **Hide, never destroy**               | `setVisible(false)` when off-screen. PTY stays alive, xterm.js buffer preserved. Simplest approach; optimization deferred (see TODOs).                                                |
+| Close behavior         | **Kill immediately, confirm if busy** | `⌘W` on idle shell: kill + remove. If a foreground process is running: show confirmation dialog.                                                                                      |
+| Shell exit             | **Auto-remove panel**                 | When the shell process exits (user types `exit`, script finishes), the panel is automatically removed from the strip.                                                                 |
+| Terminal appearance    | **Dark default, configurable**        | Dark theme matching chrome UI. Settings for font family, font size, and color scheme. WebGL renderer with canvas fallback.                                                            |
+| Panel width            | **Fixed 50%**                         | Same as Phase 1. Per-panel width presets deferred.                                                                                                                                    |
+| Shell startup          | **$SHELL in cwd**                     | Launch user's default login shell, inherit environment, start in project working directory. Per-project config deferred to Phase 4.                                                   |
+| Link detection         | **Deferred to Phase 3**               | Only useful once browser panels exist to open links into.                                                                                                                             |
+| Terminal serialization | **Deferred**                          | No panel destruction means no serialization needed yet. Captured as a TODO for when we optimize panel lifecycle.                                                                      |
 
 ## Architecture
 
@@ -49,6 +49,7 @@ Main Process
 ### Data Flow
 
 **Terminal input (keystroke):**
+
 ```
 User types in terminal
        │
@@ -69,6 +70,7 @@ node-pty: pty.write(data)
 ```
 
 **Terminal output (PTY → screen):**
+
 ```
 PTY produces output (command result, prompt, etc.)
        │
@@ -89,6 +91,7 @@ xterm.js: terminal.write(data)
 ```
 
 **Terminal resize:**
+
 ```
 Window resize / strip layout change
        │
@@ -112,6 +115,7 @@ Main process: pty.resize(cols, rows)
 ```
 
 **Panel close (⌘W):**
+
 ```
 User presses ⌘W
        │
@@ -132,6 +136,7 @@ Main process: check if PTY has foreground process
 ```
 
 **Shell exit (auto-remove):**
+
 ```
 Shell process exits (user types `exit`, script finishes)
        │
@@ -152,15 +157,15 @@ Chrome view: remove panel from strip store, notify main process to destroy WebCo
 
 Added to the existing IPC protocol in `constants.ts`:
 
-| Channel | Direction | Payload | Purpose |
-|---------|-----------|---------|---------|
-| `pty:create` | Chrome → Main | `{ panelId: string }` | Spawn a new PTY session for a terminal panel |
-| `pty:input` | Panel → Main | `{ panelId: string, data: string }` | Forward keystroke data to PTY |
-| `pty:output` | Main → Panel | `{ panelId: string, data: string }` | Buffered PTY output to render |
-| `pty:resize` | Panel → Main | `{ panelId: string, cols: number, rows: number }` | Terminal reflow |
-| `pty:exit` | Main → Chrome | `{ panelId: string, exitCode: number }` | Shell process exited |
-| `pty:confirm-close` | Main → Chrome | `{ panelId: string, processName: string }` | Ask user to confirm close |
-| `pty:confirm-close-response` | Chrome → Main | `{ panelId: string, confirmed: boolean }` | User's response |
+| Channel                      | Direction     | Payload                                           | Purpose                                      |
+| ---------------------------- | ------------- | ------------------------------------------------- | -------------------------------------------- |
+| `pty:create`                 | Chrome → Main | `{ panelId: string }`                             | Spawn a new PTY session for a terminal panel |
+| `pty:input`                  | Panel → Main  | `{ panelId: string, data: string }`               | Forward keystroke data to PTY                |
+| `pty:output`                 | Main → Panel  | `{ panelId: string, data: string }`               | Buffered PTY output to render                |
+| `pty:resize`                 | Panel → Main  | `{ panelId: string, cols: number, rows: number }` | Terminal reflow                              |
+| `pty:exit`                   | Main → Chrome | `{ panelId: string, exitCode: number }`           | Shell process exited                         |
+| `pty:confirm-close`          | Main → Chrome | `{ panelId: string, processName: string }`        | Ask user to confirm close                    |
+| `pty:confirm-close-response` | Chrome → Main | `{ panelId: string, confirmed: boolean }`         | User's response                              |
 
 ### Panel Preload Changes
 
@@ -169,18 +174,18 @@ The existing panel preload (`src/preload/panel.ts`) currently only forwards whee
 ```typescript
 // Existing: wheel event forwarding (now conditional — see Scroll Disambiguation)
 // New: PTY communication
-contextBridge.exposeInMainWorld('pty', {
-  input: (panelId: string, data: string) => ipcRenderer.send('pty:input', { panelId, data }),
+contextBridge.exposeInMainWorld("pty", {
+  input: (panelId: string, data: string) => ipcRenderer.send("pty:input", { panelId, data }),
   onOutput: (callback: (data: string) => void) => {
-    ipcRenderer.on('pty:output', (_event, payload) => callback(payload.data))
+    ipcRenderer.on("pty:output", (_event, payload) => callback(payload.data));
   },
   resize: (panelId: string, cols: number, rows: number) => {
-    ipcRenderer.send('pty:resize', { panelId, cols, rows })
+    ipcRenderer.send("pty:resize", { panelId, cols, rows });
   },
   onExit: (callback: (exitCode: number) => void) => {
-    ipcRenderer.on('pty:exit', (_event, payload) => callback(payload.exitCode))
-  }
-})
+    ipcRenderer.on("pty:exit", (_event, payload) => callback(payload.exitCode));
+  },
+});
 ```
 
 ### Chrome Preload Changes
@@ -249,31 +254,32 @@ Default theme (matches existing chrome dark UI):
 
 ```typescript
 const defaultTheme = {
-  background: '#1a1a2e',
-  foreground: '#e0e0e0',
-  cursor: '#e0e0e0',
-  cursorAccent: '#1a1a2e',
-  selectionBackground: 'rgba(255, 255, 255, 0.2)',
-  black: '#1a1a2e',
-  red: '#f43f5e',
-  green: '#10b981',
-  yellow: '#f59e0b',
-  blue: '#6366f1',
-  magenta: '#8b5cf6',
-  cyan: '#06b6d4',
-  white: '#e0e0e0',
-  brightBlack: '#4a4a6a',
-  brightRed: '#fb7185',
-  brightGreen: '#34d399',
-  brightYellow: '#fbbf24',
-  brightBlue: '#818cf8',
-  brightMagenta: '#a78bfa',
-  brightCyan: '#22d3ee',
-  brightWhite: '#ffffff'
-}
+  background: "#1a1a2e",
+  foreground: "#e0e0e0",
+  cursor: "#e0e0e0",
+  cursorAccent: "#1a1a2e",
+  selectionBackground: "rgba(255, 255, 255, 0.2)",
+  black: "#1a1a2e",
+  red: "#f43f5e",
+  green: "#10b981",
+  yellow: "#f59e0b",
+  blue: "#6366f1",
+  magenta: "#8b5cf6",
+  cyan: "#06b6d4",
+  white: "#e0e0e0",
+  brightBlack: "#4a4a6a",
+  brightRed: "#fb7185",
+  brightGreen: "#34d399",
+  brightYellow: "#fbbf24",
+  brightBlue: "#818cf8",
+  brightMagenta: "#a78bfa",
+  brightCyan: "#22d3ee",
+  brightWhite: "#ffffff",
+};
 ```
 
 Configurable settings (stored in a simple object for now, proper settings UI in later phases):
+
 - `fontFamily`: default `'monospace'`
 - `fontSize`: default `14`
 - `theme`: default as above
@@ -300,13 +306,13 @@ The Solid store (`src/renderer/src/store/strip.ts`) needs:
 
 ## Keyboard Shortcuts Update
 
-| Shortcut | Phase 1 Action | Phase 2 Action |
-|----------|---------------|----------------|
-| `⌘T` | New placeholder panel | New terminal panel (spawns shell) |
-| `⌘W` | Remove placeholder | Kill PTY (with confirmation if busy), remove panel |
-| `⌘←/→` | Focus + scroll | Focus + scroll + terminal focus |
-| `⌘1-9` | Jump to panel | Jump to panel + terminal focus |
-| `⌘G` | — | **New**: Blur focused terminal, enter strip mode |
+| Shortcut | Phase 1 Action        | Phase 2 Action                                     |
+| -------- | --------------------- | -------------------------------------------------- |
+| `⌘T`     | New placeholder panel | New terminal panel (spawns shell)                  |
+| `⌘W`     | Remove placeholder    | Kill PTY (with confirmation if busy), remove panel |
+| `⌘←/→`   | Focus + scroll        | Focus + scroll + terminal focus                    |
+| `⌘1-9`   | Jump to panel         | Jump to panel + terminal focus                     |
+| `⌘G`     | —                     | **New**: Blur focused terminal, enter strip mode   |
 
 The hint bar updates to show `⌘G Blur` instead of no blur option.
 
@@ -329,13 +335,13 @@ This is a simple Solid component rendered by the chrome view — not a native di
 
 New npm packages:
 
-| Package | Purpose |
-|---------|---------|
-| `node-pty` | PTY spawning in main process |
-| `@xterm/xterm` | Terminal emulator in renderer |
-| `@xterm/addon-fit` | Auto-size terminal to container |
-| `@xterm/addon-webgl` | GPU-accelerated rendering |
-| `@xterm/addon-unicode11` | Wide character support |
+| Package                  | Purpose                         |
+| ------------------------ | ------------------------------- |
+| `node-pty`               | PTY spawning in main process    |
+| `@xterm/xterm`           | Terminal emulator in renderer   |
+| `@xterm/addon-fit`       | Auto-size terminal to container |
+| `@xterm/addon-webgl`     | GPU-accelerated rendering       |
+| `@xterm/addon-unicode11` | Wide character support          |
 
 `node-pty` is a native module — requires node-gyp or prebuild-install. electron-vite handles native module resolution for Electron's Node version.
 
@@ -376,6 +382,7 @@ src/
 ## Phase 2 Scope Boundary
 
 **In scope:**
+
 - xterm.js + node-pty integration
 - PTY Manager with buffered output
 - Scroll disambiguation (mouse-position-based)
@@ -386,6 +393,7 @@ src/
 - Resize/reflow handling
 
 **Not in scope (later phases):**
+
 - Link detection in terminal output (Phase 3)
 - Terminal state serialization/restore (optimization TODO)
 - Per-panel width presets (deferred)

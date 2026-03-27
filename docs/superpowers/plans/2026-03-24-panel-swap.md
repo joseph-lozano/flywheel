@@ -14,20 +14,21 @@
 
 ## File Map
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/shared/types.ts` | Modify | Add `'swap-left' \| 'swap-right'` to `ShortcutAction` union |
-| `src/renderer/src/store/strip.ts` | Modify | Add `swapLeft()`, `swapRight()` store actions |
-| `src/main/index.ts` | Modify | Add two Menu accelerator entries in `setupShortcuts()` |
-| `src/renderer/src/App.tsx` | Modify | Add two cases in `handleShortcut()` |
-| `src/renderer/src/components/HintBar.tsx` | Modify | Add swap hints to `HINTS` array |
-| `tests/store/strip.test.ts` | Modify | Add swap test suite |
+| File                                      | Action | Purpose                                                     |
+| ----------------------------------------- | ------ | ----------------------------------------------------------- |
+| `src/shared/types.ts`                     | Modify | Add `'swap-left' \| 'swap-right'` to `ShortcutAction` union |
+| `src/renderer/src/store/strip.ts`         | Modify | Add `swapLeft()`, `swapRight()` store actions               |
+| `src/main/index.ts`                       | Modify | Add two Menu accelerator entries in `setupShortcuts()`      |
+| `src/renderer/src/App.tsx`                | Modify | Add two cases in `handleShortcut()`                         |
+| `src/renderer/src/components/HintBar.tsx` | Modify | Add swap hints to `HINTS` array                             |
+| `tests/store/strip.test.ts`               | Modify | Add swap test suite                                         |
 
 ---
 
 ### Task 1: Add swap actions to the store (TDD)
 
 **Files:**
+
 - Test: `tests/store/strip.test.ts`
 - Modify: `src/renderer/src/store/strip.ts:59-68`
 
@@ -36,89 +37,98 @@
 Add a new `describe('swap')` block at the end of `tests/store/strip.test.ts`:
 
 ```typescript
-describe('swap', () => {
-  it('swapLeft swaps focused panel with left neighbor', () => {
+describe("swap", () => {
+  it("swapLeft swaps focused panel with left neighbor", () => {
     withStore(({ state, actions }) => {
-      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      const p1 = actions.addPanel();
+      const p2 = actions.addPanel();
       // p2 is focused at index 1
-      actions.swapLeft()
-      expect(state.panels[0].id).toBe(p2.id)
-      expect(state.panels[1].id).toBe(p1.id)
-      expect(state.focusedIndex).toBe(0)
-    })
-  })
+      actions.swapLeft();
+      expect(state.panels[0].id).toBe(p2.id);
+      expect(state.panels[1].id).toBe(p1.id);
+      expect(state.focusedIndex).toBe(0);
+    });
+  });
 
-  it('swapRight swaps focused panel with right neighbor', () => {
+  it("swapRight swaps focused panel with right neighbor", () => {
     withStore(({ state, actions }) => {
-      const p1 = actions.addPanel(); const p2 = actions.addPanel()
-      actions.jumpTo(0)
-      actions.swapRight()
-      expect(state.panels[0].id).toBe(p2.id)
-      expect(state.panels[1].id).toBe(p1.id)
-      expect(state.focusedIndex).toBe(1)
-    })
-  })
+      const p1 = actions.addPanel();
+      const p2 = actions.addPanel();
+      actions.jumpTo(0);
+      actions.swapRight();
+      expect(state.panels[0].id).toBe(p2.id);
+      expect(state.panels[1].id).toBe(p1.id);
+      expect(state.focusedIndex).toBe(1);
+    });
+  });
 
-  it('swapLeft is no-op at leftmost position', () => {
+  it("swapLeft is no-op at leftmost position", () => {
     withStore(({ state, actions }) => {
-      const p1 = actions.addPanel(); const p2 = actions.addPanel()
-      actions.jumpTo(0)
-      actions.swapLeft()
-      expect(state.panels[0].id).toBe(p1.id)
-      expect(state.panels[1].id).toBe(p2.id)
-      expect(state.focusedIndex).toBe(0)
-    })
-  })
+      const p1 = actions.addPanel();
+      const p2 = actions.addPanel();
+      actions.jumpTo(0);
+      actions.swapLeft();
+      expect(state.panels[0].id).toBe(p1.id);
+      expect(state.panels[1].id).toBe(p2.id);
+      expect(state.focusedIndex).toBe(0);
+    });
+  });
 
-  it('swapRight is no-op at rightmost position', () => {
+  it("swapRight is no-op at rightmost position", () => {
     withStore(({ state, actions }) => {
-      const p1 = actions.addPanel(); const p2 = actions.addPanel()
+      const p1 = actions.addPanel();
+      const p2 = actions.addPanel();
       // p2 is focused at index 1 (rightmost)
-      actions.swapRight()
-      expect(state.panels[0].id).toBe(p1.id)
-      expect(state.panels[1].id).toBe(p2.id)
-      expect(state.focusedIndex).toBe(1)
-    })
-  })
+      actions.swapRight();
+      expect(state.panels[0].id).toBe(p1.id);
+      expect(state.panels[1].id).toBe(p2.id);
+      expect(state.focusedIndex).toBe(1);
+    });
+  });
 
-  it('swap is no-op with single panel', () => {
+  it("swap is no-op with single panel", () => {
     withStore(({ state, actions }) => {
-      actions.addPanel()
-      actions.swapLeft()
-      actions.swapRight()
-      expect(state.panels).toHaveLength(1)
-      expect(state.focusedIndex).toBe(0)
-    })
-  })
+      actions.addPanel();
+      actions.swapLeft();
+      actions.swapRight();
+      expect(state.panels).toHaveLength(1);
+      expect(state.focusedIndex).toBe(0);
+    });
+  });
 
-  it('swapLeft sets terminalFocused to true', () => {
+  it("swapLeft sets terminalFocused to true", () => {
     withStore(({ state, actions }) => {
-      actions.addPanel(); actions.addPanel()
-      actions.blurPanel()
-      actions.swapLeft()
-      expect(state.terminalFocused).toBe(true)
-    })
-  })
+      actions.addPanel();
+      actions.addPanel();
+      actions.blurPanel();
+      actions.swapLeft();
+      expect(state.terminalFocused).toBe(true);
+    });
+  });
 
-  it('swapRight sets terminalFocused to true', () => {
+  it("swapRight sets terminalFocused to true", () => {
     withStore(({ state, actions }) => {
-      actions.addPanel(); actions.addPanel()
-      actions.jumpTo(0); actions.blurPanel()
-      actions.swapRight()
-      expect(state.terminalFocused).toBe(true)
-    })
-  })
+      actions.addPanel();
+      actions.addPanel();
+      actions.jumpTo(0);
+      actions.blurPanel();
+      actions.swapRight();
+      expect(state.terminalFocused).toBe(true);
+    });
+  });
 
-  it('swapLeft preserves panel identity through three panels', () => {
+  it("swapLeft preserves panel identity through three panels", () => {
     withStore(({ state, actions }) => {
-      const p1 = actions.addPanel(); const p2 = actions.addPanel(); const p3 = actions.addPanel()
+      const p1 = actions.addPanel();
+      const p2 = actions.addPanel();
+      const p3 = actions.addPanel();
       // focused on p3 at index 2
-      actions.swapLeft()
-      expect(state.panels.map(p => p.id)).toEqual([p1.id, p3.id, p2.id])
-      expect(state.focusedIndex).toBe(1)
-    })
-  })
-})
+      actions.swapLeft();
+      expect(state.panels.map((p) => p.id)).toEqual([p1.id, p3.id, p2.id]);
+      expect(state.focusedIndex).toBe(1);
+    });
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -170,6 +180,7 @@ git commit -m "feat: add swapLeft/swapRight store actions with tests"
 ### Task 2: Update ShortcutAction type
 
 **Files:**
+
 - Modify: `src/shared/types.ts:30-33`
 
 - [ ] **Step 1: Add swap-left and swap-right to the ShortcutAction type union**
@@ -177,13 +188,20 @@ git commit -m "feat: add swapLeft/swapRight store actions with tests"
 In `src/shared/types.ts`, change line 31 from:
 
 ```typescript
-  type: 'focus-left' | 'focus-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
+type: "focus-left" | "focus-right" | "new-panel" | "close-panel" | "jump-to" | "blur-panel";
 ```
 
 to:
 
 ```typescript
-  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'close-panel' | 'jump-to' | 'blur-panel'
+type: "focus-left" |
+  "focus-right" |
+  "swap-left" |
+  "swap-right" |
+  "new-panel" |
+  "close-panel" |
+  "jump-to" |
+  "blur-panel";
 ```
 
 - [ ] **Step 2: Commit**
@@ -198,6 +216,7 @@ git commit -m "feat: add swap-left/swap-right to ShortcutAction type"
 ### Task 3: Register keyboard shortcuts in main process
 
 **Files:**
+
 - Modify: `src/main/index.ts:157-225`
 
 - [ ] **Step 1: Add two Menu entries after the Focus Right entry**
@@ -231,6 +250,7 @@ git commit -m "feat: register Cmd+Shift+Left/Right shortcuts for panel swap"
 ### Task 4: Wire shortcuts to store actions in App.tsx
 
 **Files:**
+
 - Modify: `src/renderer/src/App.tsx:131-144`
 
 - [ ] **Step 1: Add swap-left and swap-right cases in handleShortcut**
@@ -254,6 +274,7 @@ git commit -m "feat: wire swap-left/swap-right shortcuts to store actions"
 ### Task 5: Add swap hints to the HintBar
 
 **Files:**
+
 - Modify: `src/renderer/src/components/HintBar.tsx:9-16`
 
 - [ ] **Step 1: Add swap hints to the HINTS array**
@@ -269,15 +290,15 @@ The full `HINTS` array should read:
 
 ```typescript
 const HINTS = [
-  { key: '⌘←', label: 'Focus Left' },
-  { key: '⌘→', label: 'Focus Right' },
-  { key: '⌘⇧←', label: 'Swap Left' },
-  { key: '⌘⇧→', label: 'Swap Right' },
-  { key: '⌘T', label: 'New Terminal' },
-  { key: '⌘W', label: 'Close' },
-  { key: '⌘G', label: 'Blur' },
-  { key: '⌘1-9', label: 'Jump' }
-]
+  { key: "⌘←", label: "Focus Left" },
+  { key: "⌘→", label: "Focus Right" },
+  { key: "⌘⇧←", label: "Swap Left" },
+  { key: "⌘⇧→", label: "Swap Right" },
+  { key: "⌘T", label: "New Terminal" },
+  { key: "⌘W", label: "Close" },
+  { key: "⌘G", label: "Blur" },
+  { key: "⌘1-9", label: "Jump" },
+];
 ```
 
 - [ ] **Step 2: Commit**

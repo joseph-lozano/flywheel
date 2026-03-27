@@ -41,6 +41,7 @@ These are one-time setup steps the developer must complete outside of code:
 ### Task 1: Install dependencies and add npm scripts
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Install electron-builder and electron-updater**
@@ -70,6 +71,7 @@ In `package.json`, add two new scripts after the existing `postinstall` script:
 - [ ] **Step 3: Verify install succeeded**
 
 Run:
+
 ```bash
 npx electron-builder --version
 ```
@@ -88,6 +90,7 @@ git commit -m "feat: add electron-builder and electron-updater dependencies"
 ### Task 2: Create macOS entitlements files
 
 **Files:**
+
 - Create: `build/entitlements.mac.plist`
 - Create: `build/entitlements.mac.inherit.plist`
 
@@ -121,6 +124,7 @@ Create `build/entitlements.mac.plist`:
 ```
 
 These entitlements are required because:
+
 - `allow-jit` and `allow-unsigned-executable-memory` — Electron/V8 JIT compilation
 - `allow-dylib-environment-variables` — node-pty native module loading
 - `network.client` — browser panels fetching URLs
@@ -165,6 +169,7 @@ git commit -m "feat: add macOS entitlements for code signing"
 ### Task 3: Create electron-builder configuration
 
 **Files:**
+
 - Create: `electron-builder.yml`
 - Create: `scripts/notarize.js`
 
@@ -178,14 +183,14 @@ directories:
   buildResources: build
 
 files:
-  - '!src/*'
-  - '!docs/*'
-  - '!tests/*'
-  - '!scripts/*'
-  - '!.github/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-  - '!{vitest.config.ts,ROADMAP.md}'
+  - "!src/*"
+  - "!docs/*"
+  - "!tests/*"
+  - "!scripts/*"
+  - "!.github/*"
+  - "!electron.vite.config.{js,ts,mjs,cjs}"
+  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+  - "!{vitest.config.ts,ROADMAP.md}"
 
 asarUnpack:
   - node_modules/node-pty/**
@@ -231,33 +236,33 @@ mkdir -p scripts
 ```
 
 ```javascript
-const { notarize } = require('@electron/notarize')
+const { notarize } = require("@electron/notarize");
 
 exports.default = async function notarizing(context) {
-  if (context.electronPlatformName !== 'darwin') {
-    return
+  if (context.electronPlatformName !== "darwin") {
+    return;
   }
 
   if (!process.env.APPLE_ID || !process.env.APPLE_APP_SPECIFIC_PASSWORD) {
-    console.log('Skipping notarization — APPLE_ID or APPLE_APP_SPECIFIC_PASSWORD not set')
-    return
+    console.log("Skipping notarization — APPLE_ID or APPLE_APP_SPECIFIC_PASSWORD not set");
+    return;
   }
 
-  const appName = context.packager.appInfo.productFilename
-  const appPath = `${context.appOutDir}/${appName}.app`
+  const appName = context.packager.appInfo.productFilename;
+  const appPath = `${context.appOutDir}/${appName}.app`;
 
-  console.log(`Notarizing ${appPath}...`)
+  console.log(`Notarizing ${appPath}...`);
 
   await notarize({
-    appBundleId: 'com.flywheel.app',
+    appBundleId: "com.flywheel.app",
     appPath,
     appleId: process.env.APPLE_ID,
     appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
-    teamId: process.env.APPLE_TEAM_ID
-  })
+    teamId: process.env.APPLE_TEAM_ID,
+  });
 
-  console.log('Notarization complete')
-}
+  console.log("Notarization complete");
+};
 ```
 
 The script skips notarization when the environment variables aren't set. This means `npm run package` works locally without signing credentials (useful for testing the build pipeline) while CI runs with full signing and notarization.
@@ -338,6 +343,7 @@ rm -rf dist/
 ### Task 5: Add auto-updater to main process
 
 **Files:**
+
 - Create: `src/main/auto-updater.ts`
 - Modify: `src/main/index.ts`
 
@@ -346,37 +352,38 @@ rm -rf dist/
 Create `src/main/auto-updater.ts`:
 
 ```typescript
-import { autoUpdater } from 'electron-updater'
-import { dialog } from 'electron'
+import { autoUpdater } from "electron-updater";
+import { dialog } from "electron";
 
 export function initAutoUpdater(): void {
-  autoUpdater.autoDownload = true
-  autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
 
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on("update-downloaded", (info) => {
     dialog
       .showMessageBox({
-        type: 'info',
-        title: 'Update Ready',
+        type: "info",
+        title: "Update Ready",
         message: `Version ${info.version} has been downloaded. Restart to install?`,
-        buttons: ['Restart', 'Later']
+        buttons: ["Restart", "Later"],
       })
       .then((result) => {
         if (result.response === 0) {
-          autoUpdater.quitAndInstall()
+          autoUpdater.quitAndInstall();
         }
-      })
-  })
+      });
+  });
 
-  autoUpdater.on('error', (err) => {
-    console.error('Auto-update error:', err.message)
-  })
+  autoUpdater.on("error", (err) => {
+    console.error("Auto-update error:", err.message);
+  });
 
-  autoUpdater.checkForUpdatesAndNotify()
+  autoUpdater.checkForUpdatesAndNotify();
 }
 ```
 
 This module:
+
 - Downloads updates automatically in the background
 - Shows a dialog when a download finishes asking to restart
 - Logs errors silently (no user-facing error UI — appropriate for dogfooding)
@@ -387,26 +394,26 @@ This module:
 In `src/main/index.ts`, add the import at the top with the other imports:
 
 ```typescript
-import { initAutoUpdater } from './auto-updater'
+import { initAutoUpdater } from "./auto-updater";
 ```
 
 Then replace the `app.whenReady()` line at the bottom of the file. Change:
 
 ```typescript
-app.whenReady().then(createWindow)
+app.whenReady().then(createWindow);
 ```
 
 to:
 
 ```typescript
 app.whenReady().then(async () => {
-  await createWindow()
+  await createWindow();
 
   // Only check for updates in production builds
-  if (!process.env['ELECTRON_RENDERER_URL']) {
-    initAutoUpdater()
+  if (!process.env["ELECTRON_RENDERER_URL"]) {
+    initAutoUpdater();
   }
-})
+});
 ```
 
 The `ELECTRON_RENDERER_URL` check ensures the auto-updater only runs in production. In dev mode (`electron-vite dev`), this env var is set, so the updater is skipped.
@@ -431,6 +438,7 @@ git commit -m "feat: add auto-updater checking GitHub Releases on launch"
 ### Task 6: Migrate CI to Depot runners with build matrix
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Rewrite ci.yml with Depot runners and matrix strategy**
@@ -477,6 +485,7 @@ jobs:
 ```
 
 Changes from the previous ci.yml:
+
 - `ubuntu-latest` → Depot runners for both test and build
 - Test runs on two Ubuntu versions (22.04, 24.04)
 - Build runs on four runners (2 Ubuntu + 2 macOS) to catch platform-specific compilation issues, especially with node-pty native module
@@ -494,6 +503,7 @@ git commit -m "ci: migrate to Depot runners with Ubuntu + macOS build matrix"
 ### Task 7: Create release workflow
 
 **Files:**
+
 - Create: `.github/workflows/release.yml`
 
 - [ ] **Step 1: Create the release workflow**
@@ -506,7 +516,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   package:
@@ -536,6 +546,7 @@ jobs:
 ```
 
 How this works:
+
 - Triggers only when you push a tag matching `v*` (e.g. `git tag v0.1.0 && git push origin v0.1.0`)
 - Runs on Depot macOS 15 (Apple Silicon) — required for arm64 native module builds and `codesign`/`notarytool`
 - `electron-vite build` compiles TypeScript to `out/`
@@ -543,6 +554,7 @@ How this works:
 - `GH_TOKEN` is a PAT with write access to `flywheel-releases` (the default `GITHUB_TOKEN` only has access to the current repo)
 
 **To ship a release:**
+
 ```bash
 # 1. Bump version in package.json
 # 2. Commit

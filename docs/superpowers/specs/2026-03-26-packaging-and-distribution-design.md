@@ -41,13 +41,14 @@ dmg:
 afterSign: scripts/notarize.js
 publish:
   provider: github
-  owner: <github-org-or-user>  # must match the flywheel-releases repo owner
+  owner: <github-org-or-user> # must match the flywheel-releases repo owner
   repo: flywheel-releases
 ```
 
 **Build pipeline:** `electron-vite build` (compiles to `out/`) then `electron-builder --mac` (packages into signed DMG).
 
 **npm scripts:**
+
 - `"package": "electron-vite build && electron-builder --mac"` — full build + package
 - `"package:dir": "electron-vite build && electron-builder --mac --dir"` — unpacked .app for quick testing
 
@@ -69,6 +70,7 @@ The existing `electron.vite.config.ts` already marks node-pty as external in Rol
 Uses a "Developer ID Application" certificate from the Apple Developer Program ($99/year). electron-builder picks up the certificate automatically from the macOS Keychain.
 
 **Environment variables (local and CI):**
+
 - `CSC_LINK` — base64-encoded .p12 certificate (CI only; locally it reads from Keychain)
 - `CSC_KEY_PASSWORD` — certificate password
 
@@ -77,6 +79,7 @@ Uses a "Developer ID Application" certificate from the Apple Developer Program (
 Submits the signed app to Apple for malware scanning. Handled via an `afterSign` hook script (`scripts/notarize.js`) that calls `@electron/notarize`.
 
 **Environment variables:**
+
 - `APPLE_ID` — Apple ID email
 - `APPLE_APP_SPECIFIC_PASSWORD` — app-specific password from appleid.apple.com
 - `APPLE_TEAM_ID` — developer team ID
@@ -86,6 +89,7 @@ Submits the signed app to Apple for malware scanning. Handled via an `afterSign`
 Two entitlements files in `build/`:
 
 **`entitlements.mac.plist`** (main app):
+
 - `com.apple.security.cs.allow-jit` — for node-pty/V8
 - `com.apple.security.cs.allow-unsigned-executable-memory` — required by Electron
 - `com.apple.security.cs.allow-dylib-environment-variables` — for native modules
@@ -93,6 +97,7 @@ Two entitlements files in `build/`:
 - `com.apple.security.files.user-selected.read-write` — filesystem access for projects
 
 **`entitlements.mac.inherit.plist`** (helper processes):
+
 - Inherits the main entitlements
 - `com.apple.security.inherit` — allows child processes to inherit parent entitlements
 
@@ -103,6 +108,7 @@ Two entitlements files in `build/`:
 `electron-updater` checks GitHub Releases on the `flywheel-releases` public repo for versions newer than the running app.
 
 **Flow:**
+
 1. On app launch, check `flywheel-releases` GitHub Releases for a newer version
 2. If found, download the update in the background
 3. Show a notification: "Update available — restart to install?"
@@ -111,6 +117,7 @@ Two entitlements files in `build/`:
 ### Integration
 
 Add update checking to the main process (`src/main/index.ts`):
+
 - Import `autoUpdater` from `electron-updater`
 - Call `autoUpdater.checkForUpdatesAndNotify()` after the app is ready
 - Handle `update-available`, `update-downloaded`, and `error` events
@@ -119,6 +126,7 @@ Add update checking to the main process (`src/main/index.ts`):
 ### Release Artifacts
 
 electron-builder produces alongside the DMG:
+
 - `latest-mac.yml` — manifest with version, file name, hash, and download URL
 - The DMG itself
 
@@ -129,11 +137,13 @@ Both are uploaded to the GitHub Release. electron-updater reads `latest-mac.yml`
 A separate **public** GitHub repo (`flywheel-releases`) holds only GitHub Releases — no source code.
 
 **Purpose:**
+
 - electron-updater can hit the GitHub Releases API without authentication
 - Colleagues download the DMG from the Releases page
 - Code stays private in the main repo
 
 **Release flow:**
+
 1. Bump version in `package.json`
 2. Commit and tag: `git tag v0.1.1`
 3. Push tag: `git push origin v0.1.1`
@@ -147,12 +157,12 @@ Move the current test + build jobs from GitHub-hosted runners to Depot runners.
 
 ### CI Matrix (PRs and pushes to main)
 
-| Runner | test | build |
-|--------|------|-------|
-| depot-ubuntu-22.04 | yes | yes |
-| depot-ubuntu-24.04 | yes | yes |
-| depot-macos-14 | | yes |
-| depot-macos-15 | | yes |
+| Runner             | test | build |
+| ------------------ | ---- | ----- |
+| depot-ubuntu-22.04 | yes  | yes   |
+| depot-ubuntu-24.04 | yes  | yes   |
+| depot-macos-14     |      | yes   |
+| depot-macos-15     |      | yes   |
 
 Tests stay Linux-only (cheaper, platform-agnostic Vitest tests). Builds run on all four runners to catch platform-specific compilation issues, especially with node-pty.
 
@@ -162,6 +172,7 @@ Tests stay Linux-only (cheaper, platform-agnostic Vitest tests). Builds run on a
 **Runner:** `depot-macos-15`
 
 **Steps:**
+
 1. Checkout code
 2. Setup Node.js 22
 3. `npm ci`
@@ -171,14 +182,14 @@ Tests stay Linux-only (cheaper, platform-agnostic Vitest tests). Builds run on a
 
 ### Required Secrets
 
-| Secret | Purpose |
-|--------|---------|
-| `CSC_LINK` | Base64-encoded .p12 signing certificate |
-| `CSC_KEY_PASSWORD` | Certificate password |
-| `APPLE_ID` | Apple ID email |
-| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarization |
-| `APPLE_TEAM_ID` | Developer team ID |
-| `GH_TOKEN` | PAT with write access to `flywheel-releases` repo |
+| Secret                        | Purpose                                           |
+| ----------------------------- | ------------------------------------------------- |
+| `CSC_LINK`                    | Base64-encoded .p12 signing certificate           |
+| `CSC_KEY_PASSWORD`            | Certificate password                              |
+| `APPLE_ID`                    | Apple ID email                                    |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarization            |
+| `APPLE_TEAM_ID`               | Developer team ID                                 |
+| `GH_TOKEN`                    | PAT with write access to `flywheel-releases` repo |
 
 Depot runner auth is handled via the Depot GitHub App integration (no separate `DEPOT_TOKEN` needed if the app is installed on the org).
 
@@ -199,6 +210,7 @@ No automated version bumping — manual bump in `package.json`, commit, tag, pus
 ## Files to Add/Modify
 
 **New files:**
+
 - `electron-builder.yml` — packaging configuration
 - `build/entitlements.mac.plist` — main app entitlements
 - `build/entitlements.mac.inherit.plist` — helper process entitlements
@@ -207,6 +219,7 @@ No automated version bumping — manual bump in `package.json`, commit, tag, pus
 - `.github/workflows/release.yml` — tag-triggered packaging workflow
 
 **Modified files:**
+
 - `package.json` — add electron-builder, electron-updater, new scripts
 - `.github/workflows/ci.yml` — migrate to Depot runners, add macOS build matrix
 - `src/main/index.ts` — add auto-update check on launch

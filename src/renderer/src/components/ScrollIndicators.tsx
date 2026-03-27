@@ -1,66 +1,95 @@
-import { LAYOUT } from '../../../shared/constants'
+import { LAYOUT } from "../../../shared/constants";
 
 interface ScrollIndicatorsProps {
-  scrollOffset: number
-  maxScroll: number
-  viewportWidth: number
-  viewportHeight: number
-  sidebarWidth: number
+  scrollOffset: number;
+  maxScroll: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  sidebarWidth: number;
 }
 
 export default function ScrollIndicators(props: ScrollIndicatorsProps) {
-  const effectiveWidth = () => props.viewportWidth - props.sidebarWidth
-  const trackTop = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT
-  const showLeft = () => props.scrollOffset > 1
-  const showRight = () => props.scrollOffset < props.maxScroll - 1
+  const effectiveWidth = () => props.viewportWidth - props.sidebarWidth;
+  const trackTop = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT;
+  const showLeft = () => props.scrollOffset > 1;
+  const showRight = () => props.scrollOffset < props.maxScroll - 1;
   const thumbWidth = () => {
-    if (props.maxScroll <= 0) return effectiveWidth()
-    const ratio = effectiveWidth() / (effectiveWidth() + props.maxScroll)
-    return Math.max(40, effectiveWidth() * ratio)
-  }
+    if (props.maxScroll <= 0) return effectiveWidth();
+    const ratio = effectiveWidth() / (effectiveWidth() + props.maxScroll);
+    return Math.max(40, effectiveWidth() * ratio);
+  };
   const thumbLeft = () => {
-    if (props.maxScroll <= 0) return 0
-    const ratio = props.scrollOffset / props.maxScroll
-    return ratio * (effectiveWidth() - thumbWidth())
-  }
+    if (props.maxScroll <= 0) return 0;
+    const ratio = props.scrollOffset / props.maxScroll;
+    return ratio * (effectiveWidth() - thumbWidth());
+  };
 
   return (
     <>
       {showLeft() && (
-        <div style={{
-          position: 'absolute', left: `${props.sidebarWidth}px`, top: `${LAYOUT.STRIP_TOP_PADDING}px`,
-          width: '60px', height: `${trackTop() - LAYOUT.STRIP_TOP_PADDING}px`,
-          background: 'linear-gradient(to right, rgba(15,15,26,0.9), transparent)',
-          'pointer-events': 'none', display: 'flex', 'align-items': 'center',
-          'padding-left': '8px', 'z-index': '10'
-        }}>
-          <span style={{ color: '#555', 'font-size': '18px' }}>&#8249;</span>
+        <div
+          style={{
+            position: "absolute",
+            left: `${props.sidebarWidth}px`,
+            top: `${LAYOUT.STRIP_TOP_PADDING}px`,
+            width: "60px",
+            height: `${trackTop() - LAYOUT.STRIP_TOP_PADDING}px`,
+            background: "linear-gradient(to right, rgba(15,15,26,0.9), transparent)",
+            "pointer-events": "none",
+            display: "flex",
+            "align-items": "center",
+            "padding-left": "8px",
+            "z-index": "10",
+          }}
+        >
+          <span style={{ color: "#555", "font-size": "18px" }}>&#8249;</span>
         </div>
       )}
 
       {showRight() && (
-        <div style={{
-          position: 'absolute', right: 0, top: `${LAYOUT.STRIP_TOP_PADDING}px`,
-          width: '60px', height: `${trackTop() - LAYOUT.STRIP_TOP_PADDING}px`,
-          background: 'linear-gradient(to left, rgba(15,15,26,0.9), transparent)',
-          'pointer-events': 'none', display: 'flex', 'align-items': 'center',
-          'justify-content': 'flex-end', 'padding-right': '8px', 'z-index': '10'
-        }}>
-          <span style={{ color: '#555', 'font-size': '18px' }}>&#8250;</span>
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: `${LAYOUT.STRIP_TOP_PADDING}px`,
+            width: "60px",
+            height: `${trackTop() - LAYOUT.STRIP_TOP_PADDING}px`,
+            background: "linear-gradient(to left, rgba(15,15,26,0.9), transparent)",
+            "pointer-events": "none",
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "flex-end",
+            "padding-right": "8px",
+            "z-index": "10",
+          }}
+        >
+          <span style={{ color: "#555", "font-size": "18px" }}>&#8250;</span>
         </div>
       )}
 
-      <div style={{
-        position: 'absolute', left: `${props.sidebarWidth}px`, top: `${trackTop()}px`,
-        width: `calc(100% - ${props.sidebarWidth}px)`, height: `${LAYOUT.SCROLL_TRACK_HEIGHT}px`, background: '#1a1a2e'
-      }}>
-        <div style={{
-          position: 'absolute', left: `${thumbLeft()}px`, top: 0,
-          width: `${thumbWidth()}px`, height: '100%',
-          background: props.maxScroll > 0 ? '#333' : 'transparent',
-          'border-radius': '2px', transition: 'background 0.2s'
-        }} />
+      <div
+        style={{
+          position: "absolute",
+          left: `${props.sidebarWidth}px`,
+          top: `${trackTop()}px`,
+          width: `calc(100% - ${props.sidebarWidth}px)`,
+          height: `${LAYOUT.SCROLL_TRACK_HEIGHT}px`,
+          background: "#1a1a2e",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            left: `${thumbLeft()}px`,
+            top: 0,
+            width: `${thumbWidth()}px`,
+            height: "100%",
+            background: props.maxScroll > 0 ? "#333" : "transparent",
+            "border-radius": "2px",
+            transition: "background 0.2s",
+          }}
+        />
       </div>
     </>
-  )
+  );
 }

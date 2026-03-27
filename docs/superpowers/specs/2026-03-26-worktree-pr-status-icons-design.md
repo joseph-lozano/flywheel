@@ -8,13 +8,14 @@ The sidebar currently shows a colored git-branch icon for every row regardless o
 
 ## Behavior
 
-| PR state | Icon | Color |
-|----------|------|-------|
-| No PR | None (no icon) | -- |
-| Draft | Pull-request | `#8b949e` (muted gray) |
-| Open | Pull-request | `#3fb950` (green) |
-| Merged | Pull-request | `#a371f7` (purple) |
-| Closed | Pull-request | `#f85149` (red) |
+| PR state | Icon           | Color                  |
+| -------- | -------------- | ---------------------- |
+| No PR    | None (no icon) | --                     |
+| Draft    | Pull-request   | `#8b949e` (muted gray) |
+| Open     | Pull-request   | `#3fb950` (green)      |
+| Merged   | Pull-request   | `#a371f7` (purple)     |
+| Closed   | Pull-request   | `#f85149` (red)        |
+
 - If multiple PRs exist for a branch, the most recent one wins.
 
 ## Architecture
@@ -48,7 +49,7 @@ Add an ephemeral (non-persisted) field to the `Row` interface in `src/shared/typ
 ```ts
 export interface Row {
   // ... existing fields
-  prStatus?: 'draft' | 'open' | 'merged' | 'closed'
+  prStatus?: "draft" | "open" | "merged" | "closed";
 }
 ```
 
@@ -112,12 +113,12 @@ The `GitBranch` component can be removed if it has no other usages.
 
 ## Files changed
 
-| File | Change |
-|------|--------|
-| `src/shared/types.ts` | Add `prStatus?` to `Row` |
-| `src/main/pr-status.ts` | New module: `ghAvailable`, `fetchPrStatuses` |
-| `src/main/index.ts` | Add `row:check-pr-status` IPC handler |
-| `src/renderer/src/store/app.ts` | Add `updatePrStatuses` action |
-| `src/renderer/src/App.tsx` | Add PR status polling with focus/blur lifecycle |
+| File                                      | Change                                                  |
+| ----------------------------------------- | ------------------------------------------------------- |
+| `src/shared/types.ts`                     | Add `prStatus?` to `Row`                                |
+| `src/main/pr-status.ts`                   | New module: `ghAvailable`, `fetchPrStatuses`            |
+| `src/main/index.ts`                       | Add `row:check-pr-status` IPC handler                   |
+| `src/renderer/src/store/app.ts`           | Add `updatePrStatuses` action                           |
+| `src/renderer/src/App.tsx`                | Add PR status polling with focus/blur lifecycle         |
 | `src/renderer/src/components/Sidebar.tsx` | Replace `GitBranch` with conditional `PullRequest` icon |
-| `src/preload/index.ts` | Expose `checkPrStatus` IPC call |
+| `src/preload/index.ts`                    | Expose `checkPrStatus` IPC call                         |

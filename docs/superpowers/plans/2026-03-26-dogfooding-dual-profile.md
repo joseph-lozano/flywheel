@@ -13,6 +13,7 @@
 ### Task 1: Dev userData isolation
 
 **Files:**
+
 - Modify: `src/main/index.ts:558` (before `app.whenReady()`)
 
 - [ ] **Step 1: Add userData path shift before app.whenReady()**
@@ -22,11 +23,11 @@ In `src/main/index.ts`, add the dev userData redirect immediately before the exi
 ```ts
 // Isolate dev instances to a separate userData directory
 // so they can't corrupt production electron-store data
-if (process.env['ELECTRON_RENDERER_URL']) {
-  app.setPath('userData', app.getPath('userData') + '-dev')
+if (process.env["ELECTRON_RENDERER_URL"]) {
+  app.setPath("userData", app.getPath("userData") + "-dev");
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(createWindow);
 ```
 
 - [ ] **Step 2: Verify manually**
@@ -59,6 +60,7 @@ git commit -m "feat: isolate dev userData to prevent production data corruption"
 ### Task 2: Dev server auto-port selection
 
 **Files:**
+
 - Modify: `electron.vite.config.ts:25-37` (renderer config)
 
 - [ ] **Step 1: Add strictPort: false to renderer server config**
@@ -114,6 +116,7 @@ git commit -m "feat: auto-select available port for dev server"
 ### Task 3: Branch name in dev window title
 
 **Files:**
+
 - Modify: `src/main/index.ts:19-25` (`createWindow` function)
 
 - [ ] **Step 1: Make createWindow async and add branch detection**

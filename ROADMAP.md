@@ -9,11 +9,13 @@ See [design spec](docs/superpowers/specs/2026-03-24-flywheel-design.md) for the 
 The foundation. A working Electron app with the core spatial model — before any real terminals or browsers.
 
 **Research / Decisions (resolved):**
+
 - ✅ Frontend framework: **Solid** — custom UI throughout, no need for React's ecosystem; fine-grained reactivity fits scroll-driven updates
 - ✅ `WebContentsView` + `setBounds()` performance: Stack Browser's issues involved dozens of views; our 2-6 visible panels are a different load profile. Start with free-form scrolling, fall back to snap-only if perf is insufficient.
 - ✅ Scroll event handling: In Phase 1, panels are placeholders with no scrollable content, so all horizontal wheel events can be forwarded to drive strip scroll. macOS provides momentum events natively — no custom physics needed.
 
 **Scope:**
+
 - Electron `BaseWindow` with a Chrome View ([spec: Process Model, L53-61](docs/superpowers/specs/2026-03-24-flywheel-design.md#L53-L61))
 - Horizontal strip of **placeholder panels** (colored boxes with title bars) positioned via `setBounds()`
 - Horizontal scrolling with momentum (free-form trackpad scroll + keyboard snap navigation). Fade indicators, scroll track ([spec: Scroll Behavior, L126-132](docs/superpowers/specs/2026-03-24-flywheel-design.md#L126-L132))
@@ -31,11 +33,13 @@ The foundation. A working Electron app with the core spatial model — before an
 Replace placeholders with real terminals. After this, Flywheel is a usable Niri-style terminal multiplexer.
 
 **Research / Decisions needed first:**
+
 - Spike: xterm.js in a `WebContentsView` — confirm IPC latency between main process (node-pty) and renderer (xterm.js) is acceptable for interactive use (vim, typing latency)
 - Decision: xterm.js addon selection — WebGL renderer vs Canvas renderer, search addon, unicode11 addon
 - Evaluate ghostty-web maturity at this point — if stable enough, may start with it instead of xterm.js
 
 **Decisions (resolved):**
+
 - ✅ IPC architecture: **Buffered output, unbuffered input** — battle-tested pattern (Hyper, Terminus). Keystrokes relay immediately; PTY output buffers at ~16ms for throughput handling.
 - ✅ xterm.js addons: **fit + webgl + unicode11** — auto-sizing, GPU rendering, wide-char support.
 - ✅ Scroll disambiguation: **Mouse-position-based** — scroll over panel content goes to terminal, scroll over chrome goes to strip.
@@ -43,6 +47,7 @@ Replace placeholders with real terminals. After this, Flywheel is a usable Niri-
 - ✅ Link detection: **Deferred to Phase 2.5** — only useful once browser panels exist.
 
 **Scope:**
+
 - xterm.js + node-pty integration ([spec: Terminal, L35](docs/superpowers/specs/2026-03-24-flywheel-design.md#L35))
 - Each terminal panel is a `WebContentsView` running xterm.js
 - PTY Manager in main process: node-pty sessions, buffered output (~16ms flush), resize handling
@@ -61,6 +66,7 @@ Replace placeholders with real terminals. After this, Flywheel is a usable Niri-
 Basic browser panels alongside terminals. Complex browser features are deferred to Phase 6.
 
 **Scope:**
+
 - `WebContentsView` loading a URL ([spec: Browser, L37](docs/superpowers/specs/2026-03-24-flywheel-design.md#L37))
 - Address bar in title bar + Enter to navigate
 - Mod+B to open a new browser panel ([spec: L116](docs/superpowers/specs/2026-03-24-flywheel-design.md#L116))
@@ -76,9 +82,11 @@ Basic browser panels alongside terminals. Complex browser features are deferred 
 The project tree sidebar — broken out as its own focused phase before rows and config.
 
 **Research / Decisions needed first:**
+
 - Decision: where to persist app-level state (project list, window positions) — SQLite, JSON file, electron-store, etc.
 
 **Scope:**
+
 - Flat project list sidebar with active indicator ([spec: Sidebar, L80-97](docs/superpowers/specs/2026-03-24-flywheel-design.md#L80-L97))
 - Add/remove projects via directory picker
 - Switch between projects via sidebar (hide/show strips, PTYs stay alive)
@@ -90,10 +98,12 @@ The project tree sidebar — broken out as its own focused phase before rows and
 Multiple rows per project, one visible at a time, for parallel branch work. The sidebar (from Phase 3) provides the UI for switching rows.
 
 **Research / Decisions needed first:**
+
 - Research: git worktree CLI integration — what's needed to create, list, and remove worktrees programmatically
 - Decision: should creating a new row auto-create a git worktree, or can rows exist independently?
 
 **Scope:**
+
 - Row model: each project can have multiple rows ([spec: Rows, L17-21](docs/superpowers/specs/2026-03-24-flywheel-design.md#L17-L21))
 - Row switching via sidebar click and Mod+Up/Down ([spec: L114](docs/superpowers/specs/2026-03-24-flywheel-design.md#L114))
 - Row persistence: processes keep running in background, scroll position preserved
@@ -109,6 +119,7 @@ Multiple rows per project, one visible at a time, for parallel branch work. The 
 Config-driven project setup and process supervision — the "Solo for your dev stack" layer.
 
 **Research / Decisions needed first:**
+
 - Decision: config file format — YAML, TOML, JSON, or something else
 - Decision: config file name — `flywheel.yml`, `flywheel.toml`, `.flywheel`, etc.
 - Decision: readiness detection strategy for `after` dependencies — port listening, stdout pattern match, fixed delay, or pluggable
@@ -116,6 +127,7 @@ Config-driven project setup and process supervision — the "Solo for your dev s
 - Decision: visual treatment for status indicators (colors, icons, animations)
 
 **Scope:**
+
 - Project config file loading and parsing ([spec: Config, L99-106](docs/superpowers/specs/2026-03-24-flywheel-design.md#L99-L106))
 - Config-driven panel creation on project open
 - Auto-launch processes from config on project open ([spec: Config, L99-106](docs/superpowers/specs/2026-03-24-flywheel-design.md#L99-L106))
@@ -134,11 +146,13 @@ Config-driven project setup and process supervision — the "Solo for your dev s
 The deferred complex browser capabilities and vertical scroll gesture for row switching.
 
 **Research / Decisions needed first:**
+
 - Decision: session sharing default — per-project vs per-worktree as the default partition scope
 - Research: how to handle auth flows (OAuth redirects, popups) within an embedded `WebContentsView`
 - Spike: vertical scroll gesture disambiguation — build a prototype that distinguishes intentional row-switch gestures from terminal/browser scrolling. Test with real terminals running vim, less, etc. This is the hardest UX problem in the app.
 
 **Scope:**
+
 - Configurable session sharing: per-project, per-worktree, or per-panel ([spec: Browser, L37](docs/superpowers/specs/2026-03-24-flywheel-design.md#L37))
 - Auth flow handling within embedded `WebContentsView`
 - Browser developer tools: toggle devtools panel for the focused browser panel (keyboard shortcut, docked or undocked)
@@ -151,12 +165,14 @@ The deferred complex browser capabilities and vertical scroll gesture for row sw
 Package, sign, and distribute Flywheel as a real macOS app.
 
 **Research / Decisions needed first:**
+
 - Research: Apple Developer Program enrollment and certificate types (Developer ID vs Mac App Store)
 - Research: Electron packaging tools — electron-builder vs electron-forge, and what each handles (signing, notarization, DMG creation, auto-update)
 - Decision: distribution channel — direct download (Developer ID + notarization) vs Mac App Store vs both
 - Decision: auto-update strategy — electron-updater, Sparkle, or manual
 
 **Scope:**
+
 - Code signing with Apple Developer certificate
 - Notarization via Apple's notary service
 - DMG or universal `.app` bundle packaging

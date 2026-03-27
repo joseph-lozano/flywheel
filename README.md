@@ -62,22 +62,22 @@ The DMG is uploaded as a workflow artifact (not published to releases).
 
 GitHub Actions with status checks required on `main`:
 
-| Job | Runners | What |
-|-----|---------|------|
-| test | ubuntu-22.04, ubuntu-24.04 | `vitest run` |
-| build | ubuntu-22.04, ubuntu-24.04, macos-14, macos-15 | `electron-vite build` |
-| check-secrets | ubuntu-24.04 | Warns when GH_TOKEN is near expiry |
+| Job           | Runners                                        | What                               |
+| ------------- | ---------------------------------------------- | ---------------------------------- |
+| test          | ubuntu-22.04, ubuntu-24.04                     | `vitest run`                       |
+| build         | ubuntu-22.04, ubuntu-24.04, macos-14, macos-15 | `electron-vite build`              |
+| check-secrets | ubuntu-24.04                                   | Warns when GH_TOKEN is near expiry |
 
 ## Required Secrets
 
-| Secret | Purpose |
-|--------|---------|
-| `CSC_LINK` | Base64-encoded .p12 signing certificate |
-| `CSC_KEY_PASSWORD` | Certificate password |
-| `APPLE_ID` | Apple ID email |
-| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarization |
-| `APPLE_TEAM_ID` | Developer team ID |
-| `GH_TOKEN` | PAT with write access to `flywheel-releases` |
+| Secret                        | Purpose                                      |
+| ----------------------------- | -------------------------------------------- |
+| `CSC_LINK`                    | Base64-encoded .p12 signing certificate      |
+| `CSC_KEY_PASSWORD`            | Certificate password                         |
+| `APPLE_ID`                    | Apple ID email                               |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarization       |
+| `APPLE_TEAM_ID`               | Developer team ID                            |
+| `GH_TOKEN`                    | PAT with write access to `flywheel-releases` |
 
 ## Tech Stack
 

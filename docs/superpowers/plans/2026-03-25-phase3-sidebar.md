@@ -21,10 +21,15 @@ These corrections override the code snippets in the tasks below. Apply them duri
 The visibility check's left boundary must be `sidebarWidth`, not `0`. Panels partially behind the sidebar should not be "visible".
 
 ```typescript
-export function computeVisibility(screenX: number, panelWidth: number, viewportWidth: number, sidebarWidth = 0): VisibilityState {
-  const panelRight = screenX + panelWidth
-  if (panelRight > sidebarWidth && screenX < viewportWidth) return 'visible'
-  return 'hidden'
+export function computeVisibility(
+  screenX: number,
+  panelWidth: number,
+  viewportWidth: number,
+  sidebarWidth = 0,
+): VisibilityState {
+  const panelRight = screenX + panelWidth;
+  if (panelRight > sidebarWidth && screenX < viewportWidth) return "visible";
+  return "hidden";
 }
 ```
 
@@ -45,9 +50,9 @@ Add a helper:
 ```typescript
 function findStripByPanelId(panelId: string) {
   for (const [projectId, store] of stripStores) {
-    if (panelId.startsWith(projectId)) return store
+    if (panelId.startsWith(projectId)) return store;
   }
-  return null
+  return null;
 }
 ```
 
@@ -59,16 +64,16 @@ Use it in all IPC callbacks instead of `activeStrip()`.
 
 ```typescript
 async function handleAddProject(): Promise<void> {
-  const result = await window.api.addProject()
-  if (!result) return
-  const currentId = appStore.state.activeProjectId
+  const result = await window.api.addProject();
+  if (!result) return;
+  const currentId = appStore.state.activeProjectId;
   if (currentId) {
-    const currentStore = stripStores.get(currentId)
-    if (currentStore) stripSnapshots.set(currentId, currentStore.getSnapshot())
-    window.api.hidePanelsByPrefix(currentId)
+    const currentStore = stripStores.get(currentId);
+    if (currentStore) stripSnapshots.set(currentId, currentStore.getSnapshot());
+    window.api.hidePanelsByPrefix(currentId);
   }
-  appStore.actions.addProject(result)
-  window.api.switchProject(result.id)
+  appStore.actions.addProject(result);
+  window.api.switchProject(result.id);
 }
 ```
 
@@ -77,7 +82,7 @@ async function handleAddProject(): Promise<void> {
 `getStripStore()` creates stores with default 800x600. After creating or restoring a strip store, call:
 
 ```typescript
-store.actions.setViewport(window.innerWidth, window.innerHeight)
+store.actions.setViewport(window.innerWidth, window.innerHeight);
 ```
 
 ### 6. Confirm-close `showAllPanels` must be scoped to active project (Task 14)
@@ -85,8 +90,8 @@ store.actions.setViewport(window.innerWidth, window.innerHeight)
 Replace `window.api.showAllPanels()` in `handleConfirmResponse` with:
 
 ```typescript
-const activeId = appStore.state.activeProjectId
-if (activeId) window.api.showPanelsByPrefix(activeId)
+const activeId = appStore.state.activeProjectId;
+if (activeId) window.api.showPanelsByPrefix(activeId);
 ```
 
 ### 7. Sidebar tooltip: always set title attribute (Task 11)
@@ -103,39 +108,40 @@ In the `project:list` IPC handler, check each project path with `fs.existsSync()
 
 ### New Files
 
-| File | Responsibility |
-|------|---------------|
-| `src/main/project-store.ts` | Thin wrapper around `electron-store`. Reads/writes `{ projects, activeProjectId }`. Single source of truth for persistence. |
-| `src/renderer/src/store/app.ts` | App-level Solid.js store. Holds `projects[]`, `activeProjectId`, sidebar width. Owns the `Map<projectId, StripStore>`. Handles project switching (stash/restore strip states). |
-| `src/renderer/src/components/Sidebar.tsx` | Sidebar UI component. Flat project list, active indicator, "+ Add Project" button, right-click context menu for remove. |
-| `tests/store/app.test.ts` | Tests for the app store (project CRUD, switching, strip state stash/restore). |
-| `tests/main/project-store.test.ts` | Tests for the project-store persistence wrapper. |
+| File                                      | Responsibility                                                                                                                                                                 |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/main/project-store.ts`               | Thin wrapper around `electron-store`. Reads/writes `{ projects, activeProjectId }`. Single source of truth for persistence.                                                    |
+| `src/renderer/src/store/app.ts`           | App-level Solid.js store. Holds `projects[]`, `activeProjectId`, sidebar width. Owns the `Map<projectId, StripStore>`. Handles project switching (stash/restore strip states). |
+| `src/renderer/src/components/Sidebar.tsx` | Sidebar UI component. Flat project list, active indicator, "+ Add Project" button, right-click context menu for remove.                                                        |
+| `tests/store/app.test.ts`                 | Tests for the app store (project CRUD, switching, strip state stash/restore).                                                                                                  |
+| `tests/main/project-store.test.ts`        | Tests for the project-store persistence wrapper.                                                                                                                               |
 
 ### Modified Files
 
-| File | Change |
-|------|--------|
-| `src/shared/types.ts` | Add `Project`, `PersistedState` interfaces. Extend `ShortcutAction` with new action types. |
-| `src/shared/constants.ts` | Add `SIDEBAR` constants (min/max width, background color). |
-| `src/renderer/src/layout/engine.ts` | Add `sidebarWidth` to `LayoutInput`. All functions use `effectiveWidth = viewportWidth - sidebarWidth`. `computeLayout` adds `sidebarWidth` to `x` coordinates. |
-| `src/renderer/src/store/strip.ts` | Accept `projectId` parameter. Generate panel IDs as `${projectId}-panel-${nextId}`. Add `getSnapshot()` and `restore()` methods for stash/restore during project switch. |
-| `src/renderer/src/App.tsx` | Major refactor: use app store instead of single strip store. Wire sidebar. Change `onMount` to load projects instead of auto-creating a terminal. Pass `sidebarWidth` to layout. Handle new shortcut actions. |
-| `src/renderer/src/components/HintBar.tsx` | Accept `hasProjects` prop. Show different hints based on state. |
-| `src/renderer/src/components/ScrollIndicators.tsx` | Accept `sidebarWidth` prop. Offset fade indicators and scroll track to start after sidebar. |
-| `src/renderer/src/env.d.ts` | Add new API methods: `addProject`, `removeProject`, `switchProject`, `listProjects`, `createTerminal` with `cwd`, `hideByPrefix`, `showByPrefix`. |
-| `src/preload/index.ts` | Add IPC bindings for project channels and `cwd`-aware `createTerminal`. |
-| `src/main/index.ts` | Add `electron-store` setup, project IPC handlers (`project:add/remove/switch/list`), new keyboard shortcuts in menu (`Cmd+O`, `Cmd+Shift+1-9`), update `before-input-event` interceptor. |
-| `src/main/panel-manager.ts` | Add `hideByPrefix(prefix)` and `showByPrefix(prefix)` methods. Add `destroyByPrefix(prefix)` for project removal. |
-| `src/main/pty-manager.ts` | `create()` accepts optional `cwd` parameter, passes to `node-pty` spawn options. Add `killByPrefix(prefix)` for project removal. |
-| `tests/layout/engine.test.ts` | Add tests for `sidebarWidth` parameter across all functions. |
-| `tests/store/strip.test.ts` | Update `createStripStore()` calls to pass `projectId`. Add tests for `getSnapshot()` and `restore()`. |
-| `tests/main/pty-manager.test.ts` | Add tests for `cwd` parameter and `killByPrefix`. |
+| File                                               | Change                                                                                                                                                                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/shared/types.ts`                              | Add `Project`, `PersistedState` interfaces. Extend `ShortcutAction` with new action types.                                                                                                                    |
+| `src/shared/constants.ts`                          | Add `SIDEBAR` constants (min/max width, background color).                                                                                                                                                    |
+| `src/renderer/src/layout/engine.ts`                | Add `sidebarWidth` to `LayoutInput`. All functions use `effectiveWidth = viewportWidth - sidebarWidth`. `computeLayout` adds `sidebarWidth` to `x` coordinates.                                               |
+| `src/renderer/src/store/strip.ts`                  | Accept `projectId` parameter. Generate panel IDs as `${projectId}-panel-${nextId}`. Add `getSnapshot()` and `restore()` methods for stash/restore during project switch.                                      |
+| `src/renderer/src/App.tsx`                         | Major refactor: use app store instead of single strip store. Wire sidebar. Change `onMount` to load projects instead of auto-creating a terminal. Pass `sidebarWidth` to layout. Handle new shortcut actions. |
+| `src/renderer/src/components/HintBar.tsx`          | Accept `hasProjects` prop. Show different hints based on state.                                                                                                                                               |
+| `src/renderer/src/components/ScrollIndicators.tsx` | Accept `sidebarWidth` prop. Offset fade indicators and scroll track to start after sidebar.                                                                                                                   |
+| `src/renderer/src/env.d.ts`                        | Add new API methods: `addProject`, `removeProject`, `switchProject`, `listProjects`, `createTerminal` with `cwd`, `hideByPrefix`, `showByPrefix`.                                                             |
+| `src/preload/index.ts`                             | Add IPC bindings for project channels and `cwd`-aware `createTerminal`.                                                                                                                                       |
+| `src/main/index.ts`                                | Add `electron-store` setup, project IPC handlers (`project:add/remove/switch/list`), new keyboard shortcuts in menu (`Cmd+O`, `Cmd+Shift+1-9`), update `before-input-event` interceptor.                      |
+| `src/main/panel-manager.ts`                        | Add `hideByPrefix(prefix)` and `showByPrefix(prefix)` methods. Add `destroyByPrefix(prefix)` for project removal.                                                                                             |
+| `src/main/pty-manager.ts`                          | `create()` accepts optional `cwd` parameter, passes to `node-pty` spawn options. Add `killByPrefix(prefix)` for project removal.                                                                              |
+| `tests/layout/engine.test.ts`                      | Add tests for `sidebarWidth` parameter across all functions.                                                                                                                                                  |
+| `tests/store/strip.test.ts`                        | Update `createStripStore()` calls to pass `projectId`. Add tests for `getSnapshot()` and `restore()`.                                                                                                         |
+| `tests/main/pty-manager.test.ts`                   | Add tests for `cwd` parameter and `killByPrefix`.                                                                                                                                                             |
 
 ---
 
 ## Task 1: Install electron-store
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Install electron-store**
@@ -164,6 +170,7 @@ git commit -m "chore: add electron-store dependency for project persistence"
 ## Task 2: Add shared types and constants
 
 **Files:**
+
 - Modify: `src/shared/types.ts`
 - Modify: `src/shared/constants.ts`
 
@@ -175,14 +182,14 @@ In `src/shared/types.ts`, add after the existing `Panel` interface:
 
 ```typescript
 export interface Project {
-  id: string
-  name: string
-  path: string
+  id: string;
+  name: string;
+  path: string;
 }
 
 export interface PersistedState {
-  projects: Project[]
-  activeProjectId: string | null
+  projects: Project[];
+  activeProjectId: string | null;
 }
 ```
 
@@ -192,9 +199,23 @@ In `src/shared/types.ts`, update `ShortcutAction`:
 
 ```typescript
 export type ShortcutAction = {
-  type: 'focus-left' | 'focus-right' | 'swap-left' | 'swap-right' | 'new-panel' | 'new-browser' | 'close-panel' | 'jump-to' | 'blur-panel' | 'reload-browser' | 'browser-back' | 'browser-forward' | 'add-project' | 'switch-project'
-  index?: number
-}
+  type:
+    | "focus-left"
+    | "focus-right"
+    | "swap-left"
+    | "swap-right"
+    | "new-panel"
+    | "new-browser"
+    | "close-panel"
+    | "jump-to"
+    | "blur-panel"
+    | "reload-browser"
+    | "browser-back"
+    | "browser-forward"
+    | "add-project"
+    | "switch-project";
+  index?: number;
+};
 ```
 
 - [ ] **Step 3: Add SIDEBAR constants**
@@ -205,16 +226,16 @@ In `src/shared/constants.ts`, add after `LAYOUT`:
 export const SIDEBAR = {
   MIN_WIDTH: 180,
   MAX_WIDTH: 280,
-  BACKGROUND: '#12122a',
-  BORDER_COLOR: '#2a2a4a',
-  ACCENT_COLOR: '#6366f1',
-  ACTIVE_BG: 'rgba(99, 102, 241, 0.15)',
+  BACKGROUND: "#12122a",
+  BORDER_COLOR: "#2a2a4a",
+  ACCENT_COLOR: "#6366f1",
+  ACTIVE_BG: "rgba(99, 102, 241, 0.15)",
   ITEM_PADDING_V: 6,
   ITEM_PADDING_H: 12,
   HEADER_FONT_SIZE: 11,
   ITEM_FONT_SIZE: 11,
-  ADD_FONT_SIZE: 10
-} as const
+  ADD_FONT_SIZE: 10,
+} as const;
 ```
 
 - [ ] **Step 4: Commit**
@@ -229,6 +250,7 @@ git commit -m "feat: add Project types and SIDEBAR constants"
 ## Task 3: Update layout engine with sidebarWidth
 
 **Files:**
+
 - Modify: `src/renderer/src/layout/engine.ts`
 - Modify: `tests/layout/engine.test.ts`
 
@@ -237,41 +259,58 @@ git commit -m "feat: add Project types and SIDEBAR constants"
 Add a new describe block in `tests/layout/engine.test.ts`:
 
 ```typescript
-describe('sidebarWidth support', () => {
-  const panels = [mkPanel('a'), mkPanel('b'), mkPanel('c')]
+describe("sidebarWidth support", () => {
+  const panels = [mkPanel("a"), mkPanel("b"), mkPanel("c")];
 
-  it('computeLayout shifts x coordinates by sidebarWidth', () => {
-    const layout = computeLayout({ panels, scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600, sidebarWidth: 200 })
+  it("computeLayout shifts x coordinates by sidebarWidth", () => {
+    const layout = computeLayout({
+      panels,
+      scrollOffset: 0,
+      viewportWidth: 1000,
+      viewportHeight: 600,
+      sidebarWidth: 200,
+    });
     // effectiveWidth = 800, panelWidth = 400
     // panel 0: stripX=0, screenX=0+200=200
-    expect(layout[0].contentBounds.x).toBe(200)
-    expect(layout[0].contentBounds.width).toBe(400)
-  })
+    expect(layout[0].contentBounds.x).toBe(200);
+    expect(layout[0].contentBounds.width).toBe(400);
+  });
 
-  it('computeLayout uses effective width for panel sizing', () => {
-    const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600, sidebarWidth: 200 })
-    expect(layout[0].contentBounds.width).toBe(400) // 800 * 0.5
-  })
+  it("computeLayout uses effective width for panel sizing", () => {
+    const layout = computeLayout({
+      panels: [mkPanel("a")],
+      scrollOffset: 0,
+      viewportWidth: 1000,
+      viewportHeight: 600,
+      sidebarWidth: 200,
+    });
+    expect(layout[0].contentBounds.width).toBe(400); // 800 * 0.5
+  });
 
-  it('computeMaxScroll uses effective width', () => {
+  it("computeMaxScroll uses effective width", () => {
     // effectiveWidth=800, panelWidth=400, 3 panels: 400*3 + 8*2 = 1216, max = 1216-800 = 416
-    expect(computeMaxScroll(3, 1000, 200)).toBe(416)
-  })
+    expect(computeMaxScroll(3, 1000, 200)).toBe(416);
+  });
 
-  it('computeScrollToCenter uses effective width', () => {
-    expect(computeScrollToCenter(0, 3, 1000, 200)).toBe(0)
-  })
+  it("computeScrollToCenter uses effective width", () => {
+    expect(computeScrollToCenter(0, 3, 1000, 200)).toBe(0);
+  });
 
-  it('findMostCenteredPanel uses effective width', () => {
-    expect(findMostCenteredPanel(0, 3, 1000, 200)).toBe(0)
-  })
+  it("findMostCenteredPanel uses effective width", () => {
+    expect(findMostCenteredPanel(0, 3, 1000, 200)).toBe(0);
+  });
 
-  it('defaults sidebarWidth to 0', () => {
-    const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600 })
-    expect(layout[0].contentBounds.x).toBe(0)
-    expect(layout[0].contentBounds.width).toBe(500)
-  })
-})
+  it("defaults sidebarWidth to 0", () => {
+    const layout = computeLayout({
+      panels: [mkPanel("a")],
+      scrollOffset: 0,
+      viewportWidth: 1000,
+      viewportHeight: 600,
+    });
+    expect(layout[0].contentBounds.x).toBe(0);
+    expect(layout[0].contentBounds.width).toBe(500);
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -290,29 +329,30 @@ In `src/renderer/src/layout/engine.ts`:
 
 ```typescript
 export interface LayoutInput {
-  panels: Panel[]
-  scrollOffset: number
-  viewportWidth: number
-  viewportHeight: number
-  sidebarWidth?: number
+  panels: Panel[];
+  scrollOffset: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  sidebarWidth?: number;
 }
 
 export function computeLayout(input: LayoutInput): PanelLayout[] {
-  const { panels, scrollOffset, viewportWidth, viewportHeight, sidebarWidth = 0 } = input
-  const effectiveWidth = viewportWidth - sidebarWidth
-  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO)
-  const panelTop = LAYOUT.STRIP_TOP_PADDING
-  const panelHeight = viewportHeight - LAYOUT.STRIP_TOP_PADDING - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT
+  const { panels, scrollOffset, viewportWidth, viewportHeight, sidebarWidth = 0 } = input;
+  const effectiveWidth = viewportWidth - sidebarWidth;
+  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
+  const panelTop = LAYOUT.STRIP_TOP_PADDING;
+  const panelHeight =
+    viewportHeight - LAYOUT.STRIP_TOP_PADDING - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT;
 
   return panels.map((panel, index) => {
-    const stripX = index * (panelWidth + LAYOUT.PANEL_GAP)
-    const screenX = stripX - scrollOffset + sidebarWidth
+    const stripX = index * (panelWidth + LAYOUT.PANEL_GAP);
+    const screenX = stripX - scrollOffset + sidebarWidth;
     return {
       panelId: panel.id,
       contentBounds: { x: screenX, y: panelTop, width: panelWidth, height: panelHeight },
-      visibility: computeVisibility(screenX, panelWidth, viewportWidth)
-    }
-  })
+      visibility: computeVisibility(screenX, panelWidth, viewportWidth),
+    };
+  });
 }
 ```
 
@@ -321,34 +361,55 @@ export function computeLayout(input: LayoutInput): PanelLayout[] {
 All three functions gain an optional `sidebarWidth` parameter (default 0) and use `effectiveWidth`:
 
 ```typescript
-export function computeMaxScroll(panelCount: number, viewportWidth: number, sidebarWidth = 0): number {
-  if (panelCount === 0) return 0
-  const effectiveWidth = viewportWidth - sidebarWidth
-  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO)
-  const totalStripWidth = panelCount * panelWidth + (panelCount - 1) * LAYOUT.PANEL_GAP
-  return Math.max(0, totalStripWidth - effectiveWidth)
+export function computeMaxScroll(
+  panelCount: number,
+  viewportWidth: number,
+  sidebarWidth = 0,
+): number {
+  if (panelCount === 0) return 0;
+  const effectiveWidth = viewportWidth - sidebarWidth;
+  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
+  const totalStripWidth = panelCount * panelWidth + (panelCount - 1) * LAYOUT.PANEL_GAP;
+  return Math.max(0, totalStripWidth - effectiveWidth);
 }
 
-export function computeScrollToCenter(panelIndex: number, panelCount: number, viewportWidth: number, sidebarWidth = 0): number {
-  const effectiveWidth = viewportWidth - sidebarWidth
-  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO)
-  const stripX = panelIndex * (panelWidth + LAYOUT.PANEL_GAP)
-  const centerOffset = stripX - (effectiveWidth - panelWidth) / 2
-  return Math.max(0, Math.min(centerOffset, computeMaxScroll(panelCount, viewportWidth, sidebarWidth)))
+export function computeScrollToCenter(
+  panelIndex: number,
+  panelCount: number,
+  viewportWidth: number,
+  sidebarWidth = 0,
+): number {
+  const effectiveWidth = viewportWidth - sidebarWidth;
+  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
+  const stripX = panelIndex * (panelWidth + LAYOUT.PANEL_GAP);
+  const centerOffset = stripX - (effectiveWidth - panelWidth) / 2;
+  return Math.max(
+    0,
+    Math.min(centerOffset, computeMaxScroll(panelCount, viewportWidth, sidebarWidth)),
+  );
 }
 
-export function findMostCenteredPanel(scrollOffset: number, panelCount: number, viewportWidth: number, sidebarWidth = 0): number {
-  if (panelCount === 0) return -1
-  const effectiveWidth = viewportWidth - sidebarWidth
-  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO)
-  const viewportCenter = scrollOffset + effectiveWidth / 2
-  let closestIndex = 0, closestDistance = Infinity
+export function findMostCenteredPanel(
+  scrollOffset: number,
+  panelCount: number,
+  viewportWidth: number,
+  sidebarWidth = 0,
+): number {
+  if (panelCount === 0) return -1;
+  const effectiveWidth = viewportWidth - sidebarWidth;
+  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
+  const viewportCenter = scrollOffset + effectiveWidth / 2;
+  let closestIndex = 0,
+    closestDistance = Infinity;
   for (let i = 0; i < panelCount; i++) {
-    const panelCenter = i * (panelWidth + LAYOUT.PANEL_GAP) + panelWidth / 2
-    const distance = Math.abs(panelCenter - viewportCenter)
-    if (distance < closestDistance) { closestDistance = distance; closestIndex = i }
+    const panelCenter = i * (panelWidth + LAYOUT.PANEL_GAP) + panelWidth / 2;
+    const distance = Math.abs(panelCenter - viewportCenter);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = i;
+    }
   }
-  return closestIndex
+  return closestIndex;
 }
 ```
 
@@ -372,6 +433,7 @@ git commit -m "feat: add sidebarWidth to layout engine"
 ## Task 4: Update strip store to accept projectId
 
 **Files:**
+
 - Modify: `src/renderer/src/store/strip.ts`
 - Modify: `tests/store/strip.test.ts`
 
@@ -380,50 +442,50 @@ git commit -m "feat: add sidebarWidth to layout engine"
 Add to `tests/store/strip.test.ts`:
 
 ```typescript
-describe('projectId panel ID generation', () => {
-  it('prefixes panel IDs with projectId', () => {
+describe("projectId panel ID generation", () => {
+  it("prefixes panel IDs with projectId", () => {
     createRoot((dispose) => {
-      const store = createStripStore('proj-abc')
-      const panel = store.actions.addPanel('terminal')
-      expect(panel.id).toMatch(/^proj-abc-panel-/)
-      dispose()
-    })
-  })
-})
+      const store = createStripStore("proj-abc");
+      const panel = store.actions.addPanel("terminal");
+      expect(panel.id).toMatch(/^proj-abc-panel-/);
+      dispose();
+    });
+  });
+});
 
-describe('getSnapshot and restore', () => {
-  it('snapshots current state', () => {
+describe("getSnapshot and restore", () => {
+  it("snapshots current state", () => {
     createRoot((dispose) => {
-      const store = createStripStore('proj-1')
-      store.actions.addPanel('terminal')
-      store.actions.addPanel('terminal')
-      store.actions.setScrollOffset(100)
-      const snapshot = store.getSnapshot()
-      expect(snapshot.panels).toHaveLength(2)
-      expect(snapshot.scrollOffset).toBe(100)
-      expect(snapshot.focusedIndex).toBe(1)
-      dispose()
-    })
-  })
+      const store = createStripStore("proj-1");
+      store.actions.addPanel("terminal");
+      store.actions.addPanel("terminal");
+      store.actions.setScrollOffset(100);
+      const snapshot = store.getSnapshot();
+      expect(snapshot.panels).toHaveLength(2);
+      expect(snapshot.scrollOffset).toBe(100);
+      expect(snapshot.focusedIndex).toBe(1);
+      dispose();
+    });
+  });
 
-  it('restores from snapshot', () => {
+  it("restores from snapshot", () => {
     createRoot((dispose) => {
-      const store = createStripStore('proj-1')
-      store.actions.addPanel('terminal')
-      store.actions.addPanel('terminal')
-      store.actions.setScrollOffset(100)
-      const snapshot = store.getSnapshot()
+      const store = createStripStore("proj-1");
+      store.actions.addPanel("terminal");
+      store.actions.addPanel("terminal");
+      store.actions.setScrollOffset(100);
+      const snapshot = store.getSnapshot();
 
       // Create a new store and restore
-      const store2 = createStripStore('proj-1')
-      store2.restore(snapshot)
-      expect(store2.state.panels).toHaveLength(2)
-      expect(store2.state.scrollOffset).toBe(100)
-      expect(store2.state.focusedIndex).toBe(1)
-      dispose()
-    })
-  })
-})
+      const store2 = createStripStore("proj-1");
+      store2.restore(snapshot);
+      expect(store2.state.panels).toHaveLength(2);
+      expect(store2.state.scrollOffset).toBe(100);
+      expect(store2.state.focusedIndex).toBe(1);
+      dispose();
+    });
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -440,21 +502,26 @@ In `src/renderer/src/store/strip.ts`, update the function signature and panel ID
 
 ```typescript
 export interface StripSnapshot {
-  panels: Panel[]
-  focusedIndex: number
-  scrollOffset: number
-  terminalFocused: boolean
+  panels: Panel[];
+  focusedIndex: number;
+  scrollOffset: number;
+  terminalFocused: boolean;
 }
 
-export function createStripStore(projectId = 'default') {
-  let nextId = 0
-  let colorIndex = 0
+export function createStripStore(projectId = "default") {
+  let nextId = 0;
+  let colorIndex = 0;
 
   function nextPanel(): Panel {
-    const color = PANEL_COLORS[colorIndex % PANEL_COLORS.length]
-    colorIndex++
-    nextId++
-    return { id: `${projectId}-panel-${nextId}`, type: 'placeholder', color: color.hex, label: color.name }
+    const color = PANEL_COLORS[colorIndex % PANEL_COLORS.length];
+    colorIndex++;
+    nextId++;
+    return {
+      id: `${projectId}-panel-${nextId}`,
+      type: "placeholder",
+      color: color.hex,
+      label: color.name,
+    };
   }
 
   // ... rest of existing store code unchanged ...
@@ -464,18 +531,18 @@ export function createStripStore(projectId = 'default') {
       panels: [...state.panels],
       focusedIndex: state.focusedIndex,
       scrollOffset: state.scrollOffset,
-      terminalFocused: state.terminalFocused
-    }
+      terminalFocused: state.terminalFocused,
+    };
   }
 
   function restore(snapshot: StripSnapshot): void {
-    setState('panels', [...snapshot.panels])
-    setState('focusedIndex', snapshot.focusedIndex)
-    setState('scrollOffset', snapshot.scrollOffset)
-    setState('terminalFocused', snapshot.terminalFocused)
+    setState("panels", [...snapshot.panels]);
+    setState("focusedIndex", snapshot.focusedIndex);
+    setState("scrollOffset", snapshot.scrollOffset);
+    setState("terminalFocused", snapshot.terminalFocused);
   }
 
-  return { state, actions, getSnapshot, restore }
+  return { state, actions, getSnapshot, restore };
 }
 ```
 
@@ -485,7 +552,11 @@ In `tests/store/strip.test.ts`, update the `withStore` helper:
 
 ```typescript
 function withStore(fn: (store: ReturnType<typeof createStripStore>) => void) {
-  createRoot((dispose) => { const store = createStripStore('test'); fn(store); dispose() })
+  createRoot((dispose) => {
+    const store = createStripStore("test");
+    fn(store);
+    dispose();
+  });
 }
 ```
 
@@ -509,6 +580,7 @@ git commit -m "feat: strip store accepts projectId, adds snapshot/restore"
 ## Task 5: Create project-store persistence wrapper
 
 **Files:**
+
 - Create: `src/main/project-store.ts`
 - Create: `tests/main/project-store.test.ts`
 
@@ -517,75 +589,76 @@ git commit -m "feat: strip store accepts projectId, adds snapshot/restore"
 Create `tests/main/project-store.test.ts`:
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock electron-store
-const mockStore = { get: vi.fn(), set: vi.fn() }
-vi.mock('electron-store', () => ({ default: vi.fn(() => mockStore) }))
+const mockStore = { get: vi.fn(), set: vi.fn() };
+vi.mock("electron-store", () => ({ default: vi.fn(() => mockStore) }));
 
-import { ProjectStore } from '../../src/main/project-store'
+import { ProjectStore } from "../../src/main/project-store";
 
-describe('ProjectStore', () => {
-  let store: ProjectStore
+describe("ProjectStore", () => {
+  let store: ProjectStore;
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     mockStore.get.mockImplementation((key: string) => {
-      if (key === 'projects') return []
-      if (key === 'activeProjectId') return null
-      return undefined
-    })
-    store = new ProjectStore()
-  })
+      if (key === "projects") return [];
+      if (key === "activeProjectId") return null;
+      return undefined;
+    });
+    store = new ProjectStore();
+  });
 
-  it('getProjects returns empty array initially', () => {
-    expect(store.getProjects()).toEqual([])
-  })
+  it("getProjects returns empty array initially", () => {
+    expect(store.getProjects()).toEqual([]);
+  });
 
-  it('addProject stores a new project', () => {
-    const project = store.addProject('/Users/test/my-project')
-    expect(project.name).toBe('my-project')
-    expect(project.path).toBe('/Users/test/my-project')
-    expect(project.id).toBeTruthy()
-    expect(mockStore.set).toHaveBeenCalledWith('projects', [project])
-  })
+  it("addProject stores a new project", () => {
+    const project = store.addProject("/Users/test/my-project");
+    expect(project.name).toBe("my-project");
+    expect(project.path).toBe("/Users/test/my-project");
+    expect(project.id).toBeTruthy();
+    expect(mockStore.set).toHaveBeenCalledWith("projects", [project]);
+  });
 
-  it('addProject rejects duplicate paths', () => {
+  it("addProject rejects duplicate paths", () => {
     mockStore.get.mockImplementation((key: string) => {
-      if (key === 'projects') return [{ id: '1', name: 'my-project', path: '/Users/test/my-project' }]
-      return null
-    })
-    store = new ProjectStore()
-    expect(store.addProject('/Users/test/my-project')).toBeNull()
-  })
+      if (key === "projects")
+        return [{ id: "1", name: "my-project", path: "/Users/test/my-project" }];
+      return null;
+    });
+    store = new ProjectStore();
+    expect(store.addProject("/Users/test/my-project")).toBeNull();
+  });
 
-  it('removeProject deletes by id', () => {
-    const project = { id: 'abc', name: 'test', path: '/test' }
+  it("removeProject deletes by id", () => {
+    const project = { id: "abc", name: "test", path: "/test" };
     mockStore.get.mockImplementation((key: string) => {
-      if (key === 'projects') return [project]
-      if (key === 'activeProjectId') return 'abc'
-      return null
-    })
-    store = new ProjectStore()
-    store.removeProject('abc')
-    expect(mockStore.set).toHaveBeenCalledWith('projects', [])
-    expect(mockStore.set).toHaveBeenCalledWith('activeProjectId', null)
-  })
+      if (key === "projects") return [project];
+      if (key === "activeProjectId") return "abc";
+      return null;
+    });
+    store = new ProjectStore();
+    store.removeProject("abc");
+    expect(mockStore.set).toHaveBeenCalledWith("projects", []);
+    expect(mockStore.set).toHaveBeenCalledWith("activeProjectId", null);
+  });
 
-  it('setActiveProjectId persists', () => {
-    store.setActiveProjectId('proj-1')
-    expect(mockStore.set).toHaveBeenCalledWith('activeProjectId', 'proj-1')
-  })
+  it("setActiveProjectId persists", () => {
+    store.setActiveProjectId("proj-1");
+    expect(mockStore.set).toHaveBeenCalledWith("activeProjectId", "proj-1");
+  });
 
-  it('getActiveProjectId reads from store', () => {
+  it("getActiveProjectId reads from store", () => {
     mockStore.get.mockImplementation((key: string) => {
-      if (key === 'activeProjectId') return 'proj-1'
-      return []
-    })
-    store = new ProjectStore()
-    expect(store.getActiveProjectId()).toBe('proj-1')
-  })
-})
+      if (key === "activeProjectId") return "proj-1";
+      return [];
+    });
+    store = new ProjectStore();
+    expect(store.getActiveProjectId()).toBe("proj-1");
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -603,58 +676,61 @@ Expected: FAIL — module not found.
 Create `src/main/project-store.ts`:
 
 ```typescript
-import Store from 'electron-store'
-import { randomUUID } from 'crypto'
-import { basename } from 'path'
-import type { Project } from '../shared/types'
+import Store from "electron-store";
+import { randomUUID } from "crypto";
+import { basename } from "path";
+import type { Project } from "../shared/types";
 
 interface StoreSchema {
-  projects: Project[]
-  activeProjectId: string | null
+  projects: Project[];
+  activeProjectId: string | null;
 }
 
 export class ProjectStore {
-  private store: Store<StoreSchema>
+  private store: Store<StoreSchema>;
 
   constructor() {
     this.store = new Store<StoreSchema>({
       defaults: {
         projects: [],
-        activeProjectId: null
-      }
-    })
+        activeProjectId: null,
+      },
+    });
   }
 
   getProjects(): Project[] {
-    return this.store.get('projects')
+    return this.store.get("projects");
   }
 
   getActiveProjectId(): string | null {
-    return this.store.get('activeProjectId')
+    return this.store.get("activeProjectId");
   }
 
   setActiveProjectId(id: string | null): void {
-    this.store.set('activeProjectId', id)
+    this.store.set("activeProjectId", id);
   }
 
   addProject(dirPath: string): Project | null {
-    const projects = this.getProjects()
-    if (projects.some((p) => p.path === dirPath)) return null
+    const projects = this.getProjects();
+    if (projects.some((p) => p.path === dirPath)) return null;
 
     const project: Project = {
       id: randomUUID(),
       name: basename(dirPath),
-      path: dirPath
-    }
-    this.store.set('projects', [...projects, project])
-    return project
+      path: dirPath,
+    };
+    this.store.set("projects", [...projects, project]);
+    return project;
   }
 
   removeProject(id: string): void {
-    const projects = this.getProjects()
-    this.store.set('projects', projects.filter((p) => p.id !== id))
+    const projects = this.getProjects();
+    this.store.set(
+      "projects",
+      projects.filter((p) => p.id !== id),
+    );
     if (this.getActiveProjectId() === id) {
-      this.setActiveProjectId(null)
+      this.setActiveProjectId(null);
     }
   }
 }
@@ -680,6 +756,7 @@ git commit -m "feat: add ProjectStore persistence wrapper"
 ## Task 6: Update PtyManager to accept cwd
 
 **Files:**
+
 - Modify: `src/main/pty-manager.ts`
 - Modify: `tests/main/pty-manager.test.ts`
 
@@ -688,35 +765,37 @@ git commit -m "feat: add ProjectStore persistence wrapper"
 Add to `tests/main/pty-manager.test.ts` inside the first `describe('PtyManager')` block:
 
 ```typescript
-  it('passes cwd to node-pty spawn', () => {
-    manager.create('panel-1', '/Users/test/my-project')
-    expect(nodePty.spawn).toHaveBeenCalledWith(
-      expect.any(String), [],
-      expect.objectContaining({ cwd: '/Users/test/my-project' })
-    )
-  })
+it("passes cwd to node-pty spawn", () => {
+  manager.create("panel-1", "/Users/test/my-project");
+  expect(nodePty.spawn).toHaveBeenCalledWith(
+    expect.any(String),
+    [],
+    expect.objectContaining({ cwd: "/Users/test/my-project" }),
+  );
+});
 
-  it('falls back to process.cwd() when no cwd provided', () => {
-    manager.create('panel-1')
-    expect(nodePty.spawn).toHaveBeenCalledWith(
-      expect.any(String), [],
-      expect.objectContaining({ cwd: process.cwd() })
-    )
-  })
+it("falls back to process.cwd() when no cwd provided", () => {
+  manager.create("panel-1");
+  expect(nodePty.spawn).toHaveBeenCalledWith(
+    expect.any(String),
+    [],
+    expect.objectContaining({ cwd: process.cwd() }),
+  );
+});
 ```
 
 Also add a test for `killByPrefix`:
 
 ```typescript
-  it('killByPrefix kills all PTYs with matching prefix', () => {
-    manager.create('proj1-panel-1')
-    manager.create('proj1-panel-2')
-    manager.create('proj2-panel-1')
-    manager.killByPrefix('proj1')
-    expect(manager.hasPty('proj1-panel-1')).toBe(false)
-    expect(manager.hasPty('proj1-panel-2')).toBe(false)
-    expect(manager.hasPty('proj2-panel-1')).toBe(true)
-  })
+it("killByPrefix kills all PTYs with matching prefix", () => {
+  manager.create("proj1-panel-1");
+  manager.create("proj1-panel-2");
+  manager.create("proj2-panel-1");
+  manager.killByPrefix("proj1");
+  expect(manager.hasPty("proj1-panel-1")).toBe(false);
+  expect(manager.hasPty("proj1-panel-2")).toBe(false);
+  expect(manager.hasPty("proj2-panel-1")).toBe(true);
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -779,6 +858,7 @@ git commit -m "feat: PtyManager accepts cwd, adds killByPrefix"
 ## Task 7: Add PanelManager hideByPrefix / showByPrefix / destroyByPrefix
 
 **Files:**
+
 - Modify: `src/main/panel-manager.ts`
 
 - [ ] **Step 1: Add hideByPrefix method**
@@ -839,11 +919,12 @@ Wait — `Cmd+O` (no shift) for add project. The existing handler checks `if (in
 Update the shift branch to:
 
 ```typescript
-      if (input.shift) {
-        if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
-        else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
-        else if (input.key >= '1' && input.key <= '9') action = { type: 'switch-project', index: parseInt(input.key) - 1 }
-      }
+if (input.shift) {
+  if (input.key === "ArrowLeft") action = { type: "swap-left" };
+  else if (input.key === "ArrowRight") action = { type: "swap-right" };
+  else if (input.key >= "1" && input.key <= "9")
+    action = { type: "switch-project", index: parseInt(input.key) - 1 };
+}
 ```
 
 And add to the non-shift branch:
@@ -866,6 +947,7 @@ git commit -m "feat: PanelManager adds prefix-based hide/show/destroy and new sh
 ## Task 8: Add IPC channels (preload + main process)
 
 **Files:**
+
 - Modify: `src/preload/index.ts`
 - Modify: `src/renderer/src/env.d.ts`
 - Modify: `src/main/index.ts`
@@ -927,46 +1009,46 @@ In `createWindow()`, add `projectStore = new ProjectStore()` after the `ptyManag
 In `setupIpcHandlers()`, add:
 
 ```typescript
-  // Project management
-  ipcMain.handle('project:add', async () => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory'],
-      title: 'Add Project'
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-    const project = projectStore.addProject(result.filePaths[0])
-    return project
-  })
+// Project management
+ipcMain.handle("project:add", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openDirectory"],
+    title: "Add Project",
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  const project = projectStore.addProject(result.filePaths[0]);
+  return project;
+});
 
-  ipcMain.on('project:remove', (_event, data: { projectId: string }) => {
-    ptyManager.killByPrefix(data.projectId)
-    panelManager.destroyByPrefix(data.projectId)
-    projectStore.removeProject(data.projectId)
-  })
+ipcMain.on("project:remove", (_event, data: { projectId: string }) => {
+  ptyManager.killByPrefix(data.projectId);
+  panelManager.destroyByPrefix(data.projectId);
+  projectStore.removeProject(data.projectId);
+});
 
-  ipcMain.on('project:switch', (_event, data: { projectId: string }) => {
-    projectStore.setActiveProjectId(data.projectId)
-  })
+ipcMain.on("project:switch", (_event, data: { projectId: string }) => {
+  projectStore.setActiveProjectId(data.projectId);
+});
 
-  ipcMain.handle('project:list', () => {
-    return {
-      projects: projectStore.getProjects(),
-      activeProjectId: projectStore.getActiveProjectId()
-    }
-  })
+ipcMain.handle("project:list", () => {
+  return {
+    projects: projectStore.getProjects(),
+    activeProjectId: projectStore.getActiveProjectId(),
+  };
+});
 
-  // Prefix-based panel management
-  ipcMain.on('panel:hide-by-prefix', (_event, data: { prefix: string }) => {
-    panelManager.hideByPrefix(data.prefix)
-  })
+// Prefix-based panel management
+ipcMain.on("panel:hide-by-prefix", (_event, data: { prefix: string }) => {
+  panelManager.hideByPrefix(data.prefix);
+});
 
-  ipcMain.on('panel:show-by-prefix', (_event, data: { prefix: string }) => {
-    panelManager.showByPrefix(data.prefix)
-  })
+ipcMain.on("panel:show-by-prefix", (_event, data: { prefix: string }) => {
+  panelManager.showByPrefix(data.prefix);
+});
 
-  ipcMain.on('panel:destroy-by-prefix', (_event, data: { prefix: string }) => {
-    panelManager.destroyByPrefix(data.prefix)
-  })
+ipcMain.on("panel:destroy-by-prefix", (_event, data: { prefix: string }) => {
+  panelManager.destroyByPrefix(data.prefix);
+});
 ```
 
 - [ ] **Step 4: Update pty:create handler to accept cwd**
@@ -974,9 +1056,9 @@ In `setupIpcHandlers()`, add:
 Change the existing `pty:create` handler:
 
 ```typescript
-  ipcMain.on('pty:create', (_event, data: { panelId: string; cwd?: string }) => {
-    ptyManager.create(data.panelId, data.cwd)
-  })
+ipcMain.on("pty:create", (_event, data: { panelId: string; cwd?: string }) => {
+  ptyManager.create(data.panelId, data.cwd);
+});
 ```
 
 - [ ] **Step 5: Commit**
@@ -991,6 +1073,7 @@ git commit -m "feat: add project IPC channels and prefix-based panel management"
 ## Task 9: Add keyboard shortcuts to Electron menu
 
 **Files:**
+
 - Modify: `src/main/index.ts`
 
 - [ ] **Step 1: Add Projects submenu to setupShortcuts**
@@ -1036,6 +1119,7 @@ git commit -m "feat: add Projects menu with Cmd+O and Cmd+Shift+1-9 shortcuts"
 ## Task 10: Create app store
 
 **Files:**
+
 - Create: `src/renderer/src/store/app.ts`
 - Create: `tests/store/app.test.ts`
 
@@ -1044,118 +1128,122 @@ git commit -m "feat: add Projects menu with Cmd+O and Cmd+Shift+1-9 shortcuts"
 Create `tests/store/app.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { createRoot } from 'solid-js'
-import { createAppStore } from '../../src/renderer/src/store/app'
-import type { Project } from '../../src/shared/types'
+import { describe, it, expect } from "vitest";
+import { createRoot } from "solid-js";
+import { createAppStore } from "../../src/renderer/src/store/app";
+import type { Project } from "../../src/shared/types";
 
 function withAppStore(fn: (store: ReturnType<typeof createAppStore>) => void) {
-  createRoot((dispose) => { const store = createAppStore(); fn(store); dispose() })
+  createRoot((dispose) => {
+    const store = createAppStore();
+    fn(store);
+    dispose();
+  });
 }
 
-describe('createAppStore', () => {
-  it('starts with no projects', () => {
+describe("createAppStore", () => {
+  it("starts with no projects", () => {
     withAppStore(({ state }) => {
-      expect(state.projects).toHaveLength(0)
-      expect(state.activeProjectId).toBeNull()
-    })
-  })
-})
+      expect(state.projects).toHaveLength(0);
+      expect(state.activeProjectId).toBeNull();
+    });
+  });
+});
 
-describe('project management', () => {
-  it('addProject adds to list and sets active', () => {
+describe("project management", () => {
+  it("addProject adds to list and sets active", () => {
     withAppStore(({ state, actions }) => {
-      const project: Project = { id: 'p1', name: 'test', path: '/test' }
-      actions.addProject(project)
-      expect(state.projects).toHaveLength(1)
-      expect(state.projects[0].id).toBe('p1')
-      expect(state.activeProjectId).toBe('p1')
-    })
-  })
+      const project: Project = { id: "p1", name: "test", path: "/test" };
+      actions.addProject(project);
+      expect(state.projects).toHaveLength(1);
+      expect(state.projects[0].id).toBe("p1");
+      expect(state.activeProjectId).toBe("p1");
+    });
+  });
 
-  it('removeProject removes from list', () => {
+  it("removeProject removes from list", () => {
     withAppStore(({ state, actions }) => {
-      actions.addProject({ id: 'p1', name: 'a', path: '/a' })
-      actions.addProject({ id: 'p2', name: 'b', path: '/b' })
-      actions.removeProject('p1')
-      expect(state.projects).toHaveLength(1)
-      expect(state.projects[0].id).toBe('p2')
-    })
-  })
+      actions.addProject({ id: "p1", name: "a", path: "/a" });
+      actions.addProject({ id: "p2", name: "b", path: "/b" });
+      actions.removeProject("p1");
+      expect(state.projects).toHaveLength(1);
+      expect(state.projects[0].id).toBe("p2");
+    });
+  });
 
-  it('removeProject switches to next project if active was removed', () => {
+  it("removeProject switches to next project if active was removed", () => {
     withAppStore(({ state, actions }) => {
-      actions.addProject({ id: 'p1', name: 'a', path: '/a' })
-      actions.addProject({ id: 'p2', name: 'b', path: '/b' })
-      actions.switchProject('p1')
-      actions.removeProject('p1')
-      expect(state.activeProjectId).toBe('p2')
-    })
-  })
+      actions.addProject({ id: "p1", name: "a", path: "/a" });
+      actions.addProject({ id: "p2", name: "b", path: "/b" });
+      actions.switchProject("p1");
+      actions.removeProject("p1");
+      expect(state.activeProjectId).toBe("p2");
+    });
+  });
 
-  it('removeProject sets null if last project removed', () => {
+  it("removeProject sets null if last project removed", () => {
     withAppStore(({ state, actions }) => {
-      actions.addProject({ id: 'p1', name: 'a', path: '/a' })
-      actions.removeProject('p1')
-      expect(state.activeProjectId).toBeNull()
-    })
-  })
-})
+      actions.addProject({ id: "p1", name: "a", path: "/a" });
+      actions.removeProject("p1");
+      expect(state.activeProjectId).toBeNull();
+    });
+  });
+});
 
-describe('project switching', () => {
-  it('switchProject changes activeProjectId', () => {
+describe("project switching", () => {
+  it("switchProject changes activeProjectId", () => {
     withAppStore(({ state, actions }) => {
-      actions.addProject({ id: 'p1', name: 'a', path: '/a' })
-      actions.addProject({ id: 'p2', name: 'b', path: '/b' })
-      actions.switchProject('p1')
-      expect(state.activeProjectId).toBe('p1')
-    })
-  })
+      actions.addProject({ id: "p1", name: "a", path: "/a" });
+      actions.addProject({ id: "p2", name: "b", path: "/b" });
+      actions.switchProject("p1");
+      expect(state.activeProjectId).toBe("p1");
+    });
+  });
 
-  it('getActiveProject returns current project', () => {
+  it("getActiveProject returns current project", () => {
     withAppStore(({ state, actions }) => {
-      actions.addProject({ id: 'p1', name: 'test', path: '/test' })
-      expect(actions.getActiveProject()?.id).toBe('p1')
-    })
-  })
+      actions.addProject({ id: "p1", name: "test", path: "/test" });
+      expect(actions.getActiveProject()?.id).toBe("p1");
+    });
+  });
 
-  it('getActiveProject returns null when no active', () => {
+  it("getActiveProject returns null when no active", () => {
     withAppStore(({ actions }) => {
-      expect(actions.getActiveProject()).toBeNull()
-    })
-  })
-})
+      expect(actions.getActiveProject()).toBeNull();
+    });
+  });
+});
 
-describe('sidebar width', () => {
-  it('computes sidebar width from longest project name', () => {
+describe("sidebar width", () => {
+  it("computes sidebar width from longest project name", () => {
     withAppStore(({ state, actions }) => {
-      actions.addProject({ id: 'p1', name: 'short', path: '/short' })
+      actions.addProject({ id: "p1", name: "short", path: "/short" });
       // Width depends on character measurement; just verify it's within bounds
-      expect(state.sidebarWidth).toBeGreaterThanOrEqual(180)
-      expect(state.sidebarWidth).toBeLessThanOrEqual(280)
-    })
-  })
+      expect(state.sidebarWidth).toBeGreaterThanOrEqual(180);
+      expect(state.sidebarWidth).toBeLessThanOrEqual(280);
+    });
+  });
 
-  it('returns 180 (min) when no projects', () => {
+  it("returns 180 (min) when no projects", () => {
     withAppStore(({ state }) => {
-      expect(state.sidebarWidth).toBe(180)
-    })
-  })
-})
+      expect(state.sidebarWidth).toBe(180);
+    });
+  });
+});
 
-describe('loadProjects', () => {
-  it('loads project list and active project', () => {
+describe("loadProjects", () => {
+  it("loads project list and active project", () => {
     withAppStore(({ state, actions }) => {
       const projects: Project[] = [
-        { id: 'p1', name: 'a', path: '/a' },
-        { id: 'p2', name: 'b', path: '/b' }
-      ]
-      actions.loadProjects(projects, 'p2')
-      expect(state.projects).toHaveLength(2)
-      expect(state.activeProjectId).toBe('p2')
-    })
-  })
-})
+        { id: "p1", name: "a", path: "/a" },
+        { id: "p2", name: "b", path: "/b" },
+      ];
+      actions.loadProjects(projects, "p2");
+      expect(state.projects).toHaveLength(2);
+      expect(state.activeProjectId).toBe("p2");
+    });
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -1171,66 +1259,66 @@ Expected: FAIL — module not found.
 Create `src/renderer/src/store/app.ts`:
 
 ```typescript
-import { createStore } from 'solid-js/store'
-import type { Project } from '../../../shared/types'
-import { SIDEBAR } from '../../../shared/constants'
+import { createStore } from "solid-js/store";
+import type { Project } from "../../../shared/types";
+import { SIDEBAR } from "../../../shared/constants";
 
 export interface AppState {
-  projects: Project[]
-  activeProjectId: string | null
-  sidebarWidth: number
+  projects: Project[];
+  activeProjectId: string | null;
+  sidebarWidth: number;
 }
 
 function computeSidebarWidth(projects: Project[]): number {
-  if (projects.length === 0) return SIDEBAR.MIN_WIDTH
+  if (projects.length === 0) return SIDEBAR.MIN_WIDTH;
   // Approximate: 7px per character (monospace 11px) + padding
-  const longestName = Math.max(...projects.map((p) => p.name.length))
-  const estimated = longestName * 7 + SIDEBAR.ITEM_PADDING_H * 2 + 2 + 12 // padding + border + extra
-  return Math.max(SIDEBAR.MIN_WIDTH, Math.min(estimated, SIDEBAR.MAX_WIDTH))
+  const longestName = Math.max(...projects.map((p) => p.name.length));
+  const estimated = longestName * 7 + SIDEBAR.ITEM_PADDING_H * 2 + 2 + 12; // padding + border + extra
+  return Math.max(SIDEBAR.MIN_WIDTH, Math.min(estimated, SIDEBAR.MAX_WIDTH));
 }
 
 export function createAppStore() {
   const [state, setState] = createStore<AppState>({
     projects: [],
     activeProjectId: null,
-    sidebarWidth: SIDEBAR.MIN_WIDTH
-  })
+    sidebarWidth: SIDEBAR.MIN_WIDTH,
+  });
 
   const actions = {
     loadProjects(projects: Project[], activeProjectId: string | null): void {
-      setState('projects', projects)
-      setState('activeProjectId', activeProjectId)
-      setState('sidebarWidth', computeSidebarWidth(projects))
+      setState("projects", projects);
+      setState("activeProjectId", activeProjectId);
+      setState("sidebarWidth", computeSidebarWidth(projects));
     },
 
     addProject(project: Project): void {
-      setState('projects', [...state.projects, project])
-      setState('activeProjectId', project.id)
-      setState('sidebarWidth', computeSidebarWidth([...state.projects]))
+      setState("projects", [...state.projects, project]);
+      setState("activeProjectId", project.id);
+      setState("sidebarWidth", computeSidebarWidth([...state.projects]));
     },
 
     removeProject(id: string): void {
-      const newProjects = state.projects.filter((p) => p.id !== id)
-      setState('projects', newProjects)
+      const newProjects = state.projects.filter((p) => p.id !== id);
+      setState("projects", newProjects);
       if (state.activeProjectId === id) {
-        setState('activeProjectId', newProjects.length > 0 ? newProjects[0].id : null)
+        setState("activeProjectId", newProjects.length > 0 ? newProjects[0].id : null);
       }
-      setState('sidebarWidth', computeSidebarWidth(newProjects))
+      setState("sidebarWidth", computeSidebarWidth(newProjects));
     },
 
     switchProject(id: string): void {
       if (state.projects.some((p) => p.id === id)) {
-        setState('activeProjectId', id)
+        setState("activeProjectId", id);
       }
     },
 
     getActiveProject(): Project | null {
-      if (!state.activeProjectId) return null
-      return state.projects.find((p) => p.id === state.activeProjectId) || null
-    }
-  }
+      if (!state.activeProjectId) return null;
+      return state.projects.find((p) => p.id === state.activeProjectId) || null;
+    },
+  };
 
-  return { state, actions }
+  return { state, actions };
 }
 ```
 
@@ -1254,6 +1342,7 @@ git commit -m "feat: add app store for project management"
 ## Task 11: Create Sidebar component
 
 **Files:**
+
 - Create: `src/renderer/src/components/Sidebar.tsx`
 
 - [ ] **Step 1: Create the Sidebar component**
@@ -1264,94 +1353,111 @@ git commit -m "feat: add app store for project management"
 Create `src/renderer/src/components/Sidebar.tsx`:
 
 ```tsx
-import { For, createSignal } from 'solid-js'
-import type { Project } from '../../../shared/types'
-import { SIDEBAR } from '../../../shared/constants'
+import { For, createSignal } from "solid-js";
+import type { Project } from "../../../shared/types";
+import { SIDEBAR } from "../../../shared/constants";
 
 interface SidebarProps {
-  projects: Project[]
-  activeProjectId: string | null
-  sidebarWidth: number
-  viewportHeight: number
-  onSwitchProject: (id: string) => void
-  onAddProject: () => void
-  onRemoveProject: (id: string) => void
+  projects: Project[];
+  activeProjectId: string | null;
+  sidebarWidth: number;
+  viewportHeight: number;
+  onSwitchProject: (id: string) => void;
+  onAddProject: () => void;
+  onRemoveProject: (id: string) => void;
 }
 
 export default function Sidebar(props: SidebarProps) {
-  const [contextMenu, setContextMenu] = createSignal<{ x: number; y: number; projectId: string } | null>(null)
-  const [hoveredId, setHoveredId] = createSignal<string | null>(null)
+  const [contextMenu, setContextMenu] = createSignal<{
+    x: number;
+    y: number;
+    projectId: string;
+  } | null>(null);
+  const [hoveredId, setHoveredId] = createSignal<string | null>(null);
 
   function handleContextMenu(e: MouseEvent, projectId: string) {
-    e.preventDefault()
-    setContextMenu({ x: e.clientX, y: e.clientY, projectId })
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, projectId });
   }
 
   function handleRemove() {
-    const menu = contextMenu()
+    const menu = contextMenu();
     if (menu) {
-      props.onRemoveProject(menu.projectId)
-      setContextMenu(null)
+      props.onRemoveProject(menu.projectId);
+      setContextMenu(null);
     }
   }
 
   function closeContextMenu() {
-    setContextMenu(null)
+    setContextMenu(null);
   }
 
   return (
     <div
       style={{
-        position: 'absolute',
+        position: "absolute",
         left: 0,
         top: 0,
         width: `${props.sidebarWidth}px`,
         height: `${props.viewportHeight}px`,
         background: SIDEBAR.BACKGROUND,
-        'border-right': `1px solid ${SIDEBAR.BORDER_COLOR}`,
-        display: 'flex',
-        'flex-direction': 'column',
-        'font-family': 'monospace',
-        'font-size': `${SIDEBAR.ITEM_FONT_SIZE}px`,
-        'user-select': 'none',
-        'z-index': '20'
+        "border-right": `1px solid ${SIDEBAR.BORDER_COLOR}`,
+        display: "flex",
+        "flex-direction": "column",
+        "font-family": "monospace",
+        "font-size": `${SIDEBAR.ITEM_FONT_SIZE}px`,
+        "user-select": "none",
+        "z-index": "20",
       }}
       onClick={closeContextMenu}
     >
       {/* Header */}
-      <div style={{
-        color: SIDEBAR.ACCENT_COLOR,
-        'font-weight': 'bold',
-        'font-size': `${SIDEBAR.HEADER_FONT_SIZE}px`,
-        padding: '12px 12px 8px',
-        display: 'flex',
-        'align-items': 'center',
-        gap: '6px'
-      }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={SIDEBAR.ACCENT_COLOR} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-          <polyline points="2 17 12 22 22 17"/>
-          <polyline points="2 12 12 17 22 12"/>
+      <div
+        style={{
+          color: SIDEBAR.ACCENT_COLOR,
+          "font-weight": "bold",
+          "font-size": `${SIDEBAR.HEADER_FONT_SIZE}px`,
+          padding: "12px 12px 8px",
+          display: "flex",
+          "align-items": "center",
+          gap: "6px",
+        }}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={SIDEBAR.ACCENT_COLOR}
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polygon points="12 2 2 7 12 12 22 7 12 2" />
+          <polyline points="2 17 12 22 22 17" />
+          <polyline points="2 12 12 17 22 12" />
         </svg>
         Projects
       </div>
 
       {/* Project list */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: "hidden" }}>
         <For each={props.projects}>
           {(project) => (
             <div
               style={{
                 padding: `${SIDEBAR.ITEM_PADDING_V}px ${SIDEBAR.ITEM_PADDING_H}px`,
-                color: project.id === props.activeProjectId ? '#e0e0e0' : '#666',
-                background: project.id === props.activeProjectId ? SIDEBAR.ACTIVE_BG : 'transparent',
-                'border-left': project.id === props.activeProjectId
-                  ? `2px solid ${SIDEBAR.ACCENT_COLOR}`
-                  : '2px solid transparent',
-                cursor: 'pointer',
-                'white-space': 'nowrap',
-                overflow: 'hidden',
-                'text-overflow': 'ellipsis'
+                color: project.id === props.activeProjectId ? "#e0e0e0" : "#666",
+                background:
+                  project.id === props.activeProjectId ? SIDEBAR.ACTIVE_BG : "transparent",
+                "border-left":
+                  project.id === props.activeProjectId
+                    ? `2px solid ${SIDEBAR.ACCENT_COLOR}`
+                    : "2px solid transparent",
+                cursor: "pointer",
+                "white-space": "nowrap",
+                overflow: "hidden",
+                "text-overflow": "ellipsis",
               }}
               title={project.name.length > 30 ? project.name : undefined}
               onClick={() => props.onSwitchProject(project.id)}
@@ -1368,11 +1474,11 @@ export default function Sidebar(props: SidebarProps) {
       {/* Add Project button */}
       <div
         style={{
-          padding: '8px 12px',
-          color: '#555',
-          'font-size': `${SIDEBAR.ADD_FONT_SIZE}px`,
-          'border-top': `1px solid ${SIDEBAR.BORDER_COLOR}`,
-          cursor: 'pointer'
+          padding: "8px 12px",
+          color: "#555",
+          "font-size": `${SIDEBAR.ADD_FONT_SIZE}px`,
+          "border-top": `1px solid ${SIDEBAR.BORDER_COLOR}`,
+          cursor: "pointer",
         }}
         onClick={props.onAddProject}
       >
@@ -1383,26 +1489,26 @@ export default function Sidebar(props: SidebarProps) {
       {contextMenu() && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             left: `${contextMenu()!.x}px`,
             top: `${contextMenu()!.y}px`,
-            background: '#1a1a2e',
+            background: "#1a1a2e",
             border: `1px solid ${SIDEBAR.BORDER_COLOR}`,
-            'border-radius': '4px',
-            padding: '4px 0',
-            'z-index': '100',
-            'box-shadow': '0 4px 12px rgba(0,0,0,0.4)'
+            "border-radius": "4px",
+            padding: "4px 0",
+            "z-index": "100",
+            "box-shadow": "0 4px 12px rgba(0,0,0,0.4)",
           }}
         >
           <div
             style={{
-              padding: '6px 16px',
-              color: '#f43f5e',
-              'font-size': '11px',
-              cursor: 'pointer'
+              padding: "6px 16px",
+              color: "#f43f5e",
+              "font-size": "11px",
+              cursor: "pointer",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(244,63,94,0.1)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(244,63,94,0.1)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             onClick={handleRemove}
           >
             Remove Project
@@ -1410,7 +1516,7 @@ export default function Sidebar(props: SidebarProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -1426,6 +1532,7 @@ git commit -m "feat: add Sidebar component"
 ## Task 12: Update HintBar for context awareness
 
 **Files:**
+
 - Modify: `src/renderer/src/components/HintBar.tsx`
 
 - [ ] **Step 1: Update HintBar props and hints**
@@ -1433,86 +1540,102 @@ git commit -m "feat: add Sidebar component"
 Replace the contents of `src/renderer/src/components/HintBar.tsx`. The key changes are: accept `hasProjects` prop, show different hint sets based on state, and accept `sidebarWidth` for positioning.
 
 ```tsx
-import { createSignal, onMount, onCleanup } from 'solid-js'
-import { LAYOUT } from '../../../shared/constants'
+import { createSignal, onMount, onCleanup } from "solid-js";
+import { LAYOUT } from "../../../shared/constants";
 
 interface HintBarProps {
-  viewportHeight: number
-  panelCount: number
-  hasProjects: boolean
-  sidebarWidth: number
+  viewportHeight: number;
+  panelCount: number;
+  hasProjects: boolean;
+  sidebarWidth: number;
 }
 
 const PANEL_HINTS = [
-  { key: '\u2318\u2190', label: 'Focus Left' },
-  { key: '\u2318\u2192', label: 'Focus Right' },
-  { key: '\u2318\u21e7\u2190', label: 'Swap Left' },
-  { key: '\u2318\u21e7\u2192', label: 'Swap Right' },
-  { key: '\u2318T', label: 'New Terminal' },
-  { key: '\u2318B', label: 'New Browser' },
-  { key: '\u2318[', label: 'Back' },
-  { key: '\u2318]', label: 'Forward' },
-  { key: '\u2318W', label: 'Close' },
-  { key: '\u2318G', label: 'Blur' },
-  { key: '\u23181-9', label: 'Jump' },
-  { key: '\u2318\u21e71-9', label: 'Switch Project' }
-]
+  { key: "\u2318\u2190", label: "Focus Left" },
+  { key: "\u2318\u2192", label: "Focus Right" },
+  { key: "\u2318\u21e7\u2190", label: "Swap Left" },
+  { key: "\u2318\u21e7\u2192", label: "Swap Right" },
+  { key: "\u2318T", label: "New Terminal" },
+  { key: "\u2318B", label: "New Browser" },
+  { key: "\u2318[", label: "Back" },
+  { key: "\u2318]", label: "Forward" },
+  { key: "\u2318W", label: "Close" },
+  { key: "\u2318G", label: "Blur" },
+  { key: "\u23181-9", label: "Jump" },
+  { key: "\u2318\u21e71-9", label: "Switch Project" },
+];
 
-const NO_PROJECT_HINTS = [
-  { key: '\u2318O', label: 'Add Project' }
-]
+const NO_PROJECT_HINTS = [{ key: "\u2318O", label: "Add Project" }];
 
 export default function HintBar(props: HintBarProps) {
-  const top = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT
+  const top = () => props.viewportHeight - LAYOUT.HINT_BAR_HEIGHT;
 
-  const hints = () => props.hasProjects ? PANEL_HINTS : NO_PROJECT_HINTS
+  const hints = () => (props.hasProjects ? PANEL_HINTS : NO_PROJECT_HINTS);
 
   const [stats, setStats] = createSignal({
     panelViewCount: 0,
     mainMemoryMB: 0,
-    heapUsedMB: 0
-  })
+    heapUsedMB: 0,
+  });
 
   onMount(() => {
     async function poll() {
       try {
-        setStats(await window.api.getDebugStats())
+        setStats(await window.api.getDebugStats());
       } catch (e) {
-        console.error('debug:stats failed', e)
+        console.error("debug:stats failed", e);
       }
     }
-    poll()
-    const id = setInterval(poll, 5000)
-    onCleanup(() => clearInterval(id))
-  })
+    poll();
+    const id = setInterval(poll, 5000);
+    onCleanup(() => clearInterval(id));
+  });
 
-  const dimStyle = { color: '#444', 'font-size': '11px' } as const
-  const valStyle = { color: '#666', 'font-size': '11px', 'font-family': 'monospace' } as const
+  const dimStyle = { color: "#444", "font-size": "11px" } as const;
+  const valStyle = { color: "#666", "font-size": "11px", "font-family": "monospace" } as const;
 
   return (
-    <div style={{
-      position: 'absolute', left: `${props.sidebarWidth}px`, top: `${top()}px`,
-      width: `calc(100% - ${props.sidebarWidth}px)`,
-      height: `${LAYOUT.HINT_BAR_HEIGHT}px`, display: 'flex', 'align-items': 'center',
-      background: '#1a1a2e', 'border-top': '1px solid #252540',
-      'user-select': 'none', 'font-size': '12px', 'padding-left': '16px', 'padding-right': '16px'
-    }}>
+    <div
+      style={{
+        position: "absolute",
+        left: `${props.sidebarWidth}px`,
+        top: `${top()}px`,
+        width: `calc(100% - ${props.sidebarWidth}px)`,
+        height: `${LAYOUT.HINT_BAR_HEIGHT}px`,
+        display: "flex",
+        "align-items": "center",
+        background: "#1a1a2e",
+        "border-top": "1px solid #252540",
+        "user-select": "none",
+        "font-size": "12px",
+        "padding-left": "16px",
+        "padding-right": "16px",
+      }}
+    >
       {/* Shortcuts — center */}
-      <div style={{ flex: 1, display: 'flex', 'justify-content': 'center', gap: '24px' }}>
+      <div style={{ flex: 1, display: "flex", "justify-content": "center", gap: "24px" }}>
         {hints().map((hint) => (
           <span>
-            <span style={{
-              color: '#888', 'font-weight': '500', background: '#252540',
-              padding: '2px 6px', 'border-radius': '3px', 'margin-right': '4px',
-              'font-family': 'monospace'
-            }}>{hint.key}</span>
-            <span style={{ color: '#555' }}>{hint.label}</span>
+            <span
+              style={{
+                color: "#888",
+                "font-weight": "500",
+                background: "#252540",
+                padding: "2px 6px",
+                "border-radius": "3px",
+                "margin-right": "4px",
+                "font-family": "monospace",
+              }}
+            >
+              {hint.key}
+            </span>
+            <span style={{ color: "#555" }}>{hint.label}</span>
           </span>
         ))}
       </div>
 
       {/* Debug stats — right */}
-      <div style={{ display: 'flex', gap: '12px', 'flex-shrink': 0 }}>
+      <div style={{ display: "flex", gap: "12px", "flex-shrink": 0 }}>
         <span>
           <span style={dimStyle}>panels </span>
           <span style={valStyle}>{props.panelCount}</span>
@@ -1531,7 +1654,7 @@ export default function HintBar(props: HintBarProps) {
         </span>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -1547,6 +1670,7 @@ git commit -m "feat: context-aware HintBar with project hints"
 ## Task 13: Update ScrollIndicators for sidebar offset
 
 **Files:**
+
 - Modify: `src/renderer/src/components/ScrollIndicators.tsx`
 
 - [ ] **Step 1: Add sidebarWidth prop**
@@ -1555,11 +1679,11 @@ Update `ScrollIndicatorsProps`:
 
 ```typescript
 interface ScrollIndicatorsProps {
-  scrollOffset: number
-  maxScroll: number
-  viewportWidth: number
-  viewportHeight: number
-  sidebarWidth: number
+  scrollOffset: number;
+  maxScroll: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  sidebarWidth: number;
 }
 ```
 
@@ -1572,17 +1696,17 @@ Update the scroll track container's `left` to `${props.sidebarWidth}px` and `wid
 Update `thumbLeft` to account for the effective width:
 
 ```typescript
-  const effectiveWidth = () => props.viewportWidth - props.sidebarWidth
-  const thumbWidth = () => {
-    if (props.maxScroll <= 0) return effectiveWidth()
-    const ratio = effectiveWidth() / (effectiveWidth() + props.maxScroll)
-    return Math.max(40, effectiveWidth() * ratio)
-  }
-  const thumbLeft = () => {
-    if (props.maxScroll <= 0) return 0
-    const ratio = props.scrollOffset / props.maxScroll
-    return ratio * (effectiveWidth() - thumbWidth())
-  }
+const effectiveWidth = () => props.viewportWidth - props.sidebarWidth;
+const thumbWidth = () => {
+  if (props.maxScroll <= 0) return effectiveWidth();
+  const ratio = effectiveWidth() / (effectiveWidth() + props.maxScroll);
+  return Math.max(40, effectiveWidth() * ratio);
+};
+const thumbLeft = () => {
+  if (props.maxScroll <= 0) return 0;
+  const ratio = props.scrollOffset / props.maxScroll;
+  return ratio * (effectiveWidth() - thumbWidth());
+};
 ```
 
 Also update the left fade `left` position and height calc to use `props.sidebarWidth`, and update the right fade and scroll track to use `effectiveWidth()`.
@@ -1599,9 +1723,11 @@ git commit -m "feat: ScrollIndicators accounts for sidebar width"
 ## Task 14: Refactor App.tsx — wire everything together
 
 **Files:**
+
 - Modify: `src/renderer/src/App.tsx`
 
 This is the largest task. The App component needs to:
+
 1. Create an app store + manage per-project strip stores
 2. Render the Sidebar component
 3. Handle project switching (stash/restore strip state, hide/show panels)
@@ -1612,6 +1738,7 @@ This is the largest task. The App component needs to:
 - [ ] **Step 1: Replace App.tsx**
 
 > **CRITICAL: Apply ALL of the following Critical Notes when implementing this task. The code below is a starting template — you MUST apply these corrections:**
+>
 > - **Critical Note #1**: Pass `sidebarWidth` to `computeVisibility` in layout calls.
 > - **Critical Note #2**: Scroll-to-center effect MUST use `on(() => activeStrip()?.state.focusedIndex, ..., { defer: true })`, NOT a plain `createEffect`.
 > - **Critical Note #3**: ALL IPC callbacks (`onPtyExit`, `onPanelTitle`, `onBrowserUrlChanged`, `onBrowserTitleChanged`, `onBrowserOpenUrl`, `onPanelClosed`, `onPanelFocused`) must route to the correct strip store via `findStripByPanelId(panelId)`, NOT `activeStrip()`.
@@ -1622,61 +1749,69 @@ This is the largest task. The App component needs to:
 Rewrite `src/renderer/src/App.tsx`. The key structural changes:
 
 ```tsx
-import { createEffect, createSignal, on, onMount, batch } from 'solid-js'
-import { createAppStore } from './store/app'
-import { createStripStore } from './store/strip'
-import type { StripSnapshot } from './store/strip'
-import { computeLayout, computeScrollToCenter, computeMaxScroll, findMostCenteredPanel } from './layout/engine'
-import { animate, easeOut } from './scroll/animator'
-import type { AnimationHandle } from './scroll/animator'
-import type { PanelBoundsUpdate } from '../../../shared/types'
-import { LAYOUT } from '../../shared/constants'
-import Strip from './components/Strip'
-import ScrollIndicators from './components/ScrollIndicators'
-import HintBar from './components/HintBar'
-import ConfirmDialog from './components/ConfirmDialog'
-import Sidebar from './components/Sidebar'
+import { createEffect, createSignal, on, onMount, batch } from "solid-js";
+import { createAppStore } from "./store/app";
+import { createStripStore } from "./store/strip";
+import type { StripSnapshot } from "./store/strip";
+import {
+  computeLayout,
+  computeScrollToCenter,
+  computeMaxScroll,
+  findMostCenteredPanel,
+} from "./layout/engine";
+import { animate, easeOut } from "./scroll/animator";
+import type { AnimationHandle } from "./scroll/animator";
+import type { PanelBoundsUpdate } from "../../../shared/types";
+import { LAYOUT } from "../../shared/constants";
+import Strip from "./components/Strip";
+import ScrollIndicators from "./components/ScrollIndicators";
+import HintBar from "./components/HintBar";
+import ConfirmDialog from "./components/ConfirmDialog";
+import Sidebar from "./components/Sidebar";
 
 export default function App() {
-  const appStore = createAppStore()
-  const stripStores = new Map<string, ReturnType<typeof createStripStore>>()
-  const stripSnapshots = new Map<string, StripSnapshot>()
-  const createdPanelIds = new Set<string>()
-  let currentAnimation: AnimationHandle | null = null
-  let scrollEndTimer: ReturnType<typeof setTimeout>
+  const appStore = createAppStore();
+  const stripStores = new Map<string, ReturnType<typeof createStripStore>>();
+  const stripSnapshots = new Map<string, StripSnapshot>();
+  const createdPanelIds = new Set<string>();
+  let currentAnimation: AnimationHandle | null = null;
+  let scrollEndTimer: ReturnType<typeof setTimeout>;
 
-  const [confirmClose, setConfirmClose] = createSignal<{ panelId: string; processName: string } | null>(null)
+  const [confirmClose, setConfirmClose] = createSignal<{
+    panelId: string;
+    processName: string;
+  } | null>(null);
 
   // Get or create strip store for a project
   function getStripStore(projectId: string) {
-    let store = stripStores.get(projectId)
+    let store = stripStores.get(projectId);
     if (!store) {
-      store = createStripStore(projectId)
+      store = createStripStore(projectId);
       // Restore snapshot if one exists
-      const snapshot = stripSnapshots.get(projectId)
-      if (snapshot) store.restore(snapshot)
-      stripStores.set(projectId, store)
+      const snapshot = stripSnapshots.get(projectId);
+      if (snapshot) store.restore(snapshot);
+      stripStores.set(projectId, store);
     }
-    return store
+    return store;
   }
 
   // Active strip store (reactive — changes when activeProjectId changes)
   const activeStrip = () => {
-    const id = appStore.state.activeProjectId
-    if (!id) return null
-    return getStripStore(id)
-  }
+    const id = appStore.state.activeProjectId;
+    if (!id) return null;
+    return getStripStore(id);
+  };
 
   // Layout effect — recomputes when strip state or sidebar changes
   createEffect(() => {
-    const strip = activeStrip()
+    const strip = activeStrip();
     if (!strip) {
       // No active project — hide everything
       for (const id of [...createdPanelIds]) {
-        window.api.destroyPanel(id)
-        createdPanelIds.delete(id)
+        window.api.destroyPanel(id);
+        createdPanelIds.delete(id);
       }
-      return
+      return;
     }
 
     const layout = computeLayout({
@@ -1684,97 +1819,109 @@ export default function App() {
       scrollOffset: strip.state.scrollOffset,
       viewportWidth: strip.state.viewportWidth,
       viewportHeight: strip.state.viewportHeight,
-      sidebarWidth: appStore.state.sidebarWidth
-    })
+      sidebarWidth: appStore.state.sidebarWidth,
+    });
 
-    const desiredIds = new Set<string>()
-    const boundsUpdates: PanelBoundsUpdate[] = []
+    const desiredIds = new Set<string>();
+    const boundsUpdates: PanelBoundsUpdate[] = [];
 
     for (const entry of layout) {
-      if (entry.visibility === 'destroyed') continue
-      desiredIds.add(entry.panelId)
+      if (entry.visibility === "destroyed") continue;
+      desiredIds.add(entry.panelId);
       if (!createdPanelIds.has(entry.panelId)) {
-        const panel = strip.state.panels.find((p) => p.id === entry.panelId)
+        const panel = strip.state.panels.find((p) => p.id === entry.panelId);
         if (panel) {
-          if (panel.type === 'terminal') {
-            window.api.createTerminalPanel(entry.panelId)
-          } else if (panel.type === 'browser') {
-            window.api.createBrowserPanel(entry.panelId, panel.url || 'about:blank')
+          if (panel.type === "terminal") {
+            window.api.createTerminalPanel(entry.panelId);
+          } else if (panel.type === "browser") {
+            window.api.createBrowserPanel(entry.panelId, panel.url || "about:blank");
           } else {
-            window.api.createPanel(entry.panelId, panel.color)
+            window.api.createPanel(entry.panelId, panel.color);
           }
-          createdPanelIds.add(entry.panelId)
+          createdPanelIds.add(entry.panelId);
         }
       }
       boundsUpdates.push({
         panelId: entry.panelId,
         bounds: entry.contentBounds,
-        visible: entry.visibility === 'visible'
-      })
+        visible: entry.visibility === "visible",
+      });
     }
 
     // Only destroy panels belonging to the active project that are no longer needed
-    const activePrefix = appStore.state.activeProjectId || ''
+    const activePrefix = appStore.state.activeProjectId || "";
     for (const id of [...createdPanelIds]) {
       if (id.startsWith(activePrefix) && !desiredIds.has(id)) {
-        window.api.destroyPanel(id)
-        createdPanelIds.delete(id)
+        window.api.destroyPanel(id);
+        createdPanelIds.delete(id);
       }
     }
 
     if (boundsUpdates.length > 0) {
-      window.api.updateBounds(boundsUpdates)
+      window.api.updateBounds(boundsUpdates);
     }
-  })
+  });
 
   // Scroll-to-center effect
   createEffect(() => {
-    const strip = activeStrip()
-    if (!strip) return
+    const strip = activeStrip();
+    if (!strip) return;
     // Track focusedIndex changes
-    const focusedIndex = strip.state.focusedIndex
-    const viewportWidth = strip.state.viewportWidth
-    const panelCount = strip.state.panels.length
-    const sidebarWidth = appStore.state.sidebarWidth
+    const focusedIndex = strip.state.focusedIndex;
+    const viewportWidth = strip.state.viewportWidth;
+    const panelCount = strip.state.panels.length;
+    const sidebarWidth = appStore.state.sidebarWidth;
 
-    currentAnimation?.cancel()
-    currentAnimation = null
-    const target = computeScrollToCenter(focusedIndex, panelCount, viewportWidth, sidebarWidth)
+    currentAnimation?.cancel();
+    currentAnimation = null;
+    const target = computeScrollToCenter(focusedIndex, panelCount, viewportWidth, sidebarWidth);
     if (Math.abs(strip.state.scrollOffset - target) < 1) {
-      strip.actions.setScrollOffset(target)
-      return
+      strip.actions.setScrollOffset(target);
+      return;
     }
     currentAnimation = animate({
-      from: strip.state.scrollOffset, to: target, duration: 200, easing: easeOut,
+      from: strip.state.scrollOffset,
+      to: target,
+      duration: 200,
+      easing: easeOut,
       onUpdate: (value) => strip.actions.setScrollOffset(value),
-      onComplete: () => { currentAnimation = null }
-    })
-  })
+      onComplete: () => {
+        currentAnimation = null;
+      },
+    });
+  });
 
   // Focus effect
   createEffect(() => {
-    const strip = activeStrip()
-    if (!strip || strip.state.panels.length === 0) return
-    const panel = strip.state.panels[strip.state.focusedIndex]
-    if (!panel) return
+    const strip = activeStrip();
+    if (!strip || strip.state.panels.length === 0) return;
+    const panel = strip.state.panels[strip.state.focusedIndex];
+    if (!panel) return;
 
-    if (strip.state.terminalFocused && (panel.type === 'terminal' || (panel.type === 'browser' && panel.url !== 'about:blank'))) {
-      window.api.focusPanel(panel.id)
-    } else if (strip.state.terminalFocused && panel.type === 'browser' && panel.url === 'about:blank') {
-      window.api.focusPanelChrome(panel.id)
+    if (
+      strip.state.terminalFocused &&
+      (panel.type === "terminal" || (panel.type === "browser" && panel.url !== "about:blank"))
+    ) {
+      window.api.focusPanel(panel.id);
+    } else if (
+      strip.state.terminalFocused &&
+      panel.type === "browser" &&
+      panel.url === "about:blank"
+    ) {
+      window.api.focusPanelChrome(panel.id);
     } else {
-      window.api.blurAllPanels()
+      window.api.blurAllPanels();
     }
-  })
+  });
 
   // Chrome state effect
   createEffect(() => {
-    const strip = activeStrip()
-    if (!strip) return
-    const panels = [...strip.state.panels]
-    const focusedIndex = strip.state.focusedIndex
+    const strip = activeStrip();
+    if (!strip) return;
+    const panels = [...strip.state.panels];
+    const focusedIndex = strip.state.focusedIndex;
     for (let i = 0; i < panels.length; i++) {
-      const panel = panels[i]
+      const panel = panels[i];
       window.api.sendChromeState(panel.id, {
         position: i + 1,
         label: panel.label,
@@ -1782,247 +1929,276 @@ export default function App() {
         type: panel.type,
         url: panel.url,
         canGoBack: panel.canGoBack,
-        canGoForward: panel.canGoForward
-      })
+        canGoForward: panel.canGoForward,
+      });
     }
-  })
+  });
 
   function handleWheel(deltaX: number): void {
-    const strip = activeStrip()
-    if (!strip) return
-    currentAnimation?.cancel()
-    currentAnimation = null
-    const maxScroll = computeMaxScroll(strip.state.panels.length, strip.state.viewportWidth, appStore.state.sidebarWidth)
-    const newOffset = Math.max(0, Math.min(strip.state.scrollOffset + deltaX, maxScroll))
-    strip.actions.setScrollOffset(newOffset)
-    clearTimeout(scrollEndTimer)
+    const strip = activeStrip();
+    if (!strip) return;
+    currentAnimation?.cancel();
+    currentAnimation = null;
+    const maxScroll = computeMaxScroll(
+      strip.state.panels.length,
+      strip.state.viewportWidth,
+      appStore.state.sidebarWidth,
+    );
+    const newOffset = Math.max(0, Math.min(strip.state.scrollOffset + deltaX, maxScroll));
+    strip.actions.setScrollOffset(newOffset);
+    clearTimeout(scrollEndTimer);
     scrollEndTimer = setTimeout(() => {
-      if (!strip) return
-      const idx = findMostCenteredPanel(strip.state.scrollOffset, strip.state.panels.length, strip.state.viewportWidth, appStore.state.sidebarWidth)
-      if (idx >= 0 && idx !== strip.state.focusedIndex) strip.actions.jumpTo(idx)
-    }, 150)
+      if (!strip) return;
+      const idx = findMostCenteredPanel(
+        strip.state.scrollOffset,
+        strip.state.panels.length,
+        strip.state.viewportWidth,
+        appStore.state.sidebarWidth,
+      );
+      if (idx >= 0 && idx !== strip.state.focusedIndex) strip.actions.jumpTo(idx);
+    }, 150);
   }
 
   function handleClosePanel(): void {
-    const strip = activeStrip()
-    if (!strip || strip.state.panels.length === 0) return
-    const focusedPanel = strip.state.panels[strip.state.focusedIndex]
-    if (!focusedPanel) return
+    const strip = activeStrip();
+    if (!strip || strip.state.panels.length === 0) return;
+    const focusedPanel = strip.state.panels[strip.state.focusedIndex];
+    if (!focusedPanel) return;
 
-    if (focusedPanel.type === 'terminal' || focusedPanel.type === 'browser') {
-      window.api.closePanel(focusedPanel.id)
+    if (focusedPanel.type === "terminal" || focusedPanel.type === "browser") {
+      window.api.closePanel(focusedPanel.id);
     } else {
-      const removedId = strip.actions.removePanel()
+      const removedId = strip.actions.removePanel();
       if (removedId) {
-        window.api.destroyPanel(removedId)
-        createdPanelIds.delete(removedId)
+        window.api.destroyPanel(removedId);
+        createdPanelIds.delete(removedId);
       }
     }
   }
 
   async function handleAddProject(): Promise<void> {
-    const result = await window.api.addProject()
+    const result = await window.api.addProject();
     if (result) {
       handleSwitchProject(result.id, () => {
-        appStore.actions.addProject(result)
-      })
+        appStore.actions.addProject(result);
+      });
     }
   }
 
   function handleSwitchProject(targetId: string, beforeSwitch?: () => void): void {
-    const currentId = appStore.state.activeProjectId
-    if (currentId === targetId) return
+    const currentId = appStore.state.activeProjectId;
+    if (currentId === targetId) return;
 
     // Stash current strip state
     if (currentId) {
-      const currentStore = stripStores.get(currentId)
+      const currentStore = stripStores.get(currentId);
       if (currentStore) {
-        stripSnapshots.set(currentId, currentStore.getSnapshot())
+        stripSnapshots.set(currentId, currentStore.getSnapshot());
       }
-      window.api.hidePanelsByPrefix(currentId)
+      window.api.hidePanelsByPrefix(currentId);
     }
 
-    if (beforeSwitch) beforeSwitch()
+    if (beforeSwitch) beforeSwitch();
 
     // Switch
-    appStore.actions.switchProject(targetId)
-    window.api.switchProject(targetId)
+    appStore.actions.switchProject(targetId);
+    window.api.switchProject(targetId);
 
     // Show target panels
-    window.api.showPanelsByPrefix(targetId)
+    window.api.showPanelsByPrefix(targetId);
   }
 
   function handleRemoveProject(projectId: string): void {
-    window.api.removeProject(projectId)
-    stripStores.delete(projectId)
-    stripSnapshots.delete(projectId)
+    window.api.removeProject(projectId);
+    stripStores.delete(projectId);
+    stripSnapshots.delete(projectId);
     // Remove created panel IDs for this project
     for (const id of [...createdPanelIds]) {
-      if (id.startsWith(projectId)) createdPanelIds.delete(id)
+      if (id.startsWith(projectId)) createdPanelIds.delete(id);
     }
-    appStore.actions.removeProject(projectId)
+    appStore.actions.removeProject(projectId);
   }
 
   function handleShortcut(action: { type: string; index?: number }): void {
-    const strip = activeStrip()
+    const strip = activeStrip();
 
     switch (action.type) {
-      case 'add-project': handleAddProject(); break
-      case 'switch-project': {
+      case "add-project":
+        handleAddProject();
+        break;
+      case "switch-project": {
         if (action.index !== undefined && action.index < appStore.state.projects.length) {
-          handleSwitchProject(appStore.state.projects[action.index].id)
+          handleSwitchProject(appStore.state.projects[action.index].id);
         }
-        break
+        break;
       }
-      case 'focus-left': strip?.actions.focusLeft(); break
-      case 'focus-right': strip?.actions.focusRight(); break
-      case 'swap-left': strip?.actions.swapLeft(); break
-      case 'swap-right': strip?.actions.swapRight(); break
-      case 'new-panel': {
-        if (!strip) break
-        const activeProject = appStore.actions.getActiveProject()
-        const panel = strip.actions.addPanel('terminal')
+      case "focus-left":
+        strip?.actions.focusLeft();
+        break;
+      case "focus-right":
+        strip?.actions.focusRight();
+        break;
+      case "swap-left":
+        strip?.actions.swapLeft();
+        break;
+      case "swap-right":
+        strip?.actions.swapRight();
+        break;
+      case "new-panel": {
+        if (!strip) break;
+        const activeProject = appStore.actions.getActiveProject();
+        const panel = strip.actions.addPanel("terminal");
         if (activeProject) {
-          window.api.createTerminalWithCwd(panel.id, activeProject.path)
+          window.api.createTerminalWithCwd(panel.id, activeProject.path);
         } else {
-          window.api.createTerminal(panel.id)
+          window.api.createTerminal(panel.id);
         }
-        break
+        break;
       }
-      case 'new-browser': {
-        if (!strip) break
-        const panel = strip.actions.addPanel('browser', 'about:blank')
-        window.api.createBrowserPanel(panel.id, panel.url || 'about:blank')
-        break
+      case "new-browser": {
+        if (!strip) break;
+        const panel = strip.actions.addPanel("browser", "about:blank");
+        window.api.createBrowserPanel(panel.id, panel.url || "about:blank");
+        break;
       }
-      case 'reload-browser': {
-        const focused = strip?.state.panels[strip.state.focusedIndex]
-        if (focused?.type === 'browser') window.api.reloadBrowser(focused.id)
-        break
+      case "reload-browser": {
+        const focused = strip?.state.panels[strip.state.focusedIndex];
+        if (focused?.type === "browser") window.api.reloadBrowser(focused.id);
+        break;
       }
-      case 'browser-back': {
-        const focused = strip?.state.panels[strip.state.focusedIndex]
-        if (focused?.type === 'browser') window.api.goBackBrowser(focused.id)
-        break
+      case "browser-back": {
+        const focused = strip?.state.panels[strip.state.focusedIndex];
+        if (focused?.type === "browser") window.api.goBackBrowser(focused.id);
+        break;
       }
-      case 'browser-forward': {
-        const focused = strip?.state.panels[strip.state.focusedIndex]
-        if (focused?.type === 'browser') window.api.goForwardBrowser(focused.id)
-        break
+      case "browser-forward": {
+        const focused = strip?.state.panels[strip.state.focusedIndex];
+        if (focused?.type === "browser") window.api.goForwardBrowser(focused.id);
+        break;
       }
-      case 'close-panel': handleClosePanel(); break
-      case 'blur-panel': strip?.actions.blurPanel(); break
-      case 'jump-to': if (action.index !== undefined) strip?.actions.jumpTo(action.index); break
+      case "close-panel":
+        handleClosePanel();
+        break;
+      case "blur-panel":
+        strip?.actions.blurPanel();
+        break;
+      case "jump-to":
+        if (action.index !== undefined) strip?.actions.jumpTo(action.index);
+        break;
     }
   }
 
   function handleConfirmResponse(confirmed: boolean): void {
-    const data = confirmClose()
+    const data = confirmClose();
     if (data) {
-      window.api.confirmCloseResponse(data.panelId, confirmed)
+      window.api.confirmCloseResponse(data.panelId, confirmed);
       if (confirmed) {
-        activeStrip()?.actions.removePanelById(data.panelId)
-        createdPanelIds.delete(data.panelId)
+        activeStrip()?.actions.removePanelById(data.panelId);
+        createdPanelIds.delete(data.panelId);
       }
-      setConfirmClose(null)
-      window.api.showAllPanels()
+      setConfirmClose(null);
+      window.api.showAllPanels();
     }
   }
 
   onMount(async () => {
-    window.api.onWheelEvent((data) => handleWheel(data.deltaX))
-    window.api.onShortcut((action) => handleShortcut(action))
-    window.addEventListener('resize', () => {
-      activeStrip()?.actions.setViewport(window.innerWidth, window.innerHeight)
-    })
-    window.addEventListener('wheel', (event) => {
-      if (event.deltaX !== 0) handleWheel(event.deltaX)
-    }, { passive: true })
+    window.api.onWheelEvent((data) => handleWheel(data.deltaX));
+    window.api.onShortcut((action) => handleShortcut(action));
+    window.addEventListener("resize", () => {
+      activeStrip()?.actions.setViewport(window.innerWidth, window.innerHeight);
+    });
+    window.addEventListener(
+      "wheel",
+      (event) => {
+        if (event.deltaX !== 0) handleWheel(event.deltaX);
+      },
+      { passive: true },
+    );
 
     window.api.onPtyExit((data) => {
-      activeStrip()?.actions.removePanelById(data.panelId)
-      createdPanelIds.delete(data.panelId)
-    })
+      activeStrip()?.actions.removePanelById(data.panelId);
+      createdPanelIds.delete(data.panelId);
+    });
 
     window.api.onConfirmClose((data) => {
-      window.api.hideAllPanels()
-      setConfirmClose(data)
-    })
+      window.api.hideAllPanels();
+      setConfirmClose(data);
+    });
 
     window.api.onPanelTitle((data) => {
-      activeStrip()?.actions.setPanelTitle(data.panelId, data.title)
-    })
+      activeStrip()?.actions.setPanelTitle(data.panelId, data.title);
+    });
 
     window.api.onPanelFocused((data) => {
-      const strip = activeStrip()
-      if (!strip) return
-      const idx = strip.state.panels.findIndex((p) => p.id === data.panelId)
-      if (idx >= 0 && idx !== strip.state.focusedIndex) strip.actions.jumpTo(idx)
-    })
+      const strip = activeStrip();
+      if (!strip) return;
+      const idx = strip.state.panels.findIndex((p) => p.id === data.panelId);
+      if (idx >= 0 && idx !== strip.state.focusedIndex) strip.actions.jumpTo(idx);
+    });
 
     window.api.onBrowserUrlChanged((data) => {
-      const strip = activeStrip()
-      if (!strip) return
+      const strip = activeStrip();
+      if (!strip) return;
       batch(() => {
-        strip.actions.setPanelUrl(data.panelId, data.url)
-        strip.actions.setPanelNavState(data.panelId, data.canGoBack, data.canGoForward)
-      })
-    })
+        strip.actions.setPanelUrl(data.panelId, data.url);
+        strip.actions.setPanelNavState(data.panelId, data.canGoBack, data.canGoForward);
+      });
+    });
 
     window.api.onBrowserTitleChanged((data) => {
-      activeStrip()?.actions.setPanelTitle(data.panelId, data.title)
-    })
+      activeStrip()?.actions.setPanelTitle(data.panelId, data.title);
+    });
 
     window.api.onBrowserOpenUrl((data) => {
-      const strip = activeStrip()
-      if (!strip) return
-      const panel = strip.actions.addPanel('browser', data.url)
-      window.api.createBrowserPanel(panel.id, data.url)
-    })
+      const strip = activeStrip();
+      if (!strip) return;
+      const panel = strip.actions.addPanel("browser", data.url);
+      window.api.createBrowserPanel(panel.id, data.url);
+    });
 
     window.api.onPanelClosed((data) => {
-      activeStrip()?.actions.removePanelById(data.panelId)
-      createdPanelIds.delete(data.panelId)
-    })
+      activeStrip()?.actions.removePanelById(data.panelId);
+      createdPanelIds.delete(data.panelId);
+    });
 
     // Load projects from persistence
-    const { projects, activeProjectId } = await window.api.listProjects()
+    const { projects, activeProjectId } = await window.api.listProjects();
     batch(() => {
-      appStore.actions.loadProjects(projects, activeProjectId)
-      activeStrip()?.actions.setViewport(window.innerWidth, window.innerHeight)
-    })
-  })
+      appStore.actions.loadProjects(projects, activeProjectId);
+      activeStrip()?.actions.setViewport(window.innerWidth, window.innerHeight);
+    });
+  });
 
-  const strip = () => activeStrip()
-  const sidebarWidth = () => appStore.state.sidebarWidth
+  const strip = () => activeStrip();
+  const sidebarWidth = () => appStore.state.sidebarWidth;
 
   const layout = () => {
-    const s = strip()
-    if (!s) return []
+    const s = strip();
+    if (!s) return [];
     return computeLayout({
       panels: [...s.state.panels],
       scrollOffset: s.state.scrollOffset,
       viewportWidth: s.state.viewportWidth,
       viewportHeight: s.state.viewportHeight,
-      sidebarWidth: sidebarWidth()
-    })
-  }
+      sidebarWidth: sidebarWidth(),
+    });
+  };
 
   const maxScroll = () => {
-    const s = strip()
-    if (!s) return 0
-    return computeMaxScroll(s.state.panels.length, s.state.viewportWidth, sidebarWidth())
-  }
+    const s = strip();
+    if (!s) return 0;
+    return computeMaxScroll(s.state.panels.length, s.state.viewportWidth, sidebarWidth());
+  };
 
   const panelChromeHeights = () => {
-    const map = new Map<string, number>()
-    const s = strip()
-    if (!s) return map
+    const map = new Map<string, number>();
+    const s = strip();
+    if (!s) return map;
     for (const p of s.state.panels) {
-      map.set(p.id, p.type === 'browser' ? LAYOUT.PANEL_CHROME_HEIGHT : LAYOUT.TITLE_BAR_HEIGHT)
+      map.set(p.id, p.type === "browser" ? LAYOUT.PANEL_CHROME_HEIGHT : LAYOUT.TITLE_BAR_HEIGHT);
     }
-    return map
-  }
+    return map;
+  };
 
   return (
     <>
@@ -2061,7 +2237,7 @@ export default function App() {
         />
       )}
     </>
-  )
+  );
 }
 ```
 

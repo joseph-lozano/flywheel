@@ -13,37 +13,40 @@
 ## File Structure
 
 ### New files
-| File | Responsibility |
-|------|---------------|
-| `src/browser/browser-host.html` | Chrome strip for browser panels: title bar + nav bar (60px tall) |
-| `src/browser/browser-host.ts` | Script for browser chrome strip: renders title/nav bar, handles URL editing, sends nav actions via IPC |
-| `src/browser/icons.ts` | Inline SVG strings for nav icons (globe, arrow-left, arrow-right, rotate-cw) — panel views can't use lucide-solid |
+
+| File                            | Responsibility                                                                                                    |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `src/browser/browser-host.html` | Chrome strip for browser panels: title bar + nav bar (60px tall)                                                  |
+| `src/browser/browser-host.ts`   | Script for browser chrome strip: renders title/nav bar, handles URL editing, sends nav actions via IPC            |
+| `src/browser/icons.ts`          | Inline SVG strings for nav icons (globe, arrow-left, arrow-right, rotate-cw) — panel views can't use lucide-solid |
 
 ### Modified files
-| File | Changes |
-|------|---------|
-| `src/terminal/index.html` | Add title bar + spacer divs above the terminal container; adjust terminal sizing to `calc(100% - 60px)` |
-| `src/terminal/terminal.ts` | Render title bar text from chrome state IPC; toggle focused class |
-| `src/preload/panel.ts` | Add `onChromeState` IPC listener for title bar updates |
-| `src/preload/browser.ts` | Add `contextBridge` with nav actions (navigate, goBack, goForward, reload) and `onChromeState` listener |
-| `src/main/panel-manager.ts` | Browser panels create TWO views (chrome strip + content); `updateBounds` positions both; `sendChromeState` method sends state to panel views; `ManagedPanel` gains optional `chromeView` field |
-| `src/main/index.ts` | Add IPC handlers for browser host nav actions (`browser:navigate-from-host`, etc.); add `panel:send-chrome-state` handler |
-| `src/renderer/src/components/PanelFrame.tsx` | Remove title bar, nav bar, spacer. Keep ONLY the focus border |
-| `src/renderer/src/components/Strip.tsx` | Remove onNavigate/onGoBack/onGoForward/onReload props; simplify panel type in StripProps |
-| `src/renderer/src/App.tsx` | Remove nav callbacks from Strip; send chrome state to panels via IPC on focus/title/URL/nav changes; adjust bounds (panels start at y=8, full height) |
-| `src/renderer/src/layout/engine.ts` | `contentBounds` starts at `STRIP_TOP_PADDING` (y=8), full panel height; remove `titleBarBounds` |
-| `src/shared/types.ts` | Add `PanelChromeState` type; remove `titleBarBounds` from `PanelLayout` |
-| `src/shared/constants.ts` | Add `PANEL_CHROME_HEIGHT: 60` |
-| `src/renderer/src/env.d.ts` | Add `sendChromeState` method; remove `onBrowserNavStateChanged` (now handled per-panel) |
-| `src/preload/index.ts` | Add `sendChromeState(panelId, state)` to send state to a panel's view |
-| `electron.vite.config.ts` | Add `browser-host` renderer entry |
-| `tests/layout/engine.test.ts` | Update for new contentBounds (y=8, no titleBarBounds) |
+
+| File                                         | Changes                                                                                                                                                                                        |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/terminal/index.html`                    | Add title bar + spacer divs above the terminal container; adjust terminal sizing to `calc(100% - 60px)`                                                                                        |
+| `src/terminal/terminal.ts`                   | Render title bar text from chrome state IPC; toggle focused class                                                                                                                              |
+| `src/preload/panel.ts`                       | Add `onChromeState` IPC listener for title bar updates                                                                                                                                         |
+| `src/preload/browser.ts`                     | Add `contextBridge` with nav actions (navigate, goBack, goForward, reload) and `onChromeState` listener                                                                                        |
+| `src/main/panel-manager.ts`                  | Browser panels create TWO views (chrome strip + content); `updateBounds` positions both; `sendChromeState` method sends state to panel views; `ManagedPanel` gains optional `chromeView` field |
+| `src/main/index.ts`                          | Add IPC handlers for browser host nav actions (`browser:navigate-from-host`, etc.); add `panel:send-chrome-state` handler                                                                      |
+| `src/renderer/src/components/PanelFrame.tsx` | Remove title bar, nav bar, spacer. Keep ONLY the focus border                                                                                                                                  |
+| `src/renderer/src/components/Strip.tsx`      | Remove onNavigate/onGoBack/onGoForward/onReload props; simplify panel type in StripProps                                                                                                       |
+| `src/renderer/src/App.tsx`                   | Remove nav callbacks from Strip; send chrome state to panels via IPC on focus/title/URL/nav changes; adjust bounds (panels start at y=8, full height)                                          |
+| `src/renderer/src/layout/engine.ts`          | `contentBounds` starts at `STRIP_TOP_PADDING` (y=8), full panel height; remove `titleBarBounds`                                                                                                |
+| `src/shared/types.ts`                        | Add `PanelChromeState` type; remove `titleBarBounds` from `PanelLayout`                                                                                                                        |
+| `src/shared/constants.ts`                    | Add `PANEL_CHROME_HEIGHT: 60`                                                                                                                                                                  |
+| `src/renderer/src/env.d.ts`                  | Add `sendChromeState` method; remove `onBrowserNavStateChanged` (now handled per-panel)                                                                                                        |
+| `src/preload/index.ts`                       | Add `sendChromeState(panelId, state)` to send state to a panel's view                                                                                                                          |
+| `electron.vite.config.ts`                    | Add `browser-host` renderer entry                                                                                                                                                              |
+| `tests/layout/engine.test.ts`                | Update for new contentBounds (y=8, no titleBarBounds)                                                                                                                                          |
 
 ---
 
 ### Task 1: Add PanelChromeState type and layout constants
 
 **Files:**
+
 - Modify: `src/shared/types.ts`
 - Modify: `src/shared/constants.ts`
 
@@ -53,14 +56,14 @@ In `src/shared/types.ts`, add:
 
 ```ts
 export interface PanelChromeState {
-  panelId: string
-  position: number
-  label: string
-  focused: boolean
-  type: 'terminal' | 'placeholder' | 'browser'
-  url?: string
-  canGoBack?: boolean
-  canGoForward?: boolean
+  panelId: string;
+  position: number;
+  label: string;
+  focused: boolean;
+  type: "terminal" | "placeholder" | "browser";
+  url?: string;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
 }
 ```
 
@@ -68,9 +71,9 @@ Remove `titleBarBounds` from `PanelLayout`:
 
 ```ts
 export interface PanelLayout {
-  panelId: string
-  contentBounds: Rectangle
-  visibility: VisibilityState
+  panelId: string;
+  contentBounds: Rectangle;
+  visibility: VisibilityState;
 }
 ```
 
@@ -94,6 +97,7 @@ git -c commit.gpgsign=false commit -m "feat: add PanelChromeState type, remove t
 ### Task 2: Update layout engine — panels start at y=8, no titleBarBounds
 
 **Files:**
+
 - Modify: `src/renderer/src/layout/engine.ts`
 - Modify: `tests/layout/engine.test.ts`
 
@@ -103,20 +107,21 @@ In `src/renderer/src/layout/engine.ts`, change `computeLayout`:
 
 ```ts
 export function computeLayout(input: LayoutInput): PanelLayout[] {
-  const { panels, scrollOffset, viewportWidth, viewportHeight } = input
-  const panelWidth = Math.round(viewportWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO)
-  const panelTop = LAYOUT.STRIP_TOP_PADDING
-  const panelHeight = viewportHeight - LAYOUT.STRIP_TOP_PADDING - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT
+  const { panels, scrollOffset, viewportWidth, viewportHeight } = input;
+  const panelWidth = Math.round(viewportWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
+  const panelTop = LAYOUT.STRIP_TOP_PADDING;
+  const panelHeight =
+    viewportHeight - LAYOUT.STRIP_TOP_PADDING - LAYOUT.HINT_BAR_HEIGHT - LAYOUT.SCROLL_TRACK_HEIGHT;
 
   return panels.map((panel, index) => {
-    const stripX = index * (panelWidth + LAYOUT.PANEL_GAP)
-    const screenX = stripX - scrollOffset
+    const stripX = index * (panelWidth + LAYOUT.PANEL_GAP);
+    const screenX = stripX - scrollOffset;
     return {
       panelId: panel.id,
       contentBounds: { x: screenX, y: panelTop, width: panelWidth, height: panelHeight },
-      visibility: computeVisibility(screenX, panelWidth, viewportWidth)
-    }
-  })
+      visibility: computeVisibility(screenX, panelWidth, viewportWidth),
+    };
+  });
 }
 ```
 
@@ -129,20 +134,30 @@ In `tests/layout/engine.test.ts`:
 Replace `'positions title bars above content'` with:
 
 ```ts
-it('positions panels at strip top padding', () => {
-  const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600 })
-  expect(layout[0].contentBounds.y).toBe(8)
-})
+it("positions panels at strip top padding", () => {
+  const layout = computeLayout({
+    panels: [mkPanel("a")],
+    scrollOffset: 0,
+    viewportWidth: 1000,
+    viewportHeight: 600,
+  });
+  expect(layout[0].contentBounds.y).toBe(8);
+});
 ```
 
 Update `'computes content height from viewport'`:
 
 ```ts
-it('computes panel height from viewport', () => {
-  const layout = computeLayout({ panels: [mkPanel('a')], scrollOffset: 0, viewportWidth: 1000, viewportHeight: 600 })
+it("computes panel height from viewport", () => {
+  const layout = computeLayout({
+    panels: [mkPanel("a")],
+    scrollOffset: 0,
+    viewportWidth: 1000,
+    viewportHeight: 600,
+  });
   // 600 - 8(top) - 32(hint) - 4(scroll) = 556
-  expect(layout[0].contentBounds.height).toBe(556)
-})
+  expect(layout[0].contentBounds.height).toBe(556);
+});
 ```
 
 Remove any `titleBarBounds` assertions.
@@ -164,6 +179,7 @@ git -c commit.gpgsign=false commit -m "feat: layout engine — panels start at y
 ### Task 3: Inline SVG icons for browser chrome strip
 
 **Files:**
+
 - Create: `src/browser/icons.ts`
 
 - [ ] **Step 1: Create inline SVG icon module**
@@ -172,15 +188,17 @@ Create `src/browser/icons.ts`:
 
 ```ts
 function svg(paths: string, size = 14): string {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 }
 
 export const ICONS = {
-  globe: svg('<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M12 2a14.5 14.5 0 0 1 0 20"/><path d="M2 12h20"/>'),
+  globe: svg(
+    '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M12 2a14.5 14.5 0 0 1 0 20"/><path d="M2 12h20"/>',
+  ),
   arrowLeft: svg('<path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>'),
   arrowRight: svg('<path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>'),
   rotateCw: svg('<path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/>', 12),
-} as const
+} as const;
 ```
 
 - [ ] **Step 2: Commit**
@@ -195,6 +213,7 @@ git -c commit.gpgsign=false commit -m "feat: add inline SVG icons for panel chro
 ### Task 4: Terminal panel renders its own title bar
 
 **Files:**
+
 - Modify: `src/terminal/index.html`
 - Modify: `src/terminal/terminal.ts`
 - Modify: `src/preload/panel.ts`
@@ -216,40 +235,61 @@ Replace `src/terminal/index.html`:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    html, body {
-      margin: 0; padding: 0; width: 100%; height: 100%;
-      overflow: hidden; background: #1a1a2e;
-    }
-    #panel-titlebar {
-      height: 32px; display: flex; align-items: center;
-      padding: 0 12px; font-size: 13px; font-weight: 400;
-      color: #666; background: #1a1a2e; user-select: none;
-      border-bottom: 1px solid #2a2a3e; box-sizing: border-box;
-      border-radius: 6px 6px 0 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    #panel-titlebar.focused { font-weight: 500; color: #e0e0e0; background: #252540; }
-    #panel-spacer {
-      height: 28px; background: #1a1a2e;
-      border-bottom: 1px solid #2a2a3e; box-sizing: border-box;
-    }
-    #panel-spacer.focused { background: #252540; border-bottom: 2px solid #6366f1; }
-    #terminal {
-      width: calc(100% - 16px);
-      height: calc(100% - 68px);
-      padding: 8px;
-    }
-  </style>
-</head>
-<body>
-  <div id="panel-titlebar"></div>
-  <div id="panel-spacer"></div>
-  <div id="terminal"></div>
-  <script type="module" src="./terminal.ts"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1a1a2e;
+      }
+      #panel-titlebar {
+        height: 32px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        font-size: 13px;
+        font-weight: 400;
+        color: #666;
+        background: #1a1a2e;
+        user-select: none;
+        border-bottom: 1px solid #2a2a3e;
+        box-sizing: border-box;
+        border-radius: 6px 6px 0 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #panel-titlebar.focused {
+        font-weight: 500;
+        color: #e0e0e0;
+        background: #252540;
+      }
+      #panel-spacer {
+        height: 28px;
+        background: #1a1a2e;
+        border-bottom: 1px solid #2a2a3e;
+        box-sizing: border-box;
+      }
+      #panel-spacer.focused {
+        background: #252540;
+        border-bottom: 2px solid #6366f1;
+      }
+      #terminal {
+        width: calc(100% - 16px);
+        height: calc(100% - 68px);
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="panel-titlebar"></div>
+    <div id="panel-spacer"></div>
+    <div id="terminal"></div>
+    <script type="module" src="./terminal.ts"></script>
+  </body>
 </html>
 ```
 
@@ -267,15 +307,15 @@ Then add at the end of the file, after `reportSize()`:
 
 ```ts
 // Chrome state → title bar
-const titleBar = document.getElementById('panel-titlebar')!
-const spacer = document.getElementById('panel-spacer')!
+const titleBar = document.getElementById("panel-titlebar")!;
+const spacer = document.getElementById("panel-spacer")!;
 
 window.pty.onChromeState((state) => {
-  const pos = state.position <= 9 ? `${state.position} / ` : ''
-  titleBar.textContent = `${pos}${state.label}`
-  titleBar.classList.toggle('focused', state.focused)
-  spacer.classList.toggle('focused', state.focused)
-})
+  const pos = state.position <= 9 ? `${state.position} / ` : "";
+  titleBar.textContent = `${pos}${state.label}`;
+  titleBar.classList.toggle("focused", state.focused);
+  spacer.classList.toggle("focused", state.focused);
+});
 ```
 
 - [ ] **Step 4: Verify build**
@@ -295,6 +335,7 @@ git -c commit.gpgsign=false commit -m "feat: terminal panel renders its own titl
 ### Task 5: Browser host page + browser-content preload split
 
 **Files:**
+
 - Create: `src/browser/browser-host.html`
 - Create: `src/browser/browser-host.ts`
 - Create: `src/preload/browser-content.ts`
@@ -308,15 +349,19 @@ git -c commit.gpgsign=false commit -m "feat: terminal panel renders its own titl
 Create `src/preload/browser-content.ts`:
 
 ```ts
-import { ipcRenderer } from 'electron'
+import { ipcRenderer } from "electron";
 
 // Forward horizontal scroll events to the strip.
 // Browser content loads untrusted URLs — no contextBridge, just wheel forwarding.
-window.addEventListener('wheel', (event) => {
-  if (event.deltaX !== 0) {
-    ipcRenderer.send('panel:wheel', { deltaX: event.deltaX })
-  }
-}, { passive: true })
+window.addEventListener(
+  "wheel",
+  (event) => {
+    if (event.deltaX !== 0) {
+      ipcRenderer.send("panel:wheel", { deltaX: event.deltaX });
+    }
+  },
+  { passive: true },
+);
 ```
 
 Add to `electron.vite.config.ts` preload inputs:
@@ -330,40 +375,50 @@ Add to `electron.vite.config.ts` preload inputs:
 Replace `src/preload/browser.ts`:
 
 ```ts
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from "electron";
 
-const params = new URLSearchParams(window.location.search)
-const panelId = params.get('panelId') || ''
+const params = new URLSearchParams(window.location.search);
+const panelId = params.get("panelId") || "";
 
 // Forward horizontal scroll events to the strip
-window.addEventListener('wheel', (event) => {
-  if (event.deltaX !== 0) {
-    ipcRenderer.send('panel:wheel', { deltaX: event.deltaX })
-  }
-}, { passive: true })
+window.addEventListener(
+  "wheel",
+  (event) => {
+    if (event.deltaX !== 0) {
+      ipcRenderer.send("panel:wheel", { deltaX: event.deltaX });
+    }
+  },
+  { passive: true },
+);
 
-contextBridge.exposeInMainWorld('browserHost', {
+contextBridge.exposeInMainWorld("browserHost", {
   panelId,
-  initialUrl: params.get('url') || 'about:blank',
+  initialUrl: params.get("url") || "about:blank",
   navigate: (url: string) => {
-    ipcRenderer.send('browser:navigate-from-host', { panelId, url })
+    ipcRenderer.send("browser:navigate-from-host", { panelId, url });
   },
   goBack: () => {
-    ipcRenderer.send('browser:go-back', { panelId })
+    ipcRenderer.send("browser:go-back", { panelId });
   },
   goForward: () => {
-    ipcRenderer.send('browser:go-forward', { panelId })
+    ipcRenderer.send("browser:go-forward", { panelId });
   },
   reload: () => {
-    ipcRenderer.send('browser:reload', { panelId })
+    ipcRenderer.send("browser:reload", { panelId });
   },
-  onChromeState: (callback: (state: {
-    position: number; label: string; focused: boolean;
-    url: string; canGoBack: boolean; canGoForward: boolean
-  }) => void) => {
-    ipcRenderer.on('panel:chrome-state', (_event, state) => callback(state))
-  }
-})
+  onChromeState: (
+    callback: (state: {
+      position: number;
+      label: string;
+      focused: boolean;
+      url: string;
+      canGoBack: boolean;
+      canGoForward: boolean;
+    }) => void,
+  ) => {
+    ipcRenderer.on("panel:chrome-state", (_event, state) => callback(state));
+  },
+});
 ```
 
 Note: `goBack`, `goForward`, `reload` reuse the existing IPC channel names from the main process handlers that already exist. `navigate` uses a new channel `browser:navigate-from-host` to distinguish from the chrome view's `browser:navigate`.
@@ -375,70 +430,138 @@ Create `src/browser/browser-host.html`:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    html, body {
-      margin: 0; padding: 0; width: 100%; height: 60px;
-      overflow: hidden; background: #1a1a2e;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    #titlebar {
-      height: 32px; display: flex; align-items: center;
-      padding: 0 12px; font-size: 13px; font-weight: 400;
-      color: #666; background: #1a1a2e; user-select: none;
-      border-bottom: 1px solid #2a2a3e; box-sizing: border-box;
-      border-radius: 6px 6px 0 0;
-    }
-    #titlebar.focused { font-weight: 500; color: #e0e0e0; background: #252540; }
-    #titlebar .pos { flex-shrink: 0; margin-right: 6px; }
-    #titlebar .globe { flex-shrink: 0; margin-right: 6px; color: #06b6d4; display: flex; align-items: center; }
-    #titlebar .title {
-      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-size: 12px; color: #555;
-    }
-    #titlebar.focused .title { color: #c0c0c0; }
-    #navbar {
-      height: 28px; display: flex; align-items: center;
-      padding: 0 8px; background: #1e1e36; gap: 4px;
-      box-sizing: border-box; border-bottom: 1px solid #2a2a3e;
-    }
-    #navbar.focused { border-bottom: 2px solid #6366f1; }
-    .nav-btn {
-      width: 22px; height: 22px; display: flex; align-items: center;
-      justify-content: center; border-radius: 4px; cursor: pointer;
-      border: none; background: transparent; color: #888; padding: 0; flex-shrink: 0;
-    }
-    .nav-btn:disabled { color: #444; cursor: default; }
-    .nav-sep { width: 1px; height: 16px; background: #333; flex-shrink: 0; }
-    #url-display {
-      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-family: monospace; font-size: 12px; color: #888; cursor: text;
-    }
-    #url-input {
-      flex: 1; background: #1a1a2e; border: 1px solid #3a3a5c;
-      border-radius: 3px; color: #e0e0e0; font-size: 12px;
-      font-family: monospace; padding: 2px 6px; outline: none; height: 22px;
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div id="titlebar">
-    <span class="pos" id="pos-label"></span>
-    <span class="globe" id="globe-icon"></span>
-    <span class="title" id="title-label">about:blank</span>
-  </div>
-  <div id="navbar">
-    <button class="nav-btn" id="btn-back" disabled></button>
-    <button class="nav-btn" id="btn-forward" disabled></button>
-    <div class="nav-sep"></div>
-    <span id="url-display">about:blank</span>
-    <input type="text" id="url-input">
-    <button class="nav-btn" id="btn-reload"></button>
-  </div>
-  <script type="module" src="./browser-host.ts"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 60px;
+        overflow: hidden;
+        background: #1a1a2e;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #titlebar {
+        height: 32px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        font-size: 13px;
+        font-weight: 400;
+        color: #666;
+        background: #1a1a2e;
+        user-select: none;
+        border-bottom: 1px solid #2a2a3e;
+        box-sizing: border-box;
+        border-radius: 6px 6px 0 0;
+      }
+      #titlebar.focused {
+        font-weight: 500;
+        color: #e0e0e0;
+        background: #252540;
+      }
+      #titlebar .pos {
+        flex-shrink: 0;
+        margin-right: 6px;
+      }
+      #titlebar .globe {
+        flex-shrink: 0;
+        margin-right: 6px;
+        color: #06b6d4;
+        display: flex;
+        align-items: center;
+      }
+      #titlebar .title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        color: #555;
+      }
+      #titlebar.focused .title {
+        color: #c0c0c0;
+      }
+      #navbar {
+        height: 28px;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        background: #1e1e36;
+        gap: 4px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #2a2a3e;
+      }
+      #navbar.focused {
+        border-bottom: 2px solid #6366f1;
+      }
+      .nav-btn {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #888;
+        padding: 0;
+        flex-shrink: 0;
+      }
+      .nav-btn:disabled {
+        color: #444;
+        cursor: default;
+      }
+      .nav-sep {
+        width: 1px;
+        height: 16px;
+        background: #333;
+        flex-shrink: 0;
+      }
+      #url-display {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: monospace;
+        font-size: 12px;
+        color: #888;
+        cursor: text;
+      }
+      #url-input {
+        flex: 1;
+        background: #1a1a2e;
+        border: 1px solid #3a3a5c;
+        border-radius: 3px;
+        color: #e0e0e0;
+        font-size: 12px;
+        font-family: monospace;
+        padding: 2px 6px;
+        outline: none;
+        height: 22px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="titlebar">
+      <span class="pos" id="pos-label"></span>
+      <span class="globe" id="globe-icon"></span>
+      <span class="title" id="title-label">about:blank</span>
+    </div>
+    <div id="navbar">
+      <button class="nav-btn" id="btn-back" disabled></button>
+      <button class="nav-btn" id="btn-forward" disabled></button>
+      <div class="nav-sep"></div>
+      <span id="url-display">about:blank</span>
+      <input type="text" id="url-input" />
+      <button class="nav-btn" id="btn-reload"></button>
+    </div>
+    <script type="module" src="./browser-host.ts"></script>
+  </body>
 </html>
 ```
 
@@ -447,108 +570,122 @@ Create `src/browser/browser-host.html`:
 Create `src/browser/browser-host.ts`:
 
 ```ts
-import { ICONS } from './icons'
+import { ICONS } from "./icons";
 
 declare global {
   interface Window {
     browserHost: {
-      panelId: string
-      initialUrl: string
-      navigate: (url: string) => void
-      goBack: () => void
-      goForward: () => void
-      reload: () => void
-      onChromeState: (callback: (state: {
-        position: number; label: string; focused: boolean;
-        url: string; canGoBack: boolean; canGoForward: boolean
-      }) => void) => void
-    }
+      panelId: string;
+      initialUrl: string;
+      navigate: (url: string) => void;
+      goBack: () => void;
+      goForward: () => void;
+      reload: () => void;
+      onChromeState: (
+        callback: (state: {
+          position: number;
+          label: string;
+          focused: boolean;
+          url: string;
+          canGoBack: boolean;
+          canGoForward: boolean;
+        }) => void,
+      ) => void;
+    };
   }
 }
 
-const titlebar = document.getElementById('titlebar')!
-const navbar = document.getElementById('navbar')!
-const posLabel = document.getElementById('pos-label')!
-const globeIcon = document.getElementById('globe-icon')!
-const titleLabel = document.getElementById('title-label')!
-const btnBack = document.getElementById('btn-back') as HTMLButtonElement
-const btnForward = document.getElementById('btn-forward') as HTMLButtonElement
-const btnReload = document.getElementById('btn-reload') as HTMLButtonElement
-const urlDisplay = document.getElementById('url-display')!
-const urlInput = document.getElementById('url-input') as HTMLInputElement
+const titlebar = document.getElementById("titlebar")!;
+const navbar = document.getElementById("navbar")!;
+const posLabel = document.getElementById("pos-label")!;
+const globeIcon = document.getElementById("globe-icon")!;
+const titleLabel = document.getElementById("title-label")!;
+const btnBack = document.getElementById("btn-back") as HTMLButtonElement;
+const btnForward = document.getElementById("btn-forward") as HTMLButtonElement;
+const btnReload = document.getElementById("btn-reload") as HTMLButtonElement;
+const urlDisplay = document.getElementById("url-display")!;
+const urlInput = document.getElementById("url-input") as HTMLInputElement;
 
 // Set icons
-globeIcon.innerHTML = ICONS.globe
-btnBack.innerHTML = ICONS.arrowLeft
-btnForward.innerHTML = ICONS.arrowRight
-btnReload.innerHTML = ICONS.rotateCw
+globeIcon.innerHTML = ICONS.globe;
+btnBack.innerHTML = ICONS.arrowLeft;
+btnForward.innerHTML = ICONS.arrowRight;
+btnReload.innerHTML = ICONS.rotateCw;
 
 // Nav button handlers
-btnBack.addEventListener('click', () => window.browserHost.goBack())
-btnForward.addEventListener('click', () => window.browserHost.goForward())
-btnReload.addEventListener('click', () => window.browserHost.reload())
+btnBack.addEventListener("click", () => window.browserHost.goBack());
+btnForward.addEventListener("click", () => window.browserHost.goForward());
+btnReload.addEventListener("click", () => window.browserHost.reload());
 
 // URL bar editing
-let editing = false
+let editing = false;
 
-urlDisplay.addEventListener('click', () => {
-  editing = true
-  urlInput.value = urlDisplay.textContent || ''
-  urlDisplay.style.display = 'none'
-  urlInput.style.display = 'block'
-  requestAnimationFrame(() => urlInput.focus())
-})
+urlDisplay.addEventListener("click", () => {
+  editing = true;
+  urlInput.value = urlDisplay.textContent || "";
+  urlDisplay.style.display = "none";
+  urlInput.style.display = "block";
+  requestAnimationFrame(() => urlInput.focus());
+});
 
 function normalizeUrl(raw: string): string {
-  if (raw.match(/^https?:\/\//)) return raw
-  const isLocal = raw.match(/^(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/)
-  return isLocal ? `http://${raw}` : `https://${raw}`
+  if (raw.match(/^https?:\/\//)) return raw;
+  const isLocal = raw.match(/^(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/);
+  return isLocal ? `http://${raw}` : `https://${raw}`;
 }
 
 function commitUrl(): void {
-  const raw = urlInput.value.trim()
-  editing = false
-  urlInput.style.display = 'none'
-  urlDisplay.style.display = 'block'
-  if (raw) window.browserHost.navigate(normalizeUrl(raw))
+  const raw = urlInput.value.trim();
+  editing = false;
+  urlInput.style.display = "none";
+  urlDisplay.style.display = "block";
+  if (raw) window.browserHost.navigate(normalizeUrl(raw));
 }
 
-urlInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); commitUrl() }
-  else if (e.key === 'Escape') {
-    editing = false
-    urlInput.style.display = 'none'
-    urlDisplay.style.display = 'block'
+urlInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    commitUrl();
+  } else if (e.key === "Escape") {
+    editing = false;
+    urlInput.style.display = "none";
+    urlDisplay.style.display = "block";
   }
-})
+});
 
-urlInput.addEventListener('blur', () => { if (editing) commitUrl() })
+urlInput.addEventListener("blur", () => {
+  if (editing) commitUrl();
+});
 
 // Chrome state updates from main process — merges partial updates
 let currentState = {
-  position: 0, label: '', focused: false,
-  url: 'about:blank', canGoBack: false, canGoForward: false
-}
+  position: 0,
+  label: "",
+  focused: false,
+  url: "about:blank",
+  canGoBack: false,
+  canGoForward: false,
+};
 
 window.browserHost.onChromeState((partial) => {
-  currentState = { ...currentState, ...partial }
-  const s = currentState
-  posLabel.textContent = s.position <= 9 ? `${s.position} /` : ''
-  titleLabel.textContent = s.url || 'about:blank'
-  titlebar.classList.toggle('focused', s.focused)
-  navbar.classList.toggle('focused', s.focused)
-  btnBack.disabled = !s.canGoBack
-  btnForward.disabled = !s.canGoForward
-  if (!editing) urlDisplay.textContent = s.url || 'about:blank'
-})
+  currentState = { ...currentState, ...partial };
+  const s = currentState;
+  posLabel.textContent = s.position <= 9 ? `${s.position} /` : "";
+  titleLabel.textContent = s.url || "about:blank";
+  titlebar.classList.toggle("focused", s.focused);
+  navbar.classList.toggle("focused", s.focused);
+  btnBack.disabled = !s.canGoBack;
+  btnForward.disabled = !s.canGoForward;
+  if (!editing) urlDisplay.textContent = s.url || "about:blank";
+});
 
 // Auto-focus URL input if initial URL is about:blank
-if (window.browserHost.initialUrl === 'about:blank') {
+if (window.browserHost.initialUrl === "about:blank") {
   requestAnimationFrame(() => {
-    urlDisplay.style.display = 'none'
-    urlInput.style.display = 'block'
-    urlInput.focus()
-  })
+    urlDisplay.style.display = "none";
+    urlInput.style.display = "block";
+    urlInput.focus();
+  });
 }
 ```
 
@@ -577,6 +714,7 @@ git -c commit.gpgsign=false commit -m "feat: browser chrome strip with title bar
 ### Task 6: PanelManager — two views per browser panel, chrome state IPC
 
 **Files:**
+
 - Modify: `src/main/panel-manager.ts`
 
 - [ ] **Step 1: Add chromeView field to ManagedPanel**
@@ -585,10 +723,10 @@ Update the interface:
 
 ```ts
 interface ManagedPanel {
-  id: string
-  type: 'terminal' | 'placeholder' | 'browser'
-  view: WebContentsView
-  chromeView?: WebContentsView  // browser panels only: title bar + nav bar strip
+  id: string;
+  type: "terminal" | "placeholder" | "browser";
+  view: WebContentsView;
+  chromeView?: WebContentsView; // browser panels only: title bar + nav bar strip
 }
 ```
 
@@ -654,15 +792,19 @@ Add a new entry in `createPanel` for the content view preload. The content view 
 Create `src/preload/browser-content.ts`:
 
 ```ts
-import { ipcRenderer } from 'electron'
+import { ipcRenderer } from "electron";
 
 // Forward horizontal scroll events to the strip.
 // Browser content loads untrusted URLs — no contextBridge, just wheel forwarding.
-window.addEventListener('wheel', (event) => {
-  if (event.deltaX !== 0) {
-    ipcRenderer.send('panel:wheel', { deltaX: event.deltaX })
-  }
-}, { passive: true })
+window.addEventListener(
+  "wheel",
+  (event) => {
+    if (event.deltaX !== 0) {
+      ipcRenderer.send("panel:wheel", { deltaX: event.deltaX });
+    }
+  },
+  { passive: true },
+);
 ```
 
 Add to `electron.vite.config.ts` preload inputs:
@@ -674,19 +816,21 @@ Add to `electron.vite.config.ts` preload inputs:
 Update the content view creation in `createPanel` to use this preload:
 
 ```ts
-const preloadFile = panelType === 'browser' ? '../preload/browser-content.js' : '../preload/panel.js'
+const preloadFile =
+  panelType === "browser" ? "../preload/browser-content.js" : "../preload/panel.js";
 ```
 
 Wait, this changes the preload selection logic. Currently:
 
 ```ts
-const preloadFile = panelType === 'browser' ? '../preload/browser.js' : '../preload/panel.js'
+const preloadFile = panelType === "browser" ? "../preload/browser.js" : "../preload/panel.js";
 ```
 
 Now `browser.js` is for the chrome strip, and `browser-content.js` is for the content view. Update:
 
 ```ts
-const preloadFile = panelType === 'browser' ? '../preload/browser-content.js' : '../preload/panel.js'
+const preloadFile =
+  panelType === "browser" ? "../preload/browser-content.js" : "../preload/panel.js";
 ```
 
 The chrome strip view (created above) uses `../preload/browser.js`.
@@ -776,40 +920,41 @@ The shortcut interception handler (currently an inline callback on `view.webCont
 
 ```ts
 const handleShortcutKey = (event: Electron.Event, input: Electron.Input): void => {
-  if (input.type !== 'keyDown' || !input.meta) return
-  let action: { type: string; index?: number } | null = null
+  if (input.type !== "keyDown" || !input.meta) return;
+  let action: { type: string; index?: number } | null = null;
   if (input.shift) {
-    if (input.key === 'ArrowLeft') action = { type: 'swap-left' }
-    else if (input.key === 'ArrowRight') action = { type: 'swap-right' }
+    if (input.key === "ArrowLeft") action = { type: "swap-left" };
+    else if (input.key === "ArrowRight") action = { type: "swap-right" };
   } else {
-    if (input.key === 'ArrowLeft') action = { type: 'focus-left' }
-    else if (input.key === 'ArrowRight') action = { type: 'focus-right' }
-    else if (input.key === 't') action = { type: 'new-panel' }
-    else if (input.key === 'b') action = { type: 'new-browser' }
-    else if (input.key === 'w') action = { type: 'close-panel' }
-    else if (input.key === 'g') action = { type: 'blur-panel' }
-    else if (input.key === 'r') action = { type: 'reload-browser' }
-    else if (input.key === '[') action = { type: 'browser-back' }
-    else if (input.key === ']') action = { type: 'browser-forward' }
-    else if (input.key >= '1' && input.key <= '9') action = { type: 'jump-to', index: parseInt(input.key) - 1 }
+    if (input.key === "ArrowLeft") action = { type: "focus-left" };
+    else if (input.key === "ArrowRight") action = { type: "focus-right" };
+    else if (input.key === "t") action = { type: "new-panel" };
+    else if (input.key === "b") action = { type: "new-browser" };
+    else if (input.key === "w") action = { type: "close-panel" };
+    else if (input.key === "g") action = { type: "blur-panel" };
+    else if (input.key === "r") action = { type: "reload-browser" };
+    else if (input.key === "[") action = { type: "browser-back" };
+    else if (input.key === "]") action = { type: "browser-forward" };
+    else if (input.key >= "1" && input.key <= "9")
+      action = { type: "jump-to", index: parseInt(input.key) - 1 };
   }
   if (action) {
-    event.preventDefault()
-    this.chromeView.webContents.send('shortcut:action', action)
+    event.preventDefault();
+    this.chromeView.webContents.send("shortcut:action", action);
   }
-}
+};
 ```
 
 Then replace the existing inline `before-input-event` handler with:
 
 ```ts
-view.webContents.on('before-input-event', handleShortcutKey)
+view.webContents.on("before-input-event", handleShortcutKey);
 ```
 
 And for browser panels, also add:
 
 ```ts
-chromeStripView.webContents.on('before-input-event', handleShortcutKey)
+chromeStripView.webContents.on("before-input-event", handleShortcutKey);
 ```
 
 - [ ] **Step 9: Update panels.set — browser branch does its own set**
@@ -817,8 +962,8 @@ chromeStripView.webContents.on('before-input-event', handleShortcutKey)
 The browser branch now calls `this.panels.set(id, { id, type: panelType, view, chromeView: chromeStripView })` inside its branch (to include the chromeView field). Update the code AFTER the if/else branches: the existing `this.panels.set(id, { id, type: panelType, view })` at the bottom of `createPanel` should only run for non-browser panels. Wrap it:
 
 ```ts
-if (panelType !== 'browser') {
-  this.panels.set(id, { id, type: panelType, view })
+if (panelType !== "browser") {
+  this.panels.set(id, { id, type: panelType, view });
 }
 ```
 
@@ -839,6 +984,7 @@ git -c commit.gpgsign=false commit -m "feat: browser panels use two views (chrom
 ### Task 7: Main process IPC — browser host nav actions, chrome state forwarding
 
 **Files:**
+
 - Modify: `src/main/index.ts`
 
 - [ ] **Step 1: Add browser host navigation IPC handler**
@@ -847,9 +993,9 @@ In `setupIpcHandlers()`, add:
 
 ```ts
 // Browser host chrome strip → navigate
-ipcMain.on('browser:navigate-from-host', (_event, data: { panelId: string; url: string }) => {
-  panelManager.navigateBrowser(data.panelId, data.url)
-})
+ipcMain.on("browser:navigate-from-host", (_event, data: { panelId: string; url: string }) => {
+  panelManager.navigateBrowser(data.panelId, data.url);
+});
 ```
 
 The existing `browser:go-back`, `browser:go-forward`, and `browser:reload` handlers already exist and can be reused by the browser host (it sends the same IPC channel names).
@@ -858,12 +1004,24 @@ The existing `browser:go-back`, `browser:go-forward`, and `browser:reload` handl
 
 ```ts
 // Chrome view → send chrome state to a panel's views
-ipcMain.on('panel:send-chrome-state', (_event, data: {
-  panelId: string; position: number; label: string; focused: boolean;
-  type: string; url?: string; canGoBack?: boolean; canGoForward?: boolean
-}) => {
-  panelManager.sendChromeState(data.panelId, data)
-})
+ipcMain.on(
+  "panel:send-chrome-state",
+  (
+    _event,
+    data: {
+      panelId: string;
+      position: number;
+      label: string;
+      focused: boolean;
+      type: string;
+      url?: string;
+      canGoBack?: boolean;
+      canGoForward?: boolean;
+    },
+  ) => {
+    panelManager.sendChromeState(data.panelId, data);
+  },
+);
 ```
 
 - [ ] **Step 3: Commit**
@@ -878,6 +1036,7 @@ git -c commit.gpgsign=false commit -m "feat: add IPC for browser host navigation
 ### Task 8: Chrome view — strip down to focus border only, send chrome state
 
 **Files:**
+
 - Modify: `src/renderer/src/components/PanelFrame.tsx`
 - Modify: `src/renderer/src/components/Strip.tsx`
 - Modify: `src/renderer/src/App.tsx`
@@ -889,36 +1048,36 @@ git -c commit.gpgsign=false commit -m "feat: add IPC for browser host navigation
 Replace `src/renderer/src/components/PanelFrame.tsx`:
 
 ```tsx
-import type { Rectangle } from '../../../shared/types'
-import { LAYOUT } from '../../../shared/constants'
+import type { Rectangle } from "../../../shared/types";
+import { LAYOUT } from "../../../shared/constants";
 
 interface PanelFrameProps {
-  contentBounds: Rectangle
-  focused: boolean
+  contentBounds: Rectangle;
+  focused: boolean;
 }
 
 export default function PanelFrame(props: PanelFrameProps) {
-  const borderWidth = LAYOUT.FOCUS_BORDER_WIDTH
+  const borderWidth = LAYOUT.FOCUS_BORDER_WIDTH;
 
   return (
     <>
       {props.focused && (
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             left: `${props.contentBounds.x - borderWidth}px`,
             top: `${props.contentBounds.y - borderWidth}px`,
             width: `${props.contentBounds.width + borderWidth * 2}px`,
             height: `${props.contentBounds.height + borderWidth * 2}px`,
             border: `${borderWidth}px solid #6366f1`,
-            'border-radius': '4px',
-            'box-shadow': '0 0 16px rgba(99, 102, 241, 0.2)',
-            'pointer-events': 'none'
+            "border-radius": "4px",
+            "box-shadow": "0 0 16px rgba(99, 102, 241, 0.2)",
+            "pointer-events": "none",
           }}
         />
       )}
     </>
-  )
+  );
 }
 ```
 
@@ -927,18 +1086,18 @@ export default function PanelFrame(props: PanelFrameProps) {
 Replace `src/renderer/src/components/Strip.tsx`:
 
 ```tsx
-import { For } from 'solid-js'
-import type { PanelLayout } from '../../../shared/types'
-import PanelFrame from './PanelFrame'
+import { For } from "solid-js";
+import type { PanelLayout } from "../../../shared/types";
+import PanelFrame from "./PanelFrame";
 
 interface StripProps {
-  layout: PanelLayout[]
-  focusedPanelId: string | undefined
+  layout: PanelLayout[];
+  focusedPanelId: string | undefined;
 }
 
 export default function Strip(props: StripProps) {
   return (
-    <div style={{ position: 'absolute', inset: 0, 'pointer-events': 'none' }}>
+    <div style={{ position: "absolute", inset: 0, "pointer-events": "none" }}>
       <For each={props.layout}>
         {(entry) => (
           <PanelFrame
@@ -948,7 +1107,7 @@ export default function Strip(props: StripProps) {
         )}
       </For>
     </div>
-  )
+  );
 }
 ```
 
@@ -998,10 +1157,10 @@ For the chrome state effect, add after the existing effects:
 ```ts
 // Send chrome state to each panel's own view(s) whenever relevant state changes
 createEffect(() => {
-  const panels = [...state.panels]
-  const focusedIndex = state.focusedIndex
+  const panels = [...state.panels];
+  const focusedIndex = state.focusedIndex;
   for (let i = 0; i < panels.length; i++) {
-    const panel = panels[i]
+    const panel = panels[i];
     window.api.sendChromeState(panel.id, {
       position: i + 1,
       label: panel.label,
@@ -1009,32 +1168,32 @@ createEffect(() => {
       type: panel.type,
       url: panel.url,
       canGoBack: panel.canGoBack,
-      canGoForward: panel.canGoForward
-    })
+      canGoForward: panel.canGoForward,
+    });
   }
-})
+});
 ```
 
 Update `handleShortcut`:
+
 - **KEEP** `'reload-browser'`, `'browser-back'`, `'browser-forward'` cases. They are still needed because: keyboard shortcuts pressed in the browser CONTENT view are intercepted by `before-input-event`, sent to the chrome view as `shortcut:action`, and the chrome view dispatches them via `window.api.reloadBrowser()` etc. The same flow works for the browser chrome strip's `before-input-event`.
 - Remove `handleNavigate` function (URL editing is now in the browser host page).
 
 Update Strip rendering:
 
 ```tsx
-<Strip
-  layout={layout()}
-  focusedPanelId={state.panels[state.focusedIndex]?.id}
-/>
+<Strip layout={layout()} focusedPanelId={state.panels[state.focusedIndex]?.id} />
 ```
 
 - [ ] **Step 6: Remove unused preload methods**
 
 In `src/preload/index.ts`:
+
 - Remove `navigateBrowser` (URL editing is now in the browser host, which sends `browser:navigate-from-host` directly).
 - **Keep** `reloadBrowser`, `goBackBrowser`, `goForwardBrowser` — still called by `handleShortcut` in the chrome view.
 
 In `src/renderer/src/env.d.ts`:
+
 - Remove `navigateBrowser` from FlywheelAPI.
 - Remove `onBrowserNavStateChanged` (nav state goes directly to browser chrome strip via main process).
 - **Keep** `reloadBrowser`, `goBackBrowser`, `goForwardBrowser`.

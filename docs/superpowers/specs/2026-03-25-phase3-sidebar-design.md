@@ -12,17 +12,17 @@ Add a sidebar to Flywheel that lets users manage multiple projects and switch be
 
 ## Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Persistence | `electron-store` | Right fit for project list + active ID. Simple key-value API, automatic schema migration. |
-| Sidebar visibility | Always visible | Avoids layout-shifting complexity of toggle/overlay. Can add collapse later. |
-| Sidebar placement | Inside chrome view (Solid.js component) | Tightly coupled to app state. Avoids extra IPC boundaries. |
-| Sidebar width | Responsive, min 180px, max 280px | Auto-sizes to longest project name via CSS `max-content` clamped between min/max. Recalculates reactively when project list changes. |
-| Project list | Flat list | Ready for one level of nesting (worktrees in Phase 4). No deep tree. |
-| Strip state | Per-project, in-memory | Ephemeral — dies with app session. Session restore deferred to Phase 5. |
-| Project switching | Hide/show WebContentsViews | No teardown, no reload. PTYs and browsers stay alive. |
-| Add projects | Manual via directory picker | No auto-discovery. `Cmd+O` shortcut or sidebar button. |
-| First visit to project | Empty strip | User opens terminals with `Cmd+T`. Auto-launch config deferred to Phase 5. |
+| Decision               | Choice                                  | Rationale                                                                                                                            |
+| ---------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Persistence            | `electron-store`                        | Right fit for project list + active ID. Simple key-value API, automatic schema migration.                                            |
+| Sidebar visibility     | Always visible                          | Avoids layout-shifting complexity of toggle/overlay. Can add collapse later.                                                         |
+| Sidebar placement      | Inside chrome view (Solid.js component) | Tightly coupled to app state. Avoids extra IPC boundaries.                                                                           |
+| Sidebar width          | Responsive, min 180px, max 280px        | Auto-sizes to longest project name via CSS `max-content` clamped between min/max. Recalculates reactively when project list changes. |
+| Project list           | Flat list                               | Ready for one level of nesting (worktrees in Phase 4). No deep tree.                                                                 |
+| Strip state            | Per-project, in-memory                  | Ephemeral — dies with app session. Session restore deferred to Phase 5.                                                              |
+| Project switching      | Hide/show WebContentsViews              | No teardown, no reload. PTYs and browsers stay alive.                                                                                |
+| Add projects           | Manual via directory picker             | No auto-discovery. `Cmd+O` shortcut or sidebar button.                                                                               |
+| First visit to project | Empty strip                             | User opens terminals with `Cmd+T`. Auto-launch config deferred to Phase 5.                                                           |
 
 ## Data Model
 
@@ -30,14 +30,14 @@ Add a sidebar to Flywheel that lets users manage multiple projects and switch be
 
 ```typescript
 interface Project {
-  id: string       // uuid
-  name: string     // directory basename
-  path: string     // absolute path
+  id: string; // uuid
+  name: string; // directory basename
+  path: string; // absolute path
 }
 
 interface PersistedState {
-  projects: Project[]
-  activeProjectId: string | null
+  projects: Project[];
+  activeProjectId: string | null;
 }
 ```
 
@@ -47,10 +47,10 @@ interface PersistedState {
 // One per project, held in Map<projectId, StripState>
 // viewportWidth and viewportHeight are shared across all projects (not stashed per-project)
 interface StripState {
-  panels: Panel[]
-  focusedIndex: number
-  scrollOffset: number
-  terminalFocused: boolean
+  panels: Panel[];
+  focusedIndex: number;
+  scrollOffset: number;
+  terminalFocused: boolean;
 }
 ```
 
@@ -77,17 +77,17 @@ Each `createStripStore` instance accepts a `projectId` parameter. Panel IDs are 
 
 New channels:
 
-| Channel | Direction | Purpose |
-|---------|-----------|---------|
-| `project:add` | renderer → main (invoke) | Opens native directory picker. Main validates the path, creates project in `electron-store`, returns project data. Rejects duplicate directories. |
-| `project:remove` | renderer → main | Removes project from `electron-store`. Main tears down PTYs and panels for that project. |
-| `project:switch` | renderer → main | Updates active project ID in `electron-store`. |
-| `project:list` | renderer → main (invoke) | Chrome view requests persisted project list on startup. |
+| Channel          | Direction                | Purpose                                                                                                                                           |
+| ---------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project:add`    | renderer → main (invoke) | Opens native directory picker. Main validates the path, creates project in `electron-store`, returns project data. Rejects duplicate directories. |
+| `project:remove` | renderer → main          | Removes project from `electron-store`. Main tears down PTYs and panels for that project.                                                          |
+| `project:switch` | renderer → main          | Updates active project ID in `electron-store`.                                                                                                    |
+| `project:list`   | renderer → main (invoke) | Chrome view requests persisted project list on startup.                                                                                           |
 
 Changed channels:
 
-| Channel | Change |
-|---------|--------|
+| Channel      | Change                                                                                                                                                                                                                  |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pty:create` | Accepts `{ panelId, cwd }`. The renderer sends `cwd: activeProjectPath` from the app store. `PtyManager.create(panelId, cwd)` passes `cwd` to `node-pty` spawn options. Falls back to `$HOME` if `cwd` is not provided. |
 
 ### Panel Manager Changes
@@ -112,6 +112,7 @@ The main process does not need to know about the sidebar itself — it's entirel
 ### Startup Change
 
 The existing `onMount` in `App.tsx` auto-creates a terminal on launch. This is removed. On startup:
+
 1. Load project list from `electron-store` via `project:list`
 2. If an active project exists, restore its (empty) strip — no auto-created panels
 3. If no projects exist, show the first-launch empty state
@@ -170,6 +171,7 @@ Layers/stack SVG icon + "Projects" in title case, styled in the app's accent col
 6. Sidebar updates active indicator
 
 What stays alive in the background:
+
 - PTYs keep running (processes don't stop)
 - Browser panels keep their loaded pages in memory
 - Terminal scrollback is preserved
@@ -202,15 +204,16 @@ What stays alive in the background:
 ### Hint Bar Context
 
 The `HintBar` component becomes context-aware. It receives `hasProjects` from the app store:
+
 - No projects: `Cmd+O Add Project`
 - Has projects: existing hints (navigate, new terminal, close, move, etc.) + `Cmd+Shift+1-9 Switch Project`
 
 ## New Keyboard Shortcuts
 
-| Shortcut | Action | Registration |
-|----------|--------|-------------|
-| `Cmd+O` | Add project (open directory picker) | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
-| `Cmd+Shift+<1-9>` | Switch to project by position | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
+| Shortcut          | Action                              | Registration                                                        |
+| ----------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| `Cmd+O`           | Add project (open directory picker) | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
+| `Cmd+Shift+<1-9>` | Switch to project by position       | Electron menu → "Projects" submenu, forwarded via `shortcut:action` |
 
 `Cmd+Shift+<1-9>` mirrors the existing `Cmd+<1-9>` for panel jumping — same pattern, one level up.
 
