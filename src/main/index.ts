@@ -399,12 +399,14 @@ function setupIpcHandlers(): void {
     if (!project) return { rows: [] }
 
     const worktrees = await worktreeManager.listWorktrees(project.path)
+    const prStatuses = await prStatusChecker.fetchPrStatuses(project.path)
     const existingPaths = new Set(project.rows.map(r => r.path))
     const newRows: Row[] = []
 
     for (const wt of worktrees) {
       if (existingPaths.has(wt.path)) continue
       if (wt.path === project.path) continue // Skip main worktree
+      if (prStatuses.get(wt.branch) === 'merged') continue // Skip merged PRs
       const row: Row = {
         id: randomUUID(),
         projectId: project.id,
