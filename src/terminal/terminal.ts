@@ -7,6 +7,7 @@ import "@xterm/xterm/css/xterm.css";
 import { TERMINAL_DEFAULTS } from "../shared/constants";
 import { initDotGrid, setDotGridBusy } from "../shared/dot-grid";
 import { ICONS } from "../shared/icons";
+import { shellEscape } from "./shell-escape";
 
 declare global {
   interface Window {
@@ -66,6 +67,9 @@ async function initTerminal(): Promise<void> {
 
   fitAddon.fit();
   terminal.focus();
+
+  // Drag-and-drop: paste shell-escaped file paths into terminal
+  setupFileDrop(container, terminal);
 
   // Link detection — open URLs as browser panels instead of system browser.
   // The WebLinksAddon's default handler calls window.open() (about:blank) then
@@ -158,6 +162,40 @@ async function initTerminal(): Promise<void> {
   btnClose.innerHTML = ICONS.x;
   btnClose.addEventListener("click", () => {
     window.pty.closePanel(panelId);
+  });
+}
+
+function setupFileDrop(container: HTMLElement, term: Terminal): void {
+  const el = term.element;
+  if (!el) return;
+
+  el.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    container.classList.add("drag-over");
+  });
+
+  el.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    container.classList.remove("drag-over");
+  });
+
+  el.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    container.classList.remove("drag-over");
+
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    const paths = Array.from(files)
+      .map((f) => (f as File & { path: string }).path)
+      .filter(Boolean)
+      .map(shellEscape);
+
+    if (paths.length > 0) {
+      term.paste(paths.join(" "));
+    }
   });
 }
 
