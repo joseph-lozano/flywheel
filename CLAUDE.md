@@ -10,6 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:watch` — watch mode
 - `npm run package:dir` — fast unsigned app bundle for local testing
 - `npm run package` — signed + notarized DMG (requires code-signing env vars)
+- `npm run package:linux` — Linux AppImage + deb (runs on Linux host)
+- `npm run package:linux:dir` — fast unsigned Linux app bundle for local testing
 
 ## Code Standards
 
@@ -27,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project State
 
-- Alpha (0.1.0-alpha.1), macOS arm64 only — greenfield rules apply: no migrations needed, wipe old data freely
+- Alpha (0.1.0-alpha.1), macOS arm64 + Linux x64/arm64 — greenfield rules apply: no migrations needed, wipe old data freely
 - Release tags must exactly match `package.json` version
 - Design specs and implementation plans live in `docs/superpowers/`
 
