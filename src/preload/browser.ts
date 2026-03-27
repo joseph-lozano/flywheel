@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld('browserHost', {
   reload: () => {
     ipcRenderer.send('browser:reload', { panelId })
   },
+  closePanel: () => {
+    ipcRenderer.send('panel:close-request', { panelId })
+  },
   onChromeState: (callback: (state: {
     position: number; label: string; focused: boolean;
     url: string; canGoBack: boolean; canGoForward: boolean

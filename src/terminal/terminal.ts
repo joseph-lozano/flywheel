@@ -5,6 +5,7 @@ import { Unicode11Addon } from '@xterm/addon-unicode11'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { TERMINAL_DEFAULTS } from '../shared/constants'
+import { ICONS } from '../shared/icons'
 import { initDotGrid, setDotGridBusy } from '../shared/dot-grid'
 
 declare global {
@@ -20,6 +21,7 @@ declare global {
       getConfig: () => Promise<{ terminal: { fontFamily: string; fontSize: number } }>
       onConfigUpdated: (callback: (config: any) => void) => void
       onSetFontSize: (callback: (data: { fontSize: number }) => void) => void
+      closePanel: (panelId: string) => void
     }
   }
 }
@@ -140,6 +142,13 @@ async function initTerminal(): Promise<void> {
     titleLabel.textContent = state.label
     titleBar.classList.toggle('focused', state.focused)
     setDotGridBusy(dotGridWrap, !!state.busy)
+  })
+
+  // Close button
+  const btnClose = document.getElementById('btn-close') as HTMLButtonElement
+  btnClose.innerHTML = ICONS.x
+  btnClose.addEventListener('click', () => {
+    window.pty.closePanel(panelId)
   })
 }
 
