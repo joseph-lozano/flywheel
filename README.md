@@ -48,6 +48,8 @@ Releases are published to [flywheel-releases](https://github.com/joseph-lozano/f
 
 The tag push triggers the release workflow, which builds, signs, notarizes, and publishes the DMG. The tag version must match `package.json` or CI will fail.
 
+Release notes are auto-generated from merged PRs and published to both the main repo and [flywheel-releases](https://github.com/joseph-lozano/flywheel-releases). A cumulative `CHANGELOG.md` is maintained in `flywheel-releases`. Pre-release tags (alpha/beta/rc) are marked as pre-releases.
+
 ### Manual test builds
 
 Trigger a test build from any branch (requires the workflow on `main`):
