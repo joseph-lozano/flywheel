@@ -1,3 +1,5 @@
+import { THEME } from "../../../shared/constants";
+
 interface MissingRowDialogProps {
   branch: string;
   onCancel: () => void;
@@ -19,17 +21,17 @@ export default function MissingRowDialog(props: MissingRowDialogProps) {
     >
       <div
         style={{
-          background: "#252540",
+          background: THEME.surface,
           "border-radius": "8px",
           padding: "24px",
           "max-width": "420px",
           "box-shadow": "0 8px 32px rgba(0,0,0,0.5)",
-          border: "1px solid #3a3a5c",
+          border: `1px solid ${THEME.surfaceBorder}`,
         }}
       >
         <p
           style={{
-            color: "#e0e0e0",
+            color: THEME.text,
             margin: "0 0 8px 0",
             "font-size": "14px",
             "font-weight": "bold",
@@ -39,14 +41,14 @@ export default function MissingRowDialog(props: MissingRowDialogProps) {
         </p>
         <p
           style={{
-            color: "#888",
+            color: THEME.muted,
             margin: "0 0 20px 0",
             "font-size": "13px",
             "line-height": "1.5",
-            "font-family": "monospace",
+            "font-family": THEME.font.body,
           }}
         >
-          The directory for <span style={{ color: "#e0e0e0" }}>{props.branch}</span> no longer
+          The directory for <span style={{ color: THEME.text }}>{props.branch}</span> no longer
           exists on disk.
         </p>
         <div style={{ display: "flex", gap: "12px", "justify-content": "flex-end" }}>
@@ -55,9 +57,9 @@ export default function MissingRowDialog(props: MissingRowDialogProps) {
               props.onCancel();
             }}
             style={{
-              background: "#1a1a2e",
-              color: "#888",
-              border: "1px solid #3a3a5c",
+              background: THEME.faint,
+              color: THEME.muted,
+              border: `1px solid ${THEME.surfaceBorder}`,
               padding: "6px 16px",
               "border-radius": "4px",
               cursor: "pointer",
@@ -71,7 +73,7 @@ export default function MissingRowDialog(props: MissingRowDialogProps) {
               props.onRemove();
             }}
             style={{
-              background: "#f43f5e",
+              background: THEME.danger,
               color: "#fff",
               border: "none",
               padding: "6px 16px",
