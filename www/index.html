@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flywheel — Your development command center</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <meta
       name="description"
       content="Terminals, browsers, and processes in a single spatial workspace. Keyboard-driven. Project-organized."
@@ -114,7 +115,18 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        border: 1px solid var(--border);
+      }
+
+      .chrome-dot:nth-child(1) {
+        background: #ff5f57;
+      }
+
+      .chrome-dot:nth-child(2) {
+        background: #febc2e;
+      }
+
+      .chrome-dot:nth-child(3) {
+        background: #28c840;
       }
 
       .chrome-tab {
@@ -131,14 +143,6 @@
       .content {
         padding: 40px 48px 48px;
         position: relative;
-      }
-
-      .wordmark {
-        font-family: "Monaspace Radon", monospace;
-        font-size: 15px;
-        font-weight: 500;
-        color: var(--accent);
-        margin-bottom: 28px;
       }
 
       h1 {
@@ -302,11 +306,9 @@
         <div class="chrome-dot"></div>
         <div class="chrome-dot"></div>
         <div class="chrome-dot"></div>
-        <div class="chrome-tab">Flywheel.</div>
+        <div class="chrome-tab">Flywheel</div>
       </div>
       <main class="content">
-        <div class="wordmark">Flywheel.</div>
-
         <h1 id="headline"></h1>
 
         <p class="body-text">
@@ -381,8 +383,6 @@
           'All your dev tools,<br><span class="typed">side by side.</span>',
           'Everything you need,<br><span class="typed">side by side.</span>',
           'Your whole workflow,<br><span class="typed">side by side.</span>',
-          'Your entire stack,<br><span class="typed">side by side.</span>',
-          'Terminals and browsers,<br><span class="typed">side by side.</span>',
         ];
         document.getElementById("headline").innerHTML =
           headlines[Math.floor(Math.random() * headlines.length)];
