@@ -3,6 +3,18 @@ import { join } from "path";
 import type { FlywheelConfig } from "../shared/config";
 import { LAYOUT } from "../shared/constants";
 
+/** Pick the smallest favicon from the array, preferring 16x16 or 32x32 size hints in the URL. */
+function pickSmallestFavicon(favicons: string[]): string | null {
+  if (favicons.length === 0) return null;
+  for (const url of favicons) {
+    if (url.includes("16x16")) return url;
+  }
+  for (const url of favicons) {
+    if (url.includes("32x32")) return url;
+  }
+  return favicons[0];
+}
+
 interface ManagedPanel {
   id: string;
   type: "terminal" | "placeholder" | "browser";
@@ -252,6 +264,7 @@ export class PanelManager {
           url: navUrl,
           canGoBack,
           canGoForward,
+          faviconUrl: null,
         });
       };
       view.webContents.on("did-navigate", sendNavUpdate);
@@ -261,6 +274,13 @@ export class PanelManager {
       view.webContents.on("page-title-updated", (_event, title) => {
         this.chromeView.webContents.send("browser:title-changed", { panelId: id, title });
         chromeStripView.webContents.send("panel:chrome-state", { label: title });
+      });
+
+      // Forward favicon to chrome strip — prefer smallest icon for the 16px display
+      view.webContents.on("page-favicon-updated", (_event, favicons) => {
+        chromeStripView.webContents.send("panel:chrome-state", {
+          faviconUrl: pickSmallestFavicon(favicons),
+        });
       });
 
       // Loading state → animate dot grid in chrome strip
