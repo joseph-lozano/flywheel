@@ -65,6 +65,7 @@ export class PanelManager {
         else if (input.key >= "1" && input.key <= "9")
           action = { type: "switch-project", index: parseInt(input.key) - 1 };
         else if (input.key === "," || input.key === "<") action = { type: "reload-config" };
+        else if (input.key === "i") action = { type: "toggle-devtools" };
       } else {
         if (input.key === "ArrowLeft") action = { type: "focus-left" };
         else if (input.key === "ArrowRight") action = { type: "focus-right" };
@@ -183,9 +184,8 @@ export class PanelManager {
           { type: "separator" },
           {
             label: "Inspect Element",
-            enabled: false,
             click: () => {
-              /* TODO: implement in feat/browser-dev-tools */
+              view.webContents.inspectElement(params.x, params.y);
             },
           },
         );
@@ -330,6 +330,12 @@ export class PanelManager {
     const panel = this.panels.get(id);
     if (panel?.type !== "browser") return;
     panel.view.webContents.navigationHistory.goForward();
+  }
+
+  toggleBrowserDevTools(id: string): void {
+    const panel = this.panels.get(id);
+    if (panel?.type !== "browser") return;
+    panel.view.webContents.toggleDevTools();
   }
 
   zoomPanel(id: string, direction: "in" | "out" | "reset", config: FlywheelConfig): void {

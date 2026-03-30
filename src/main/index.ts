@@ -208,6 +208,10 @@ function setupIpcHandlers(): void {
     panelManager.goForwardBrowser(data.panelId);
   });
 
+  ipcMain.on("browser:toggle-devtools", (_event, data: { panelId: string }) => {
+    panelManager.toggleBrowserDevTools(data.panelId);
+  });
+
   // Browser host chrome strip → navigate
   ipcMain.on("browser:navigate-from-host", (_event, data: { panelId: string; url: string }) => {
     panelManager.navigateBrowser(data.panelId, data.url);
@@ -720,6 +724,13 @@ function setupShortcuts(): void {
           accelerator: "Command+]",
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "browser-forward" });
+          },
+        },
+        {
+          label: "Toggle Browser DevTools",
+          accelerator: "CommandOrControl+Shift+I",
+          click: () => {
+            chromeView.webContents.send("shortcut:action", { type: "toggle-devtools" });
           },
         },
         { type: "separator" as const },

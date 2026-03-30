@@ -10,6 +10,7 @@ declare global {
       goBack: () => void;
       goForward: () => void;
       reload: () => void;
+      toggleDevTools: () => void;
       closePanel: () => void;
       onChromeState: (
         callback: (state: {
@@ -34,6 +35,7 @@ const titleLabel = document.getElementById("title-label")!;
 const btnBack = document.getElementById("btn-back") as HTMLButtonElement;
 const btnForward = document.getElementById("btn-forward") as HTMLButtonElement;
 const btnReload = document.getElementById("btn-reload") as HTMLButtonElement;
+const btnDevTools = document.getElementById("btn-devtools") as HTMLButtonElement;
 const btnClose = document.getElementById("btn-close") as HTMLButtonElement;
 const urlDisplay = document.getElementById("url-display")!;
 const urlInput = document.getElementById("url-input") as HTMLInputElement;
@@ -47,12 +49,14 @@ globeIcon.innerHTML = ICONS.globe;
 btnBack.innerHTML = ICONS.arrowLeft;
 btnForward.innerHTML = ICONS.arrowRight;
 btnReload.innerHTML = ICONS.rotateCw;
+btnDevTools.innerHTML = ICONS.wrench;
 btnClose.innerHTML = ICONS.x;
 
 // Nav button handlers
 btnBack.addEventListener("click", () => window.browserHost.goBack());
 btnForward.addEventListener("click", () => window.browserHost.goForward());
 btnReload.addEventListener("click", () => window.browserHost.reload());
+btnDevTools.addEventListener("click", () => window.browserHost.toggleDevTools());
 btnClose.addEventListener("click", () => window.browserHost.closePanel());
 
 // URL bar editing

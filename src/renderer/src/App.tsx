@@ -534,6 +534,12 @@ export default function App() {
         if (focused.type === "browser") window.api.goForwardBrowser(focused.id);
         break;
       }
+      case "toggle-devtools": {
+        if (!strip) break;
+        const focused = strip.state.panels[strip.state.focusedIndex];
+        if (focused.type === "browser") window.api.toggleBrowserDevTools(focused.id);
+        break;
+      }
       case "close-panel":
         handleClosePanel();
         break;

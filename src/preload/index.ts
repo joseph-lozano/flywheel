@@ -128,6 +128,9 @@ contextBridge.exposeInMainWorld("api", {
   goForwardBrowser: (panelId: string) => {
     ipcRenderer.send("browser:go-forward", { panelId });
   },
+  toggleBrowserDevTools: (panelId: string) => {
+    ipcRenderer.send("browser:toggle-devtools", { panelId });
+  },
   onBrowserUrlChanged: (
     callback: (data: {
       panelId: string;
