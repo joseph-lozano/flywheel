@@ -511,6 +511,7 @@ function setupIpcHandlers(): void {
         rowId: row.id,
         prStatus: pr?.status,
         prUrl: pr?.url,
+        prNumber: pr?.number,
       };
     });
 

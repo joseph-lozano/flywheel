@@ -73,6 +73,7 @@ describe("createPrStatus", () => {
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/42",
+                number: 42,
               },
             ]),
           );
@@ -83,6 +84,7 @@ describe("createPrStatus", () => {
       expect(result.get("feat-a")).toEqual({
         status: "open",
         url: "https://github.com/owner/repo/pull/42",
+        number: 42,
       });
     });
 
@@ -103,6 +105,7 @@ describe("createPrStatus", () => {
                 isDraft: true,
                 updatedAt: "2026-03-26T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/43",
+                number: 43,
               },
             ]),
           );
@@ -113,6 +116,7 @@ describe("createPrStatus", () => {
       expect(result.get("feat-b")).toEqual({
         status: "draft",
         url: "https://github.com/owner/repo/pull/43",
+        number: 43,
       });
     });
 
@@ -133,6 +137,7 @@ describe("createPrStatus", () => {
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/44",
+                number: 44,
               },
             ]),
           );
@@ -143,6 +148,7 @@ describe("createPrStatus", () => {
       expect(result.get("feat-c")).toEqual({
         status: "merged",
         url: "https://github.com/owner/repo/pull/44",
+        number: 44,
       });
     });
 
@@ -163,6 +169,7 @@ describe("createPrStatus", () => {
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/45",
+                number: 45,
               },
             ]),
           );
@@ -173,6 +180,7 @@ describe("createPrStatus", () => {
       expect(result.get("feat-d")).toEqual({
         status: "closed",
         url: "https://github.com/owner/repo/pull/45",
+        number: 45,
       });
     });
 
@@ -193,6 +201,7 @@ describe("createPrStatus", () => {
                 isDraft: true,
                 updatedAt: "2026-03-26T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/46",
+                number: 46,
               },
             ]),
           );
@@ -203,6 +212,7 @@ describe("createPrStatus", () => {
       expect(result.get("feat-draft-closed")).toEqual({
         status: "closed",
         url: "https://github.com/owner/repo/pull/46",
+        number: 46,
       });
     });
 
@@ -223,6 +233,7 @@ describe("createPrStatus", () => {
                 isDraft: false,
                 updatedAt: "2026-03-25T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/10",
+                number: 10,
               },
               {
                 headRefName: "feat-e",
@@ -230,6 +241,7 @@ describe("createPrStatus", () => {
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
                 url: "https://github.com/owner/repo/pull/11",
+                number: 11,
               },
             ]),
           );
@@ -240,6 +252,7 @@ describe("createPrStatus", () => {
       expect(result.get("feat-e")).toEqual({
         status: "open",
         url: "https://github.com/owner/repo/pull/11",
+        number: 11,
       });
     });
 

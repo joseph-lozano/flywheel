@@ -7,6 +7,7 @@ interface GhPrEntry {
   isDraft: boolean;
   updatedAt: string;
   url: string;
+  number: number;
 }
 
 export function createPrStatus() {
@@ -24,9 +25,9 @@ export function createPrStatus() {
 
   async function fetchPrStatuses(
     projectPath: string,
-  ): Promise<Map<string, { status: PrStatus; url: string }>> {
+  ): Promise<Map<string, { status: PrStatus; url: string; number: number }>> {
     const available = await ghAvailable();
-    if (!available) return new Map<string, { status: PrStatus; url: string }>();
+    if (!available) return new Map<string, { status: PrStatus; url: string; number: number }>();
 
     return new Promise((resolve) => {
       execFile(
@@ -35,7 +36,7 @@ export function createPrStatus() {
           "pr",
           "list",
           "--json",
-          "headRefName,state,isDraft,updatedAt,url",
+          "headRefName,state,isDraft,updatedAt,url,number",
           "--state",
           "all",
           "--limit",
@@ -44,7 +45,7 @@ export function createPrStatus() {
         { cwd: projectPath },
         (err, stdout) => {
           if (err) {
-            resolve(new Map<string, { status: PrStatus; url: string }>());
+            resolve(new Map<string, { status: PrStatus; url: string; number: number }>());
             return;
           }
 
@@ -59,7 +60,7 @@ export function createPrStatus() {
               }
             }
 
-            const result = new Map<string, { status: PrStatus; url: string }>();
+            const result = new Map<string, { status: PrStatus; url: string; number: number }>();
             for (const [branch, pr] of byBranch) {
               let status: PrStatus;
               if (pr.state === "MERGED") {
@@ -71,18 +72,23 @@ export function createPrStatus() {
               } else {
                 status = "open";
               }
-              result.set(branch, { status, url: pr.url });
+              result.set(branch, { status, url: pr.url, number: pr.number });
             }
             resolve(result);
           } catch {
-            resolve(new Map<string, { status: PrStatus; url: string }>());
+            resolve(new Map<string, { status: PrStatus; url: string; number: number }>());
           }
         },
       );
     });
   }
 
+  const repoUrlCache = new Map<string, string>();
+
   async function fetchRepoUrl(projectPath: string): Promise<string | undefined> {
+    const cached = repoUrlCache.get(projectPath);
+    if (cached) return cached;
+
     const available = await ghAvailable();
     if (!available) return undefined;
 
@@ -97,6 +103,7 @@ export function createPrStatus() {
             return;
           }
           const url = stdout.trim();
+          if (url) repoUrlCache.set(projectPath, url);
           resolve(url || undefined);
         },
       );

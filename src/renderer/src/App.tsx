@@ -908,9 +908,11 @@ export default function App() {
           if (!project) return;
           const defaultRow = project.rows.find((r) => r.isDefault);
           if (!defaultRow) return;
-          const s = getStripStore(defaultRow.id);
-          const panel = s.actions.addPanel("browser", url);
-          window.api.createBrowserPanel(panel.id, url);
+          void handleSwitchRow(projectId, defaultRow.id).then(() => {
+            const s = getStripStore(defaultRow.id);
+            const panel = s.actions.addPanel("browser", url);
+            window.api.createBrowserPanel(panel.id, url);
+          });
         }}
         onBlurPanels={() => activeStrip()?.actions.blurPanel()}
         onModalShow={() => {

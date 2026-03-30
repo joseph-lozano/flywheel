@@ -30,6 +30,7 @@ export interface Row {
   isDefault: boolean;
   prStatus?: PrStatus;
   prUrl?: string;
+  prNumber?: number;
 }
 
 export interface PersistedState {
@@ -82,7 +83,12 @@ export interface CheckBranchesResult {
   updates: { rowId: string; branch: string }[];
 }
 export interface CheckPrStatusResult {
-  updates: { rowId: string; prStatus: PrStatus | undefined; prUrl: string | undefined }[];
+  updates: {
+    rowId: string;
+    prStatus: PrStatus | undefined;
+    prUrl: string | undefined;
+    prNumber: number | undefined;
+  }[];
   repoUrl?: string;
 }
 

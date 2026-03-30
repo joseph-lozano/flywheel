@@ -330,32 +330,28 @@ export default function Sidebar(props: SidebarProps) {
                             <PullRequest
                               color={row.prStatus ? PR_STATUS_COLORS[row.prStatus] : undefined}
                             />
-                            <Show when={row.prUrl}>
-                              {(prUrl) => (
-                                <span
-                                  style={{
-                                    color: row.prStatus
-                                      ? PR_STATUS_COLORS[row.prStatus]
-                                      : undefined,
-                                    "font-size": "11px",
-                                    "font-weight": "600",
-                                    cursor: "pointer",
-                                    "text-decoration": "none",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.textDecoration = "underline";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.textDecoration = "none";
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    props.onOpenPrUrl?.(prUrl());
-                                  }}
-                                >
-                                  #{prUrl().split("/").pop()}
-                                </span>
-                              )}
+                            <Show when={row.prNumber && row.prUrl}>
+                              <span
+                                style={{
+                                  color: row.prStatus ? PR_STATUS_COLORS[row.prStatus] : undefined,
+                                  "font-size": "11px",
+                                  "font-weight": "600",
+                                  cursor: "pointer",
+                                  "text-decoration": "none",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.textDecoration = "underline";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.textDecoration = "none";
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (row.prUrl) props.onOpenPrUrl?.(row.prUrl);
+                                }}
+                              >
+                                #{row.prNumber}
+                              </span>
                             </Show>
                           </Show>
                           <span style={{ overflow: "hidden", "text-overflow": "ellipsis" }}>
