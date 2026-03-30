@@ -82,5 +82,26 @@ export function createPrStatus() {
     });
   }
 
-  return { ghAvailable, fetchPrStatuses };
+  async function fetchRepoUrl(projectPath: string): Promise<string | undefined> {
+    const available = await ghAvailable();
+    if (!available) return undefined;
+
+    return new Promise((resolve) => {
+      execFile(
+        "gh",
+        ["repo", "view", "--json", "url", "--jq", ".url"],
+        { cwd: projectPath },
+        (err, stdout) => {
+          if (err) {
+            resolve(undefined);
+            return;
+          }
+          const url = stdout.trim();
+          resolve(url || undefined);
+        },
+      );
+    });
+  }
+
+  return { ghAvailable, fetchPrStatuses, fetchRepoUrl };
 }

@@ -261,4 +261,52 @@ describe("createPrStatus", () => {
       expect(result.size).toBe(0);
     });
   });
+
+  describe("fetchRepoUrl", () => {
+    it("returns repo URL when gh is available", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          if (Array.isArray(args) && args.includes("--version")) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          callback(null, "https://github.com/owner/repo\n");
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchRepoUrl("/test/project");
+      expect(result).toBe("https://github.com/owner/repo");
+    });
+
+    it("returns undefined when gh is unavailable", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, _args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          callback(new Error("not found"));
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchRepoUrl("/test/project");
+      expect(result).toBeUndefined();
+    });
+
+    it("returns undefined when gh command fails", async () => {
+      let callCount = 0;
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          callCount++;
+          if (callCount === 1) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          callback(new Error("not a GitHub repo"));
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchRepoUrl("/test/project");
+      expect(result).toBeUndefined();
+    });
+  });
 });
