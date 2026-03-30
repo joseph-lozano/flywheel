@@ -16,7 +16,8 @@ function computeSidebarWidth(projects: Project[]): number {
     if (p.expanded) {
       for (const r of p.rows) {
         // Row names are indented, add 3 chars for icon + indent
-        longestName = Math.max(longestName, r.branch.length + 3);
+        const prExtra = r.prUrl ? 5 : 0;
+        longestName = Math.max(longestName, r.branch.length + 3 + prExtra);
       }
     }
   }
@@ -105,17 +106,25 @@ export function createAppStore() {
 
     updatePrStatuses(
       projectId: string,
-      updates: { rowId: string; prStatus: PrStatus | undefined }[],
+      updates: { rowId: string; prStatus: PrStatus | undefined; prUrl: string | undefined }[],
     ): void {
-      const updateMap = new Map(updates.map((u) => [u.rowId, u.prStatus]));
-      for (const [rowId, prStatus] of updateMap) {
+      const updateMap = new Map(updates.map((u) => [u.rowId, u] as const));
+      for (const [rowId, update] of updateMap) {
         setState(
           "projects",
           (p) => p.id === projectId,
           "rows",
           (r) => r.id === rowId,
           "prStatus",
-          prStatus,
+          update.prStatus,
+        );
+        setState(
+          "projects",
+          (p) => p.id === projectId,
+          "rows",
+          (r) => r.id === rowId,
+          "prUrl",
+          update.prUrl,
         );
       }
     },
