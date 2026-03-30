@@ -135,6 +135,29 @@ describe("computeScrollToCenter", () => {
   });
 });
 
+describe("single panel uses full width", () => {
+  it("single panel takes full effective width", () => {
+    const layout = computeLayout({
+      panels: [mkPanel("a")],
+      scrollOffset: 0,
+      viewportWidth: 1000,
+      viewportHeight: 600,
+    });
+    expect(layout[0].contentBounds.width).toBe(1000);
+  });
+
+  it("two panels use half width each", () => {
+    const layout = computeLayout({
+      panels: [mkPanel("a"), mkPanel("b")],
+      scrollOffset: 0,
+      viewportWidth: 1000,
+      viewportHeight: 600,
+    });
+    expect(layout[0].contentBounds.width).toBe(500);
+    expect(layout[1].contentBounds.width).toBe(500);
+  });
+});
+
 describe("sidebarWidth support", () => {
   const panels = [mkPanel("a"), mkPanel("b"), mkPanel("c")];
 
@@ -158,7 +181,7 @@ describe("sidebarWidth support", () => {
       viewportHeight: 600,
       sidebarWidth: 200,
     });
-    expect(layout[0].contentBounds.width).toBe(400);
+    expect(layout[0].contentBounds.width).toBe(800);
   });
 
   it("computeMaxScroll uses effective width", () => {
@@ -177,7 +200,7 @@ describe("sidebarWidth support", () => {
       viewportHeight: 600,
     });
     expect(layout[0].contentBounds.x).toBe(0);
-    expect(layout[0].contentBounds.width).toBe(500);
+    expect(layout[0].contentBounds.width).toBe(1000);
   });
 
   it("computeVisibility uses sidebarWidth as left boundary", () => {
