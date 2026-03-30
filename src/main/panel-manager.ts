@@ -284,8 +284,10 @@ export class PanelManager {
 
       // Forward favicon to chrome strip — prefer smallest icon for the 16px display
       view.webContents.on("page-favicon-updated", (_event, favicons) => {
+        const url = pickBestFavicon(favicons);
+        const safeUrl = url && /^https?:\/\//.test(url) ? url : null;
         chromeStripView.webContents.send("panel:chrome-state", {
-          faviconUrl: pickBestFavicon(favicons),
+          faviconUrl: safeUrl,
         });
       });
 

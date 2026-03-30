@@ -13,9 +13,11 @@ Replace the static globe SVG in the browser chrome strip with the site's favicon
 
 Pure function in `panel-manager.ts`:
 
-- If any URL path contains a size hint matching `16x16` or `32x32`, prefer it
+- Prefer SVG (adapts to light/dark via CSS media queries)
+- Then prefer a URL with a `16x16` size hint, then `32x32`
 - Otherwise use the first URL in the array
 - If the array is empty, send `faviconUrl: null`
+- Only forward `http:` / `https:` URLs (reject `data:` URIs and other protocols)
 
 ## Chrome Strip UI
 

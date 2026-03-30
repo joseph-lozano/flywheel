@@ -43,6 +43,8 @@ contextBridge.exposeInMainWorld("browserHost", {
       url: string;
       canGoBack: boolean;
       canGoForward: boolean;
+      busy?: boolean;
+      faviconUrl?: string | null;
     }) => void,
   ) => {
     ipcRenderer.on(
@@ -56,6 +58,8 @@ contextBridge.exposeInMainWorld("browserHost", {
           url: string;
           canGoBack: boolean;
           canGoForward: boolean;
+          busy?: boolean;
+          faviconUrl?: string | null;
         },
       ) => {
         callback(state);
