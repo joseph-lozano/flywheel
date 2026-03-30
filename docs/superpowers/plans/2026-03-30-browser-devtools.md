@@ -13,6 +13,7 @@
 ### Task 1: Add `toggleBrowserDevTools` to PanelManager
 
 **Files:**
+
 - Modify: `src/main/panel-manager.ts:242` (after `goForwardBrowser`)
 
 - [ ] **Step 1: Add the method**
@@ -44,6 +45,7 @@ git commit -m "feat: add toggleBrowserDevTools method to PanelManager"
 ### Task 2: Add IPC handler in main process
 
 **Files:**
+
 - Modify: `src/main/index.ts:182` (after `browser:go-forward` handler)
 
 - [ ] **Step 1: Add the IPC handler**
@@ -73,6 +75,7 @@ git commit -m "feat: add browser:toggle-devtools IPC handler"
 ### Task 3: Expose `toggleBrowserDevTools` in renderer preload and type declarations
 
 **Files:**
+
 - Modify: `src/preload/index.ts:131` (after `goForwardBrowser`)
 - Modify: `src/renderer/src/env.d.ts:51` (after `goForwardBrowser` type)
 
@@ -111,6 +114,7 @@ git commit -m "feat: expose toggleBrowserDevTools in renderer preload API"
 ### Task 4: Add keyboard shortcut Cmd+Shift+I
 
 **Files:**
+
 - Modify: `src/main/panel-manager.ts:59-67` (inside `handleShortcutKey`, `input.shift` block)
 - Modify: `src/renderer/src/App.tsx:486-624` (inside `handleShortcut` switch)
 
@@ -168,6 +172,7 @@ git commit -m "feat: add Cmd+Shift+I shortcut to toggle browser DevTools"
 ### Task 5: Add wrench icon to shared icons
 
 **Files:**
+
 - Modify: `src/shared/icons.ts`
 
 - [ ] **Step 1: Add the Lucide wrench SVG path**
@@ -198,6 +203,7 @@ git commit -m "feat: add Lucide wrench icon to shared icons"
 ### Task 6: Add DevTools button to chrome strip
 
 **Files:**
+
 - Modify: `src/browser/browser-host.html:159` (navbar row, after reload button)
 - Modify: `src/browser/browser-host.ts` (wire up button click + set icon)
 
@@ -297,6 +303,7 @@ git commit -m "feat: add DevTools button to browser chrome strip"
 ### Task 7: Add menu item for Toggle DevTools
 
 **Files:**
+
 - Modify: `src/main/index.ts:673-722` (View submenu in `setupShortcuts`)
 
 - [ ] **Step 1: Add menu item**
