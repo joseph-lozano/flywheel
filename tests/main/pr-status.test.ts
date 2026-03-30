@@ -321,5 +321,26 @@ describe("createPrStatus", () => {
       const result = await prStatus.fetchRepoUrl("/test/project");
       expect(result).toBeUndefined();
     });
+
+    it("caches result and skips gh call on second fetch", async () => {
+      let repoViewCalls = 0;
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          if (Array.isArray(args) && args.includes("--version")) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          repoViewCalls++;
+          callback(null, "https://github.com/owner/repo\n");
+        },
+      );
+      const prStatus = createPrStatus();
+      const first = await prStatus.fetchRepoUrl("/test/project");
+      const second = await prStatus.fetchRepoUrl("/test/project");
+      expect(first).toBe("https://github.com/owner/repo");
+      expect(second).toBe("https://github.com/owner/repo");
+      expect(repoViewCalls).toBe(1);
+    });
   });
 });

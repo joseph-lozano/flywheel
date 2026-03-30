@@ -83,6 +83,7 @@ export function createPrStatus() {
     });
   }
 
+  // Cached for process lifetime — repo URL rarely changes. Stale until app restart if remote changes.
   const repoUrlCache = new Map<string, string>();
 
   async function fetchRepoUrl(projectPath: string): Promise<string | undefined> {

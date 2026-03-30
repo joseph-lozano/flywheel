@@ -118,32 +118,34 @@ export function createAppStore() {
       }[],
     ): void {
       const updateMap = new Map(updates.map((u) => [u.rowId, u] as const));
-      for (const [rowId, update] of updateMap) {
-        setState(
-          "projects",
-          (p) => p.id === projectId,
-          "rows",
-          (r) => r.id === rowId,
-          "prStatus",
-          update.prStatus,
-        );
-        setState(
-          "projects",
-          (p) => p.id === projectId,
-          "rows",
-          (r) => r.id === rowId,
-          "prUrl",
-          update.prUrl,
-        );
-        setState(
-          "projects",
-          (p) => p.id === projectId,
-          "rows",
-          (r) => r.id === rowId,
-          "prNumber",
-          update.prNumber,
-        );
-      }
+      batch(() => {
+        for (const [rowId, update] of updateMap) {
+          setState(
+            "projects",
+            (p) => p.id === projectId,
+            "rows",
+            (r) => r.id === rowId,
+            "prStatus",
+            update.prStatus,
+          );
+          setState(
+            "projects",
+            (p) => p.id === projectId,
+            "rows",
+            (r) => r.id === rowId,
+            "prUrl",
+            update.prUrl,
+          );
+          setState(
+            "projects",
+            (p) => p.id === projectId,
+            "rows",
+            (r) => r.id === rowId,
+            "prNumber",
+            update.prNumber,
+          );
+        }
+      });
     },
 
     setRepoUrl(projectId: string, repoUrl: string | undefined): void {
