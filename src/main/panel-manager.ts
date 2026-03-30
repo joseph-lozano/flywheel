@@ -184,9 +184,8 @@ export class PanelManager {
           { type: "separator" },
           {
             label: "Inspect Element",
-            enabled: false,
             click: () => {
-              /* TODO: implement in feat/browser-dev-tools */
+              view.webContents.inspectElement(params.x, params.y);
             },
           },
         );
