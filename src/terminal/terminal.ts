@@ -46,6 +46,7 @@ async function initTerminal(): Promise<void> {
     fontFamily: config.terminal.fontFamily,
     fontSize: config.terminal.fontSize,
     theme: TERMINAL_DEFAULTS.theme,
+    cursorBlink: true,
     allowProposedApi: true,
     scrollback: 5000,
   });
