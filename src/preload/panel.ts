@@ -65,6 +65,11 @@ contextBridge.exposeInMainWorld("pty", {
       callback(data);
     });
   },
+  onSetClip: (callback: (data: { clip: number; fullWidth: number }) => void) => {
+    ipcRenderer.on("terminal:set-clip", (_event, data: { clip: number; fullWidth: number }) => {
+      callback(data);
+    });
+  },
   closePanel: (panelId: string) => {
     ipcRenderer.send("panel:close-request", { panelId });
   },
