@@ -124,11 +124,12 @@ describe("computeMaxScroll", () => {
 });
 
 describe("computeScrollToCenter", () => {
-  it("centers first panel (clamps to 0)", () => {
+  it("left-aligns first panel (clamps to 0)", () => {
     expect(computeScrollToCenter(0, 3, 1000)).toBe(0);
   });
-  it("centers middle panel", () => {
-    expect(computeScrollToCenter(1, 3, 1000)).toBe(258);
+  it("left-aligns middle panel", () => {
+    // panel 1 stripX = 1 * (500 + 8) = 508
+    expect(computeScrollToCenter(1, 3, 1000)).toBe(508);
   });
   it("clamps to max scroll for last panel", () => {
     expect(computeScrollToCenter(2, 3, 1000)).toBe(516);

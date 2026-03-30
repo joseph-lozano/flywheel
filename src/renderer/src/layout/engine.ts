@@ -62,12 +62,10 @@ export function computeScrollToCenter(
 ): number {
   const effectiveWidth = viewportWidth - sidebarWidth;
   const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
-  const stripX = panelIndex * (panelWidth + LAYOUT.PANEL_GAP);
-  const centerOffset = stripX - (effectiveWidth - panelWidth) / 2;
-  return Math.max(
-    0,
-    Math.min(centerOffset, computeMaxScroll(panelCount, viewportWidth, sidebarWidth)),
-  );
+  // Align the focused panel's left edge to the sidebar edge so no panel
+  // is ever partially behind the sidebar (avoids terminal reflow from clipping).
+  const target = panelIndex * (panelWidth + LAYOUT.PANEL_GAP);
+  return Math.max(0, Math.min(target, computeMaxScroll(panelCount, viewportWidth, sidebarWidth)));
 }
 
 export function findMostCenteredPanel(
