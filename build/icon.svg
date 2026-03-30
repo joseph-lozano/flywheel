@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Background with rounded corners -->
+  <rect width="1024" height="1024" rx="228" fill="#0f0f1a"/>
+
+  <!-- Lucide "layers" icon scaled to fill, centered -->
+  <g transform="translate(512, 512) scale(22)" fill="none" stroke="#e8a830" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top layer (diamond) -->
+    <polygon points="0,-10 -10,-5 0,0 10,-5"/>
+    <!-- Middle layer -->
+    <polyline points="-10,0 0,5 10,0"/>
+    <!-- Bottom layer -->
+    <polyline points="-10,5 0,10 10,5"/>
+  </g>
+</svg>
