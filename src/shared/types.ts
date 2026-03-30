@@ -28,6 +28,7 @@ export interface Row {
   color: string;
   isDefault: boolean;
   prStatus?: PrStatus;
+  prUrl?: string;
 }
 
 export interface PersistedState {
@@ -80,7 +81,7 @@ export interface CheckBranchesResult {
   updates: { rowId: string; branch: string }[];
 }
 export interface CheckPrStatusResult {
-  updates: { rowId: string; prStatus: PrStatus | undefined }[];
+  updates: { rowId: string; prStatus: PrStatus | undefined; prUrl: string | undefined }[];
 }
 
 export interface ShortcutAction {
