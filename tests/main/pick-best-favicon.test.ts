@@ -16,6 +16,12 @@ describe("pickBestFavicon", () => {
     ).toBe("https://example.com/favicon.svg");
   });
 
+  it("prefers SVG with query string", () => {
+    expect(
+      pickBestFavicon(["https://example.com/favicon.png", "https://example.com/favicon.svg?v=2"]),
+    ).toBe("https://example.com/favicon.svg?v=2");
+  });
+
   it("prefers SVG over 16x16", () => {
     expect(
       pickBestFavicon(["https://example.com/favicon-16x16.png", "https://example.com/favicon.svg"]),

@@ -10,7 +10,7 @@ import { LAYOUT } from "../shared/constants";
 export function pickBestFavicon(favicons: string[]): string | null {
   if (favicons.length === 0) return null;
   for (const url of favicons) {
-    if (url.endsWith(".svg")) return url;
+    if (/\.svg(?:\?|$)/i.test(url)) return url;
   }
   for (const url of favicons) {
     if (url.includes("16x16")) return url;
