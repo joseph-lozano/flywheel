@@ -133,6 +133,10 @@ export function createAppStore() {
       }
     },
 
+    setRepoUrl(projectId: string, repoUrl: string | undefined): void {
+      setState("projects", (p) => p.id === projectId, "repoUrl", repoUrl);
+    },
+
     setExpanded(projectId: string, expanded: boolean): void {
       setState("projects", (p) => p.id === projectId, "expanded", expanded);
       setState("sidebarWidth", computeSidebarWidth([...state.projects]));

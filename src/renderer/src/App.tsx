@@ -91,6 +91,7 @@ export default function App() {
   function refreshPrStatuses(projectId: string): void {
     void window.api.checkPrStatus(projectId).then((result) => {
       appStore.actions.updatePrStatuses(projectId, result.updates);
+      appStore.actions.setRepoUrl(projectId, result.repoUrl);
     });
   }
 
