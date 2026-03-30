@@ -1,3 +1,5 @@
+import { THEME } from "../../../shared/constants";
+
 interface RemoveRowDialogProps {
   onRemoveFromFlywheel: () => void;
   onDeleteFromDisk: () => void;
@@ -19,17 +21,17 @@ export default function RemoveRowDialog(props: RemoveRowDialogProps) {
     >
       <div
         style={{
-          background: "#252540",
+          background: THEME.surface,
           "border-radius": "8px",
           padding: "24px",
           "max-width": "400px",
           "box-shadow": "0 8px 32px rgba(0,0,0,0.5)",
-          border: "1px solid #3a3a5c",
+          border: `1px solid ${THEME.surfaceBorder}`,
         }}
       >
         <p
           style={{
-            color: "#e0e0e0",
+            color: THEME.text,
             margin: "0 0 20px 0",
             "font-size": "14px",
             "line-height": "1.5",
@@ -43,9 +45,9 @@ export default function RemoveRowDialog(props: RemoveRowDialogProps) {
               props.onRemoveFromFlywheel();
             }}
             style={{
-              background: "#1a1a2e",
-              color: "#e0e0e0",
-              border: "1px solid #3a3a5c",
+              background: THEME.faint,
+              color: THEME.text,
+              border: `1px solid ${THEME.surfaceBorder}`,
               padding: "8px 16px",
               "border-radius": "4px",
               cursor: "pointer",
@@ -60,7 +62,7 @@ export default function RemoveRowDialog(props: RemoveRowDialogProps) {
               props.onDeleteFromDisk();
             }}
             style={{
-              background: "#f43f5e",
+              background: THEME.danger,
               color: "#fff",
               border: "none",
               padding: "8px 16px",
@@ -78,7 +80,7 @@ export default function RemoveRowDialog(props: RemoveRowDialogProps) {
             }}
             style={{
               background: "transparent",
-              color: "#666",
+              color: THEME.muted,
               border: "none",
               padding: "6px 16px",
               cursor: "pointer",

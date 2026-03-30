@@ -1,5 +1,5 @@
 import { Show, batch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
-import { LAYOUT } from "../../shared/constants";
+import { LAYOUT, THEME } from "../../shared/constants";
 import type { PanelBoundsUpdate } from "../../shared/types";
 import ConfirmDialog from "./components/ConfirmDialog";
 import HintBar from "./components/HintBar";
@@ -944,12 +944,12 @@ export default function App() {
               bottom: "48px",
               left: "50%",
               transform: "translateX(-50%)",
-              background: t.type === "error" ? "#f43f5e" : "#3b82f6",
-              color: "#fff",
+              background: t.type === "error" ? THEME.danger : THEME.accent,
+              color: t.type === "error" ? "#fff" : THEME.bg,
               padding: "8px 20px",
               "border-radius": "6px",
               "font-size": "13px",
-              "font-family": "monospace",
+              "font-family": THEME.font.body,
               "z-index": "2000",
               "box-shadow": "0 4px 12px rgba(0,0,0,0.4)",
             }}

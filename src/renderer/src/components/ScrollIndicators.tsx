@@ -1,4 +1,4 @@
-import { LAYOUT } from "../../../shared/constants";
+import { LAYOUT, THEME } from "../../../shared/constants";
 
 interface ScrollIndicatorsProps {
   scrollOffset: number;
@@ -34,7 +34,7 @@ export default function ScrollIndicators(props: ScrollIndicatorsProps) {
             top: `${LAYOUT.STRIP_TOP_PADDING}px`,
             width: "60px",
             height: `${trackTop() - LAYOUT.STRIP_TOP_PADDING}px`,
-            background: "linear-gradient(to right, rgba(15,15,26,0.9), transparent)",
+            background: `linear-gradient(to right, rgba(15,15,26,0.9), transparent)`,
             "pointer-events": "none",
             display: "flex",
             "align-items": "center",
@@ -42,7 +42,7 @@ export default function ScrollIndicators(props: ScrollIndicatorsProps) {
             "z-index": "10",
           }}
         >
-          <span style={{ color: "#555", "font-size": "18px" }}>&#8249;</span>
+          <span style={{ color: THEME.muted, "font-size": "18px" }}>&#8249;</span>
         </div>
       )}
 
@@ -54,7 +54,7 @@ export default function ScrollIndicators(props: ScrollIndicatorsProps) {
             top: `${LAYOUT.STRIP_TOP_PADDING}px`,
             width: "60px",
             height: `${trackTop() - LAYOUT.STRIP_TOP_PADDING}px`,
-            background: "linear-gradient(to left, rgba(15,15,26,0.9), transparent)",
+            background: `linear-gradient(to left, rgba(15,15,26,0.9), transparent)`,
             "pointer-events": "none",
             display: "flex",
             "align-items": "center",
@@ -63,7 +63,7 @@ export default function ScrollIndicators(props: ScrollIndicatorsProps) {
             "z-index": "10",
           }}
         >
-          <span style={{ color: "#555", "font-size": "18px" }}>&#8250;</span>
+          <span style={{ color: THEME.muted, "font-size": "18px" }}>&#8250;</span>
         </div>
       )}
 
@@ -74,7 +74,7 @@ export default function ScrollIndicators(props: ScrollIndicatorsProps) {
           top: `${trackTop()}px`,
           width: `calc(100% - ${props.sidebarWidth}px)`,
           height: `${LAYOUT.SCROLL_TRACK_HEIGHT}px`,
-          background: "#1a1a2e",
+          background: THEME.faint,
         }}
       >
         <div

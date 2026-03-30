@@ -1,4 +1,4 @@
-import { LAYOUT } from "../../../shared/constants";
+import { LAYOUT, THEME } from "../../../shared/constants";
 import type { Rectangle } from "../../../shared/types";
 
 interface PanelFrameProps {
@@ -20,9 +20,9 @@ export default function PanelFrame(props: PanelFrameProps) {
             top: `${props.contentBounds.y + props.chromeHeight - borderWidth}px`,
             width: `${props.contentBounds.width + borderWidth * 2}px`,
             height: `${props.contentBounds.height - props.chromeHeight + borderWidth * 2}px`,
-            border: `${borderWidth}px solid #6366f1`,
+            border: `${borderWidth}px solid ${THEME.accent}`,
             "border-radius": "4px",
-            "box-shadow": "0 0 16px rgba(99, 102, 241, 0.2)",
+            "box-shadow": `0 0 16px rgba(232, 168, 48, 0.2)`,
             "pointer-events": "none",
           }}
         />
