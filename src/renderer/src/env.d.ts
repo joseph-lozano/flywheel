@@ -49,6 +49,7 @@ interface FlywheelAPI {
   reloadBrowser(panelId: string): void;
   goBackBrowser(panelId: string): void;
   goForwardBrowser(panelId: string): void;
+  toggleBrowserDevTools(panelId: string): void;
   onBrowserUrlChanged(
     callback: (data: {
       panelId: string;
