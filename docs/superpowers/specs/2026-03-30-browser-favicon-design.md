@@ -37,11 +37,11 @@ On `did-navigate`, send `faviconUrl: null` to clear stale favicons while the new
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `src/main/panel-manager.ts` | Add `page-favicon-updated` listener, favicon selection function, send via `panel:chrome-state` |
-| `src/browser/browser-host.html` | Add `<img id="favicon">` element with styling |
-| `src/browser/browser-host.ts` | Handle `faviconUrl` in `onChromeState`, manage globe/img visibility |
+| File                            | Change                                                                                         |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/main/panel-manager.ts`     | Add `page-favicon-updated` listener, favicon selection function, send via `panel:chrome-state` |
+| `src/browser/browser-host.html` | Add `<img id="favicon">` element with styling                                                  |
+| `src/browser/browser-host.ts`   | Handle `faviconUrl` in `onChromeState`, manage globe/img visibility                            |
 
 ## Not Changed
 
