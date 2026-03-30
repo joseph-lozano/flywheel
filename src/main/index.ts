@@ -497,7 +497,10 @@ function setupIpcHandlers(): void {
     const project = projectStore.getProjects().find((p) => p.id === data.projectId);
     if (!project) return { updates: [] };
 
-    const statuses = await prStatusChecker.fetchPrStatuses(project.path);
+    const [statuses, repoUrl] = await Promise.all([
+      prStatusChecker.fetchPrStatuses(project.path),
+      prStatusChecker.fetchRepoUrl(project.path),
+    ]);
     const updates = project.rows.map((row) => {
       const pr = statuses.get(row.branch);
       return {
@@ -507,7 +510,7 @@ function setupIpcHandlers(): void {
       };
     });
 
-    return { updates };
+    return { updates, repoUrl };
   });
 
   ipcMain.on(
