@@ -3,6 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <style>
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("../renderer/assets/fonts/MonaspaceNeon-Light.woff") format("woff");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("../renderer/assets/fonts/MonaspaceNeon-Regular.woff") format("woff");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
       html,
       body {
         margin: 0;
@@ -10,8 +24,8 @@
         width: 100%;
         height: 60px;
         overflow: hidden;
-        background: #1a1a2e;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #1e1e38;
+        font-family: "Monaspace Neon", monospace;
       }
       #titlebar {
         height: 32px;
@@ -20,16 +34,16 @@
         padding: 0 12px;
         font-size: 13px;
         font-weight: 400;
-        color: #666;
-        background: #1a1a2e;
+        color: #6a6a8a;
+        background: #1e1e38;
         user-select: none;
-        border-bottom: 1px solid #2a2a3e;
+        border-bottom: 1px solid #2a2a4a;
         box-sizing: border-box;
         /* no border-radius — the focus border in the chrome view provides the rounded corners */
       }
       #titlebar.focused {
         font-weight: 500;
-        color: #e0e0e0;
+        color: #e0e0f0;
         background: #252540;
       }
       #titlebar .pos {
@@ -77,7 +91,7 @@
         opacity: 1;
       }
       #btn-close:hover {
-        color: #e0e0e0;
+        color: #e0e0f0;
         background: rgba(255, 255, 255, 0.08);
       }
       #navbar {
@@ -88,10 +102,10 @@
         background: #1e1e36;
         gap: 4px;
         box-sizing: border-box;
-        border-bottom: 1px solid #2a2a3e;
+        border-bottom: 1px solid #2a2a4a;
       }
       #navbar.focused {
-        border-bottom: 2px solid #6366f1;
+        border-bottom: 2px solid #e8a830;
       }
       .nav-btn {
         width: 22px;
@@ -103,7 +117,7 @@
         cursor: pointer;
         border: none;
         background: transparent;
-        color: #888;
+        color: #6a6a8a;
         padding: 0;
         flex-shrink: 0;
       }
@@ -122,19 +136,19 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-family: monospace;
+        font-family: "Monaspace Neon", monospace;
         font-size: 12px;
-        color: #888;
+        color: #6a6a8a;
         cursor: text;
       }
       #url-input {
         flex: 1;
-        background: #1a1a2e;
+        background: #1e1e38;
         border: 1px solid #3a3a5c;
         border-radius: 3px;
-        color: #e0e0e0;
+        color: #e0e0f0;
         font-size: 12px;
-        font-family: monospace;
+        font-family: "Monaspace Neon", monospace;
         padding: 2px 6px;
         outline: none;
         height: 22px;
