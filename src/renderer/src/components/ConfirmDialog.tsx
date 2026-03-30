@@ -1,3 +1,5 @@
+import { THEME } from "../../../shared/constants";
+
 interface ConfirmDialogProps {
   processName: string;
   onConfirm: () => void;
@@ -34,17 +36,17 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
     >
       <div
         style={{
-          background: "#252540",
+          background: THEME.surface,
           "border-radius": "8px",
           padding: "24px",
           "max-width": "400px",
           "box-shadow": "0 8px 32px rgba(0, 0, 0, 0.5)",
-          border: "1px solid #3a3a5c",
+          border: `1px solid ${THEME.surfaceBorder}`,
         }}
       >
         <p
           style={{
-            color: "#e0e0e0",
+            color: THEME.text,
             margin: "0 0 20px 0",
             "font-size": "14px",
             "line-height": "1.5",
@@ -53,10 +55,10 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
           Process{" "}
           <code
             style={{
-              background: "#1a1a2e",
+              background: THEME.faint,
               padding: "2px 6px",
               "border-radius": "3px",
-              color: "#f59e0b",
+              color: THEME.accent,
             }}
           >
             {props.processName}
@@ -69,9 +71,9 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
               props.onCancel();
             }}
             style={{
-              background: "#1a1a2e",
-              color: "#888",
-              border: "1px solid #3a3a5c",
+              background: THEME.faint,
+              color: THEME.muted,
+              border: `1px solid ${THEME.surfaceBorder}`,
               padding: "6px 16px",
               "border-radius": "4px",
               cursor: "pointer",
@@ -85,7 +87,7 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
               props.onConfirm();
             }}
             style={{
-              background: "#f43f5e",
+              background: THEME.danger,
               color: "#fff",
               border: "none",
               padding: "6px 16px",

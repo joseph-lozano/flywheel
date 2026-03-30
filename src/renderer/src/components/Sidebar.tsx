@@ -1,5 +1,5 @@
 import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
-import { SIDEBAR } from "../../../shared/constants";
+import { SIDEBAR, THEME } from "../../../shared/constants";
 import type { Project } from "../../../shared/types";
 import RemoveProjectDialog from "./RemoveProjectDialog";
 import RemoveRowDialog from "./RemoveRowDialog";
@@ -139,7 +139,7 @@ export default function Sidebar(props: SidebarProps) {
         "border-right": `1px solid ${SIDEBAR.BORDER_COLOR}`,
         display: "flex",
         "flex-direction": "column",
-        "font-family": "monospace",
+        "font-family": THEME.font.body,
         "font-size": `${SIDEBAR.ITEM_FONT_SIZE}px`,
         "user-select": "none",
         "z-index": "20",
@@ -188,7 +188,7 @@ export default function Sidebar(props: SidebarProps) {
                 <div
                   style={{
                     padding: `${SIDEBAR.ITEM_PADDING_V}px ${SIDEBAR.ITEM_PADDING_H}px`,
-                    color: project.missing ? "#555" : isActiveProject() ? "#e0e0e0" : "#666",
+                    color: project.missing ? "#555" : isActiveProject() ? THEME.text : THEME.muted,
                     "font-style": project.missing ? "italic" : "normal",
                     cursor: "pointer",
                     "white-space": "nowrap",
@@ -240,7 +240,7 @@ export default function Sidebar(props: SidebarProps) {
                         <div
                           style={{
                             padding: `3px ${SIDEBAR.ITEM_PADDING_H}px 3px ${SIDEBAR.ITEM_PADDING_H + 18}px`,
-                            color: isActiveRow() ? "#e0e0e0" : "#666",
+                            color: isActiveRow() ? THEME.text : THEME.muted,
                             background: isActiveRow()
                               ? SIDEBAR.ACTIVE_BG
                               : isRowHovered()
@@ -272,7 +272,7 @@ export default function Sidebar(props: SidebarProps) {
                                     cx="5"
                                     cy="5"
                                     r="4"
-                                    fill={isActiveRow() ? "#e0e0e0" : "#666"}
+                                    fill={isActiveRow() ? THEME.text : THEME.muted}
                                   />
                                 </svg>
                               </Show>
@@ -347,7 +347,7 @@ export default function Sidebar(props: SidebarProps) {
               position: "fixed",
               left: `${menu.x}px`,
               top: `${menu.y}px`,
-              background: "#1a1a2e",
+              background: THEME.faint,
               border: `1px solid ${SIDEBAR.BORDER_COLOR}`,
               "border-radius": "4px",
               padding: "4px 0",
@@ -359,7 +359,7 @@ export default function Sidebar(props: SidebarProps) {
               <div
                 style={{
                   padding: "6px 16px",
-                  color: "#e0e0e0",
+                  color: THEME.text,
                   "font-size": "11px",
                   cursor: "pointer",
                 }}
@@ -376,7 +376,7 @@ export default function Sidebar(props: SidebarProps) {
               <div
                 style={{
                   padding: "6px 16px",
-                  color: "#e0e0e0",
+                  color: THEME.text,
                   "font-size": "11px",
                   cursor: "pointer",
                 }}
@@ -393,7 +393,7 @@ export default function Sidebar(props: SidebarProps) {
               <div
                 style={{
                   padding: "6px 16px",
-                  color: "#f43f5e",
+                  color: THEME.danger,
                   "font-size": "11px",
                   cursor: "pointer",
                 }}
@@ -420,7 +420,7 @@ export default function Sidebar(props: SidebarProps) {
               <div
                 style={{
                   padding: "6px 16px",
-                  color: "#f43f5e",
+                  color: THEME.danger,
                   "font-size": "11px",
                   cursor: "pointer",
                 }}

@@ -28,6 +28,7 @@ declare global {
       getConfig: () => Promise<{ terminal: { fontFamily: string; fontSize: number } }>;
       onConfigUpdated: (callback: (config: any) => void) => void;
       onSetFontSize: (callback: (data: { fontSize: number }) => void) => void;
+      onSetClip: (callback: (data: { clip: number; fullWidth: number }) => void) => void;
       closePanel: (panelId: string) => void;
     };
   }
@@ -45,6 +46,7 @@ async function initTerminal(): Promise<void> {
     fontFamily: config.terminal.fontFamily,
     fontSize: config.terminal.fontSize,
     theme: TERMINAL_DEFAULTS.theme,
+    cursorBlink: true,
     allowProposedApi: true,
     scrollback: 5000,
   });
@@ -135,6 +137,21 @@ async function initTerminal(): Promise<void> {
   window.pty.onSetFontSize((data: { fontSize: number }) => {
     terminal.options.fontSize = data.fontSize;
     fitAddon.fit();
+  });
+
+  // Sidebar clip: fix container width so xterm.js keeps its column count
+  // while the view narrows during horizontal scroll. The negative margin
+  // shifts content left so the visible portion is the right side of the
+  // terminal, appearing to slide under the sidebar.
+  window.pty.onSetClip((data) => {
+    if (data.clip > 0) {
+      // 16 = 2 × 8px horizontal padding from index.html #terminal
+      container.style.width = `${data.fullWidth - 16}px`;
+      container.style.marginLeft = `-${data.clip}px`;
+    } else {
+      container.style.width = "calc(100% - 16px)";
+      container.style.marginLeft = "0";
+    }
   });
 
   // Chrome state → title bar with dot-grid divider
