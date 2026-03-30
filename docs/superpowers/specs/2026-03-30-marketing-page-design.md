@@ -1,15 +1,12 @@
-# Marketing Page + Brand Font Update
+# Marketing Page
 
 ## Problem
 
-Flywheel has no public-facing web presence. Potential users have no way to learn what the app does or download it without finding the GitHub repo directly. The app's UI also uses generic system fonts that don't establish a visual brand.
+Flywheel has no public-facing web presence. Potential users have no way to learn what the app does or download it without finding the GitHub repo directly.
 
 ## Solution
 
-Two deliverables:
-
-1. **Marketing landing page** — a single static HTML file at `www/index.html` that explains Flywheel and drives downloads + GitHub stars.
-2. **App UI font update** — switch the app's UI chrome (sidebar, hint bar, dialogs) to Monaspace Neon, creating brand consistency between the site and the product.
+A single static HTML file at `www/index.html` that explains Flywheel and drives downloads + GitHub stars.
 
 ## Marketing Page
 
@@ -149,44 +146,12 @@ www/
 
 No other files. No CSS file. No build step.
 
-## App UI Font Update
-
-### Scope
-
-Switch the app's UI chrome font from the current system/default font to Monaspace Neon. This affects:
-
-- Sidebar (project names, row labels, section headers)
-- Hint bar (keyboard shortcut labels)
-- Dialog text (confirm close, remove project, etc.)
-- Any other renderer UI text
-
-This does **not** affect:
-- Terminal font (stays user-configurable via config, defaults to existing)
-- Browser panel content (web pages control their own fonts)
-
-### Implementation
-
-1. **Bundle the font**: Download Monaspace Neon WOFF2 files (Light, Regular, Medium, Bold) and place them in `src/renderer/src/assets/fonts/`. These must be bundled with the app, not loaded from CDN, since the app runs offline.
-
-2. **Add @font-face declarations**: In `src/renderer/src/global.css`, add `@font-face` rules pointing to the bundled files.
-
-3. **Update CSS**: Set `font-family: 'Monaspace Neon', monospace` as the base font on the renderer's root element. Update `src/shared/constants.ts` if any font constants are defined there.
-
-4. **Verify**: Check all UI surfaces render correctly with the new font — sidebar, hint bar, dialogs, scroll indicators.
-
-### Font Files Needed
-
-From the Monaspace repo (`fonts/webfonts/`):
-- `MonaspaceNeon-Light.woff2` (300)
-- `MonaspaceNeon-Regular.woff2` (400)
-- `MonaspaceNeon-Medium.woff2` (500)
-- `MonaspaceNeon-Bold.woff2` (700)
-
 ## Out of Scope
 
 - Custom domain or hosting setup
 - Analytics or tracking
 - Blog, docs, or changelog pages
 - App icon or other brand assets
+- App UI font update (tracked in GitHub issue)
 - Terminal font changes
 - SEO optimization (can come later)
