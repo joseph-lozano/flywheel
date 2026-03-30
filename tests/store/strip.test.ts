@@ -438,3 +438,26 @@ describe("getSnapshot and restore", () => {
     });
   });
 });
+
+describe("auto-terminal precondition", () => {
+  it("empty strip gets one terminal panel via addPanel", () => {
+    withStore(({ state, actions }) => {
+      expect(state.panels).toHaveLength(0);
+      const panel = actions.addPanel("terminal");
+      expect(state.panels).toHaveLength(1);
+      expect(panel.type).toBe("terminal");
+      expect(panel.label).toBe("");
+      expect(state.terminalFocused).toBe(true);
+    });
+  });
+
+  it("addPanel on non-empty strip does not reset existing panels", () => {
+    withStore(({ state, actions }) => {
+      actions.addPanel("terminal");
+      actions.addPanel("terminal");
+      expect(state.panels).toHaveLength(2);
+      actions.addPanel("terminal");
+      expect(state.panels).toHaveLength(3);
+    });
+  });
+});

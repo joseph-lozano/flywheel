@@ -360,6 +360,18 @@ export default function App() {
     }
   });
 
+  // --- Auto-create terminal in empty rows ---
+
+  createEffect(() => {
+    const strip = activeStrip();
+    const row = appStore.actions.getActiveRow();
+    if (!strip || !row) return;
+    if (strip.state.panels.length > 0) return;
+
+    const panel = strip.actions.addPanel("terminal");
+    window.api.createTerminalWithCwd(panel.id, row.path);
+  });
+
   // --- Wheel handler ---
 
   function handleWheel(deltaX: number): void {
