@@ -38,6 +38,8 @@ async function createWindow(): Promise<void> {
     }
   }
 
+  let allowQuit = false;
+
   mainWindow = new BaseWindow({
     width: 1200,
     height: 800,
@@ -96,9 +98,30 @@ async function createWindow(): Promise<void> {
     mainWindow.show();
   });
 
-  mainWindow.on("close", () => {
-    ptyManager.dispose();
-    panelManager.destroyAll();
+  mainWindow.on("close", (e) => {
+    if (allowQuit) {
+      ptyManager.dispose();
+      panelManager.destroyAll();
+      return;
+    }
+
+    e.preventDefault();
+
+    void dialog
+      .showMessageBox(mainWindow, {
+        type: "question",
+        message: "Quit Flywheel?",
+        detail: "Any running terminal processes will be terminated.",
+        buttons: ["Cancel", "Quit"],
+        defaultId: 0,
+        cancelId: 0,
+      })
+      .then(({ response }) => {
+        if (response === 1) {
+          allowQuit = true;
+          app.quit();
+        }
+      });
   });
 }
 
