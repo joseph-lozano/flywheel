@@ -13,10 +13,26 @@ export const LAYOUT = {
   SCROLL_END_DEBOUNCE_MS: 150,
 } as const;
 
+export const THEME = {
+  bg: "#0f0f1a",
+  text: "#e0e0f0",
+  accent: "#e8a830",
+  muted: "#6a6a8a",
+  border: "#2a2a4a",
+  faint: "#1e1e38",
+  danger: "#f43f5e",
+  surface: "#252540",
+  surfaceBorder: "#3a3a5c",
+
+  font: {
+    body: "'Monaspace Neon', monospace",
+  },
+} as const;
+
 export const PANEL_COLORS = [
+  { name: "Amber", hex: "#e8a830" },
   { name: "Slate Blue", hex: "#6366f1" },
   { name: "Emerald", hex: "#10b981" },
-  { name: "Amber", hex: "#f59e0b" },
   { name: "Rose", hex: "#f43f5e" },
   { name: "Cyan", hex: "#06b6d4" },
   { name: "Violet", hex: "#8b5cf6" },
@@ -26,24 +42,24 @@ export const PANEL_COLORS = [
 
 export const TERMINAL_DEFAULTS = {
   theme: {
-    background: "#1a1a2e",
-    foreground: "#e0e0e0",
-    cursor: "#e0e0e0",
-    cursorAccent: "#1a1a2e",
+    background: THEME.faint,
+    foreground: THEME.text,
+    cursor: THEME.accent,
+    cursorAccent: THEME.faint,
     selectionBackground: "rgba(255, 255, 255, 0.2)",
-    black: "#1a1a2e",
+    black: THEME.faint,
     red: "#f43f5e",
     green: "#10b981",
     yellow: "#f59e0b",
-    blue: "#6366f1",
+    blue: "#5b8def",
     magenta: "#8b5cf6",
     cyan: "#06b6d4",
-    white: "#e0e0e0",
+    white: THEME.text,
     brightBlack: "#4a4a6a",
     brightRed: "#fb7185",
     brightGreen: "#34d399",
     brightYellow: "#fbbf24",
-    brightBlue: "#818cf8",
+    brightBlue: "#7cacf8",
     brightMagenta: "#a78bfa",
     brightCyan: "#22d3ee",
     brightWhite: "#ffffff",
@@ -54,9 +70,9 @@ export const SIDEBAR = {
   MIN_WIDTH: 180,
   MAX_WIDTH: 280,
   BACKGROUND: "#12122a",
-  BORDER_COLOR: "#2a2a4a",
-  ACCENT_COLOR: "#6366f1",
-  ACTIVE_BG: "rgba(99, 102, 241, 0.15)",
+  BORDER_COLOR: THEME.border,
+  ACCENT_COLOR: THEME.accent,
+  ACTIVE_BG: "rgba(232, 168, 48, 0.15)",
   ITEM_PADDING_V: 6,
   ITEM_PADDING_H: 12,
   HEADER_FONT_SIZE: 11,
