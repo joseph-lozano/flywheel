@@ -185,6 +185,13 @@
 
   .cta .prompt {
     color: var(--accent);
+    display: flex;
+    align-items: center;
+  }
+
+  .cta .prompt svg {
+    width: 14px;
+    height: 14px;
   }
 
   .cta .comment {
@@ -218,8 +225,12 @@
 
   .feature-icon {
     color: var(--accent);
-    font-size: 16px;
     margin-bottom: 10px;
+  }
+
+  .feature-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .feature-label {
@@ -291,12 +302,12 @@
 
     <div class="ctas">
       <a class="cta" id="download-cta" href="https://github.com/joseph-lozano/flywheel/releases/latest">
-        <span class="prompt">↓</span>
+        <span class="prompt"><i data-lucide="download"></i></span>
         <span id="download-label">Download Flywheel</span>
         <span class="comment" id="download-comment"># macOS arm64</span>
       </a>
       <a class="cta" href="https://github.com/joseph-lozano/flywheel" target="_blank" rel="noopener">
-        <span class="prompt">★</span>
+        <span class="prompt"><i data-lucide="star"></i></span>
         <span>Star on GitHub</span>
         <span class="comment"># joseph-lozano/flywheel</span>
       </a>
@@ -309,22 +320,22 @@
 
     <div class="features">
       <div class="feature">
-        <div class="feature-icon">→</div>
+        <div class="feature-icon"><i data-lucide="move-horizontal"></i></div>
         <div class="feature-label">Spatial workspace</div>
         <div class="feature-desc">Panels scroll in an infinite horizontal strip.</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">◊</div>
+        <div class="feature-icon"><i data-lucide="folder-open"></i></div>
         <div class="feature-label">Project-organized</div>
         <div class="feature-desc">One project at a time. Switch instantly between them.</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">⎇</div>
+        <div class="feature-icon"><i data-lucide="git-branch"></i></div>
         <div class="feature-label">Worktree-native</div>
         <div class="feature-desc">Each branch gets its own isolated workspace with separate processes.</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">⌘</div>
+        <div class="feature-icon"><i data-lucide="keyboard"></i></div>
         <div class="feature-label">Keyboard-driven</div>
         <div class="feature-desc">Navigate, split, close — all from the keyboard. No mouse needed.</div>
       </div>
@@ -332,7 +343,9 @@
   </main>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
+  lucide.createIcons();
   (function () {
     var p = navigator.platform || '';
     var ua = navigator.userAgent || '';
