@@ -91,6 +91,7 @@ export default function App() {
   function refreshPrStatuses(projectId: string): void {
     void window.api.checkPrStatus(projectId).then((result) => {
       appStore.actions.updatePrStatuses(projectId, result.updates);
+      appStore.actions.setRepoUrl(projectId, result.repoUrl);
     });
   }
 
@@ -894,6 +895,24 @@ export default function App() {
         }}
         onDiscoverWorktrees={(projectId) => {
           void handleDiscoverWorktrees(projectId);
+        }}
+        onOpenPrUrl={(url) => {
+          const s = activeStrip();
+          if (s) {
+            const panel = s.actions.addPanel("browser", url);
+            window.api.createBrowserPanel(panel.id, url);
+          }
+        }}
+        onOpenRepoUrl={(projectId, url) => {
+          const project = appStore.state.projects.find((p) => p.id === projectId);
+          if (!project) return;
+          const defaultRow = project.rows.find((r) => r.isDefault);
+          if (!defaultRow) return;
+          void handleSwitchRow(projectId, defaultRow.id).then(() => {
+            const s = getStripStore(defaultRow.id);
+            const panel = s.actions.addPanel("browser", url);
+            window.api.createBrowserPanel(panel.id, url);
+          });
         }}
         onBlurPanels={() => activeStrip()?.actions.blurPanel()}
         onModalShow={() => {

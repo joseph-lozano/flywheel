@@ -6,6 +6,8 @@ interface GhPrEntry {
   state: string;
   isDraft: boolean;
   updatedAt: string;
+  url: string;
+  number: number;
 }
 
 export function createPrStatus() {
@@ -21,9 +23,11 @@ export function createPrStatus() {
     });
   }
 
-  async function fetchPrStatuses(projectPath: string): Promise<Map<string, PrStatus>> {
+  async function fetchPrStatuses(
+    projectPath: string,
+  ): Promise<Map<string, { status: PrStatus; url: string; number: number }>> {
     const available = await ghAvailable();
-    if (!available) return new Map();
+    if (!available) return new Map<string, { status: PrStatus; url: string; number: number }>();
 
     return new Promise((resolve) => {
       execFile(
@@ -32,7 +36,7 @@ export function createPrStatus() {
           "pr",
           "list",
           "--json",
-          "headRefName,state,isDraft,updatedAt",
+          "headRefName,state,isDraft,updatedAt,url,number",
           "--state",
           "all",
           "--limit",
@@ -41,7 +45,7 @@ export function createPrStatus() {
         { cwd: projectPath },
         (err, stdout) => {
           if (err) {
-            resolve(new Map());
+            resolve(new Map<string, { status: PrStatus; url: string; number: number }>());
             return;
           }
 
@@ -56,26 +60,56 @@ export function createPrStatus() {
               }
             }
 
-            const result = new Map<string, PrStatus>();
+            const result = new Map<string, { status: PrStatus; url: string; number: number }>();
             for (const [branch, pr] of byBranch) {
+              let status: PrStatus;
               if (pr.state === "MERGED") {
-                result.set(branch, "merged");
+                status = "merged";
               } else if (pr.state === "CLOSED") {
-                result.set(branch, "closed");
+                status = "closed";
               } else if (pr.isDraft) {
-                result.set(branch, "draft");
+                status = "draft";
               } else {
-                result.set(branch, "open");
+                status = "open";
               }
+              result.set(branch, { status, url: pr.url, number: pr.number });
             }
             resolve(result);
           } catch {
-            resolve(new Map());
+            resolve(new Map<string, { status: PrStatus; url: string; number: number }>());
           }
         },
       );
     });
   }
 
-  return { ghAvailable, fetchPrStatuses };
+  // Cached for process lifetime — repo URL rarely changes. Stale until app restart if remote changes.
+  const repoUrlCache = new Map<string, string>();
+
+  async function fetchRepoUrl(projectPath: string): Promise<string | undefined> {
+    const cached = repoUrlCache.get(projectPath);
+    if (cached) return cached;
+
+    const available = await ghAvailable();
+    if (!available) return undefined;
+
+    return new Promise((resolve) => {
+      execFile(
+        "gh",
+        ["repo", "view", "--json", "url", "--jq", ".url"],
+        { cwd: projectPath },
+        (err, stdout) => {
+          if (err) {
+            resolve(undefined);
+            return;
+          }
+          const url = stdout.trim();
+          if (url) repoUrlCache.set(projectPath, url);
+          resolve(url || undefined);
+        },
+      );
+    });
+  }
+
+  return { ghAvailable, fetchPrStatuses, fetchRepoUrl };
 }
