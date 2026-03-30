@@ -67,26 +67,3 @@ export function computeScrollToCenter(
   const target = panelIndex * (panelWidth + LAYOUT.PANEL_GAP);
   return Math.max(0, Math.min(target, computeMaxScroll(panelCount, viewportWidth, sidebarWidth)));
 }
-
-export function findMostCenteredPanel(
-  scrollOffset: number,
-  panelCount: number,
-  viewportWidth: number,
-  sidebarWidth = 0,
-): number {
-  if (panelCount === 0) return -1;
-  const effectiveWidth = viewportWidth - sidebarWidth;
-  const panelWidth = Math.round(effectiveWidth * LAYOUT.DEFAULT_PANEL_WIDTH_RATIO);
-  const viewportCenter = scrollOffset + effectiveWidth / 2;
-  let closestIndex = 0,
-    closestDistance = Infinity;
-  for (let i = 0; i < panelCount; i++) {
-    const panelCenter = i * (panelWidth + LAYOUT.PANEL_GAP) + panelWidth / 2;
-    const distance = Math.abs(panelCenter - viewportCenter);
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestIndex = i;
-    }
-  }
-  return closestIndex;
-}
