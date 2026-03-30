@@ -79,6 +79,7 @@ interface SidebarProps {
   onCreateRow: (projectId: string) => void;
   onRemoveRow: (rowId: string, deleteFromDisk: boolean) => void;
   onDiscoverWorktrees: (projectId: string) => void;
+  onOpenPrUrl?: (url: string) => void;
   onModalShow?: () => void;
   onModalHide?: () => void;
   onBlurPanels?: () => void;
@@ -280,6 +281,33 @@ export default function Sidebar(props: SidebarProps) {
                             <PullRequest
                               color={row.prStatus ? PR_STATUS_COLORS[row.prStatus] : undefined}
                             />
+                            <Show when={row.prUrl}>
+                              {(prUrl) => (
+                                <span
+                                  style={{
+                                    color: row.prStatus
+                                      ? PR_STATUS_COLORS[row.prStatus]
+                                      : undefined,
+                                    "font-size": "11px",
+                                    "font-weight": "600",
+                                    cursor: "pointer",
+                                    "text-decoration": "none",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.textDecoration = "underline";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.textDecoration = "none";
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    props.onOpenPrUrl?.(prUrl());
+                                  }}
+                                >
+                                  #{prUrl().split("/").pop()}
+                                </span>
+                              )}
+                            </Show>
                           </Show>
                           <span style={{ overflow: "hidden", "text-overflow": "ellipsis" }}>
                             {row.branch}

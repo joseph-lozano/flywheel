@@ -893,6 +893,13 @@ export default function App() {
         onDiscoverWorktrees={(projectId) => {
           void handleDiscoverWorktrees(projectId);
         }}
+        onOpenPrUrl={(url) => {
+          const s = activeStrip();
+          if (s) {
+            const panel = s.actions.addPanel("browser", url);
+            window.api.createBrowserPanel(panel.id, url);
+          }
+        }}
         onBlurPanels={() => activeStrip()?.actions.blurPanel()}
         onModalShow={() => {
           window.api.hideAllPanels();
