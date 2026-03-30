@@ -32,6 +32,46 @@ jobs:
       - run: npm run lint
       - run: npm test
 
+  check-main-is-green:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Wait for main branch CI and assert it is green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+
+          RUN_ID=$(gh run list \
+            --repo "$REPO" \
+            --branch main \
+            --workflow ci.yml \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::No CI runs found on main — cannot verify main is green."
+            exit 1
+          fi
+
+          echo "Waiting for main CI run $RUN_ID to complete..."
+          gh run watch "$RUN_ID" --repo "$REPO"
+
+          CONCLUSION=$(gh run view "$RUN_ID" \
+            --repo "$REPO" \
+            --json conclusion \
+            --jq '.conclusion')
+
+          echo "Main branch CI conclusion: $CONCLUSION"
+
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "::error::Main branch CI is not green (conclusion: $CONCLUSION). Fix main before merging."
+            exit 1
+          fi
+
+          echo "Main branch CI is green."
+
   build:
     needs: lint-and-test
     if: github.event_name == 'push' || github.event.pull_request.draft == false
