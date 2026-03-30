@@ -12,10 +12,10 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|---------------|
-| `src/renderer/src/App.tsx` | Modify (~line 368, after chrome-state effect) | Add auto-terminal `createEffect` |
-| `tests/store/strip.test.ts` | Modify (add test block) | Test the auto-creation condition logic |
+| File                        | Action                                        | Responsibility                         |
+| --------------------------- | --------------------------------------------- | -------------------------------------- |
+| `src/renderer/src/App.tsx`  | Modify (~line 368, after chrome-state effect) | Add auto-terminal `createEffect`       |
+| `tests/store/strip.test.ts` | Modify (add test block)                       | Test the auto-creation condition logic |
 
 ---
 
@@ -24,6 +24,7 @@
 The effect's logic is: "if strip has 0 panels and there's an active row, add a terminal panel." We can't easily test the `createEffect` in isolation (it depends on `window.api`), but we can test that `addPanel("terminal")` on an empty strip produces exactly one terminal panel — confirming the precondition and postcondition the effect relies on.
 
 **Files:**
+
 - Modify: `tests/store/strip.test.ts`
 
 - [ ] **Step 1: Write test for auto-creation precondition**
@@ -72,6 +73,7 @@ git commit -m "test: add auto-terminal precondition tests for strip store"
 ### Task 2: Add auto-terminal createEffect to App.tsx
 
 **Files:**
+
 - Modify: `src/renderer/src/App.tsx:368` (after chrome-state effect, before wheel handler)
 
 - [ ] **Step 1: Add the auto-terminal effect**
@@ -79,17 +81,17 @@ git commit -m "test: add auto-terminal precondition tests for strip store"
 Insert the following `createEffect` block in `src/renderer/src/App.tsx` after the chrome-state effect (after line 367, before the `// --- Wheel handler ---` comment):
 
 ```typescript
-  // --- Auto-create terminal in empty rows ---
+// --- Auto-create terminal in empty rows ---
 
-  createEffect(() => {
-    const strip = activeStrip();
-    const row = appStore.actions.getActiveRow();
-    if (!strip || !row) return;
-    if (strip.state.panels.length > 0) return;
+createEffect(() => {
+  const strip = activeStrip();
+  const row = appStore.actions.getActiveRow();
+  if (!strip || !row) return;
+  if (strip.state.panels.length > 0) return;
 
-    const panel = strip.actions.addPanel("terminal");
-    window.api.createTerminalWithCwd(panel.id, row.path);
-  });
+  const panel = strip.actions.addPanel("terminal");
+  window.api.createTerminalWithCwd(panel.id, row.path);
+});
 ```
 
 This mirrors the `"new-panel"` shortcut handler at lines 518-527, using the same `addPanel` + `createTerminalWithCwd` code path.

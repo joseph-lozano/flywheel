@@ -18,10 +18,10 @@ An imperative approach (inserting terminal creation at each call site — `handl
 
 ## Covered Scenarios
 
-| Scenario | How the effect triggers |
-|----------|----------------------|
-| `Cmd+n` (new row) | `handleCreateRow` → `handleSwitchRow` → new empty strip store → effect fires |
-| Switch to existing empty row | `handleSwitchRow` → strip restored with 0 panels → effect fires |
+| Scenario                          | How the effect triggers                                                       |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `Cmd+n` (new row)                 | `handleCreateRow` → `handleSwitchRow` → new empty strip store → effect fires  |
+| Switch to existing empty row      | `handleSwitchRow` → strip restored with 0 panels → effect fires               |
 | App startup with empty active row | Projects loaded → active row set → strip created with 0 panels → effect fires |
 
 ## Implementation
