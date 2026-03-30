@@ -1,4 +1,4 @@
-import { BaseWindow, WebContentsView } from "electron";
+import { BaseWindow, clipboard, Menu, WebContentsView } from "electron";
 import { join } from "path";
 import type { FlywheelConfig } from "../shared/config";
 import { LAYOUT } from "../shared/constants";
@@ -102,6 +102,97 @@ export class PanelManager {
       }
       return { action: "deny" };
     });
+
+    if (panelType === "browser") {
+      view.webContents.on("context-menu", (_event, params) => {
+        const menuItems: Electron.MenuItemConstructorOptions[] = [];
+
+        if (params.linkURL) {
+          menuItems.push(
+            {
+              label: "Open Link in Browser Panel",
+              click: () => {
+                this.chromeView.webContents.send("browser:open-url", { url: params.linkURL });
+              },
+            },
+            {
+              label: "Copy Link Address",
+              click: () => {
+                clipboard.writeText(params.linkURL);
+              },
+            },
+            { type: "separator" },
+          );
+        }
+
+        if (params.hasImageContents) {
+          menuItems.push(
+            {
+              label: "Copy Image",
+              click: () => {
+                view.webContents.copyImageAt(params.x, params.y);
+              },
+            },
+            {
+              label: "Save Image As\u2026",
+              click: () => {
+                view.webContents.downloadURL(params.srcURL);
+              },
+            },
+          );
+          if (params.srcURL) {
+            menuItems.push({
+              label: "Open Image in Browser Panel",
+              click: () => {
+                this.chromeView.webContents.send("browser:open-url", { url: params.srcURL });
+              },
+            });
+          }
+          menuItems.push({ type: "separator" });
+        }
+
+        if (params.selectionText) {
+          menuItems.push({ label: "Copy", role: "copy" }, { type: "separator" });
+        }
+
+        if (params.isEditable) {
+          menuItems.push(
+            { label: "Cut", role: "cut" },
+            { label: "Paste", role: "paste" },
+            { type: "separator" },
+          );
+        }
+
+        menuItems.push(
+          { label: "Select All", role: "selectAll" },
+          { type: "separator" },
+          {
+            label: "Back",
+            enabled: view.webContents.navigationHistory.canGoBack(),
+            click: () => {
+              view.webContents.navigationHistory.goBack();
+            },
+          },
+          {
+            label: "Forward",
+            enabled: view.webContents.navigationHistory.canGoForward(),
+            click: () => {
+              view.webContents.navigationHistory.goForward();
+            },
+          },
+          { type: "separator" },
+          {
+            label: "Inspect Element",
+            enabled: false,
+            click: () => {
+              /* TODO: implement in feat/browser-dev-tools */
+            },
+          },
+        );
+
+        Menu.buildFromTemplate(menuItems).popup();
+      });
+    }
 
     if (panelType === "terminal") {
       if (process.env.ELECTRON_RENDERER_URL) {
