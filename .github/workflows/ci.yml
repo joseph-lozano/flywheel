@@ -35,6 +35,8 @@ jobs:
   check-main-is-green:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
+    permissions:
+      actions: read
     steps:
       - name: Wait for main branch CI and assert it is green
         env:
