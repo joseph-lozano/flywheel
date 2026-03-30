@@ -180,6 +180,10 @@ function setupIpcHandlers(): void {
     panelManager.goForwardBrowser(data.panelId);
   });
 
+  ipcMain.on("browser:toggle-devtools", (_event, data: { panelId: string }) => {
+    panelManager.toggleBrowserDevTools(data.panelId);
+  });
+
   // Browser host chrome strip → navigate
   ipcMain.on("browser:navigate-from-host", (_event, data: { panelId: string; url: string }) => {
     panelManager.navigateBrowser(data.panelId, data.url);
