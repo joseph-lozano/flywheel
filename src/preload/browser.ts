@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld("browserHost", {
   reload: () => {
     ipcRenderer.send("browser:reload", { panelId });
   },
+  toggleDevTools: () => {
+    ipcRenderer.send("browser:toggle-devtools", { panelId });
+  },
   closePanel: () => {
     ipcRenderer.send("panel:close-request", { panelId });
   },
