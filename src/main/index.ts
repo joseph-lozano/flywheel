@@ -698,6 +698,13 @@ function setupShortcuts(): void {
             chromeView.webContents.send("shortcut:action", { type: "browser-forward" });
           },
         },
+        {
+          label: "Toggle Browser DevTools",
+          accelerator: "CommandOrControl+Shift+I",
+          click: () => {
+            chromeView.webContents.send("shortcut:action", { type: "toggle-devtools" });
+          },
+        },
         { type: "separator" as const },
         {
           label: "Zoom In",
