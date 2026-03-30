@@ -6,6 +6,7 @@ interface GhPrEntry {
   state: string;
   isDraft: boolean;
   updatedAt: string;
+  url: string;
 }
 
 export function createPrStatus() {
@@ -21,9 +22,11 @@ export function createPrStatus() {
     });
   }
 
-  async function fetchPrStatuses(projectPath: string): Promise<Map<string, PrStatus>> {
+  async function fetchPrStatuses(
+    projectPath: string,
+  ): Promise<Map<string, { status: PrStatus; url: string }>> {
     const available = await ghAvailable();
-    if (!available) return new Map();
+    if (!available) return new Map<string, { status: PrStatus; url: string }>();
 
     return new Promise((resolve) => {
       execFile(
@@ -32,7 +35,7 @@ export function createPrStatus() {
           "pr",
           "list",
           "--json",
-          "headRefName,state,isDraft,updatedAt",
+          "headRefName,state,isDraft,updatedAt,url",
           "--state",
           "all",
           "--limit",
@@ -41,7 +44,7 @@ export function createPrStatus() {
         { cwd: projectPath },
         (err, stdout) => {
           if (err) {
-            resolve(new Map());
+            resolve(new Map<string, { status: PrStatus; url: string }>());
             return;
           }
 
@@ -56,21 +59,23 @@ export function createPrStatus() {
               }
             }
 
-            const result = new Map<string, PrStatus>();
+            const result = new Map<string, { status: PrStatus; url: string }>();
             for (const [branch, pr] of byBranch) {
+              let status: PrStatus;
               if (pr.state === "MERGED") {
-                result.set(branch, "merged");
+                status = "merged";
               } else if (pr.state === "CLOSED") {
-                result.set(branch, "closed");
+                status = "closed";
               } else if (pr.isDraft) {
-                result.set(branch, "draft");
+                status = "draft";
               } else {
-                result.set(branch, "open");
+                status = "open";
               }
+              result.set(branch, { status, url: pr.url });
             }
             resolve(result);
           } catch {
-            resolve(new Map());
+            resolve(new Map<string, { status: PrStatus; url: string }>());
           }
         },
       );

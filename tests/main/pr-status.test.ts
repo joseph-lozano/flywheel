@@ -56,7 +56,7 @@ describe("createPrStatus", () => {
       expect(result.size).toBe(0);
     });
 
-    it("maps open PR to open status", async () => {
+    it("maps open PR to open status with url", async () => {
       mockExecFile.mockImplementation(
         (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
           const callback = (cb ?? _optsOrCb) as ExecFileCallback;
@@ -72,6 +72,7 @@ describe("createPrStatus", () => {
                 state: "OPEN",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/42",
               },
             ]),
           );
@@ -79,7 +80,10 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-a")).toBe("open");
+      expect(result.get("feat-a")).toEqual({
+        status: "open",
+        url: "https://github.com/owner/repo/pull/42",
+      });
     });
 
     it("maps draft PR to draft status", async () => {
@@ -98,6 +102,7 @@ describe("createPrStatus", () => {
                 state: "OPEN",
                 isDraft: true,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/43",
               },
             ]),
           );
@@ -105,7 +110,10 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-b")).toBe("draft");
+      expect(result.get("feat-b")).toEqual({
+        status: "draft",
+        url: "https://github.com/owner/repo/pull/43",
+      });
     });
 
     it("maps merged PR to merged status", async () => {
@@ -124,6 +132,7 @@ describe("createPrStatus", () => {
                 state: "MERGED",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/44",
               },
             ]),
           );
@@ -131,7 +140,10 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-c")).toBe("merged");
+      expect(result.get("feat-c")).toEqual({
+        status: "merged",
+        url: "https://github.com/owner/repo/pull/44",
+      });
     });
 
     it("maps closed PR to closed status", async () => {
@@ -150,6 +162,7 @@ describe("createPrStatus", () => {
                 state: "CLOSED",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/45",
               },
             ]),
           );
@@ -157,7 +170,10 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-d")).toBe("closed");
+      expect(result.get("feat-d")).toEqual({
+        status: "closed",
+        url: "https://github.com/owner/repo/pull/45",
+      });
     });
 
     it("maps closed draft PR to closed status", async () => {
@@ -176,6 +192,7 @@ describe("createPrStatus", () => {
                 state: "CLOSED",
                 isDraft: true,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/46",
               },
             ]),
           );
@@ -183,7 +200,10 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-draft-closed")).toBe("closed");
+      expect(result.get("feat-draft-closed")).toEqual({
+        status: "closed",
+        url: "https://github.com/owner/repo/pull/46",
+      });
     });
 
     it("picks most recent PR when multiple exist for same branch", async () => {
@@ -202,12 +222,14 @@ describe("createPrStatus", () => {
                 state: "CLOSED",
                 isDraft: false,
                 updatedAt: "2026-03-25T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/10",
               },
               {
                 headRefName: "feat-e",
                 state: "OPEN",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/11",
               },
             ]),
           );
@@ -215,7 +237,10 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-e")).toBe("open");
+      expect(result.get("feat-e")).toEqual({
+        status: "open",
+        url: "https://github.com/owner/repo/pull/11",
+      });
     });
 
     it("returns empty map when gh command fails", async () => {
