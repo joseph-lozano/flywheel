@@ -3,9 +3,15 @@ import { join } from "path";
 import type { FlywheelConfig } from "../shared/config";
 import { LAYOUT } from "../shared/constants";
 
-/** Pick the smallest favicon from the array, preferring 16x16 or 32x32 size hints in the URL. */
-function pickSmallestFavicon(favicons: string[]): string | null {
+/**
+ * Pick the best favicon from the array.
+ * Prefer SVG (adapts to light/dark via media queries), then smallest size hint, then first.
+ */
+export function pickBestFavicon(favicons: string[]): string | null {
   if (favicons.length === 0) return null;
+  for (const url of favicons) {
+    if (url.endsWith(".svg")) return url;
+  }
   for (const url of favicons) {
     if (url.includes("16x16")) return url;
   }
@@ -279,7 +285,7 @@ export class PanelManager {
       // Forward favicon to chrome strip — prefer smallest icon for the 16px display
       view.webContents.on("page-favicon-updated", (_event, favicons) => {
         chromeStripView.webContents.send("panel:chrome-state", {
-          faviconUrl: pickSmallestFavicon(favicons),
+          faviconUrl: pickBestFavicon(favicons),
         });
       });
 
