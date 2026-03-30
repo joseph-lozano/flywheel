@@ -3,6 +3,29 @@ import { join } from "path";
 import type { FlywheelConfig } from "../shared/config";
 import { LAYOUT } from "../shared/constants";
 
+/**
+ * Pick the best favicon from the array.
+ * Prefer SVG (adapts to light/dark via media queries), then smallest size hint, then first.
+ */
+export function pickBestFavicon(favicons: string[]): string | null {
+  if (favicons.length === 0) return null;
+  for (const url of favicons) {
+    if (/\.svg(?:\?|$)/i.test(url)) return url;
+  }
+  for (const url of favicons) {
+    if (url.includes("16x16")) return url;
+  }
+  for (const url of favicons) {
+    if (url.includes("32x32")) return url;
+  }
+  return favicons[0];
+}
+
+/** Only allow http/https favicon URLs — rejects data: URIs, javascript: URLs, etc. */
+export function sanitizeFaviconUrl(url: string | null): string | null {
+  return url && /^https?:\/\//.test(url) ? url : null;
+}
+
 interface ManagedPanel {
   id: string;
   type: "terminal" | "placeholder" | "browser";
@@ -252,6 +275,7 @@ export class PanelManager {
           url: navUrl,
           canGoBack,
           canGoForward,
+          faviconUrl: null,
         });
       };
       view.webContents.on("did-navigate", sendNavUpdate);
@@ -261,6 +285,13 @@ export class PanelManager {
       view.webContents.on("page-title-updated", (_event, title) => {
         this.chromeView.webContents.send("browser:title-changed", { panelId: id, title });
         chromeStripView.webContents.send("panel:chrome-state", { label: title });
+      });
+
+      // Forward favicon to chrome strip — prefer smallest icon for the 16px display
+      view.webContents.on("page-favicon-updated", (_event, favicons) => {
+        chromeStripView.webContents.send("panel:chrome-state", {
+          faviconUrl: sanitizeFaviconUrl(pickBestFavicon(favicons)),
+        });
       });
 
       // Loading state → animate dot grid in chrome strip

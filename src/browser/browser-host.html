@@ -57,6 +57,17 @@
         display: flex;
         align-items: center;
       }
+      #titlebar .favicon {
+        flex-shrink: 0;
+        margin-right: 6px;
+        width: 16px;
+        height: 16px;
+        padding: 2px;
+        display: none;
+        border-radius: 3px;
+        background: #fff;
+        object-fit: contain;
+      }
       #titlebar .title {
         flex: 1;
         overflow: hidden;
@@ -161,6 +172,7 @@
       <span class="pos" id="pos-label"></span>
       <span id="dot-grid"></span>
       <span class="globe" id="globe-icon"></span>
+      <img class="favicon" id="favicon" alt="" />
       <span class="title" id="title-label">about:blank</span>
       <button id="btn-close" title="Close panel"></button>
     </div>

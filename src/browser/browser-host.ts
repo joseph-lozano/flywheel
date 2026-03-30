@@ -21,6 +21,7 @@ declare global {
           canGoBack: boolean;
           canGoForward: boolean;
           busy?: boolean;
+          faviconUrl?: string | null;
         }) => void,
       ) => void;
     };
@@ -40,9 +41,16 @@ const btnClose = document.getElementById("btn-close") as HTMLButtonElement;
 const urlDisplay = document.getElementById("url-display")!;
 const urlInput = document.getElementById("url-input") as HTMLInputElement;
 
+const faviconImg = document.getElementById("favicon") as HTMLImageElement;
 const dotGridWrap = document.getElementById("dot-grid")!;
 
 initDotGrid(dotGridWrap);
+
+// Favicon load error → revert to globe
+faviconImg.addEventListener("error", () => {
+  faviconImg.style.display = "none";
+  globeIcon.style.display = "flex";
+});
 
 // Set icons
 globeIcon.innerHTML = ICONS.globe;
@@ -108,6 +116,7 @@ let currentState = {
   canGoBack: false,
   canGoForward: false,
   busy: false,
+  faviconUrl: null as string | null,
 };
 
 window.browserHost.onChromeState((partial) => {
@@ -121,6 +130,19 @@ window.browserHost.onChromeState((partial) => {
   btnBack.disabled = !s.canGoBack;
   btnForward.disabled = !s.canGoForward;
   if (!editing) urlDisplay.textContent = s.url || "about:blank";
+
+  // Swap globe ↔ favicon
+  if ("faviconUrl" in partial) {
+    if (s.faviconUrl) {
+      faviconImg.src = s.faviconUrl;
+      faviconImg.style.display = "block";
+      globeIcon.style.display = "none";
+    } else {
+      faviconImg.style.display = "none";
+      faviconImg.removeAttribute("src");
+      globeIcon.style.display = "flex";
+    }
+  }
 });
 
 // Auto-focus URL input if initial URL is about:blank
