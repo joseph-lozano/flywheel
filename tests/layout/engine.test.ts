@@ -4,7 +4,6 @@ import {
   computeMaxScroll,
   computeScrollToCenter,
   computeVisibility,
-  findMostCenteredPanel,
 } from "../../src/renderer/src/layout/engine";
 import type { Panel } from "../../src/shared/types";
 
@@ -124,29 +123,15 @@ describe("computeMaxScroll", () => {
 });
 
 describe("computeScrollToCenter", () => {
-  it("centers first panel (clamps to 0)", () => {
+  it("left-aligns first panel (clamps to 0)", () => {
     expect(computeScrollToCenter(0, 3, 1000)).toBe(0);
   });
-  it("centers middle panel", () => {
-    expect(computeScrollToCenter(1, 3, 1000)).toBe(258);
+  it("left-aligns middle panel", () => {
+    // panel 1 stripX = 1 * (500 + 8) = 508
+    expect(computeScrollToCenter(1, 3, 1000)).toBe(508);
   });
   it("clamps to max scroll for last panel", () => {
     expect(computeScrollToCenter(2, 3, 1000)).toBe(516);
-  });
-});
-
-describe("findMostCenteredPanel", () => {
-  it("returns -1 for no panels", () => {
-    expect(findMostCenteredPanel(0, 0, 1000)).toBe(-1);
-  });
-  it("returns 0 at scroll offset 0", () => {
-    expect(findMostCenteredPanel(0, 3, 1000)).toBe(0);
-  });
-  it("returns panel closest to viewport center", () => {
-    expect(findMostCenteredPanel(258, 3, 1000)).toBe(1);
-  });
-  it("returns last panel at max scroll", () => {
-    expect(findMostCenteredPanel(516, 3, 1000)).toBe(2);
   });
 });
 
@@ -182,10 +167,6 @@ describe("sidebarWidth support", () => {
 
   it("computeScrollToCenter uses effective width", () => {
     expect(computeScrollToCenter(0, 3, 1000, 200)).toBe(0);
-  });
-
-  it("findMostCenteredPanel uses effective width", () => {
-    expect(findMostCenteredPanel(0, 3, 1000, 200)).toBe(0);
   });
 
   it("defaults sidebarWidth to 0", () => {

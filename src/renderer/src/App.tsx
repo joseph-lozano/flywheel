@@ -7,12 +7,7 @@ import MissingRowDialog from "./components/MissingRowDialog";
 import ScrollIndicators from "./components/ScrollIndicators";
 import Sidebar from "./components/Sidebar";
 import Strip from "./components/Strip";
-import {
-  computeLayout,
-  computeMaxScroll,
-  computeScrollToCenter,
-  findMostCenteredPanel,
-} from "./layout/engine";
+import { computeLayout, computeMaxScroll, computeScrollToCenter } from "./layout/engine";
 import type { AnimationHandle } from "./scroll/animator";
 import { animate, easeOut } from "./scroll/animator";
 import { createAppStore } from "./store/app";
@@ -25,7 +20,6 @@ export default function App() {
   const stripSnapshots = new Map<string, StripSnapshot>();
   const createdPanelIds = new Set<string>();
   let currentAnimation: AnimationHandle | null = null;
-  let scrollEndTimer: ReturnType<typeof setTimeout>;
 
   let switchEpoch = 0; // Concurrency guard: "latest wins" for async row/project switches
 
@@ -381,16 +375,6 @@ export default function App() {
     );
     const newOffset = Math.max(0, Math.min(strip.state.scrollOffset + deltaX, max));
     strip.actions.setScrollOffset(newOffset);
-    clearTimeout(scrollEndTimer);
-    scrollEndTimer = setTimeout(() => {
-      const idx = findMostCenteredPanel(
-        strip.state.scrollOffset,
-        strip.state.panels.length,
-        strip.state.viewportWidth,
-        sidebarWidth,
-      );
-      if (idx >= 0 && idx !== strip.state.focusedIndex) strip.actions.jumpTo(idx);
-    }, 150);
   }
 
   // --- Close panel ---

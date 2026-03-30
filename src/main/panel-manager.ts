@@ -14,6 +14,7 @@ export class PanelManager {
   private panels = new Map<string, ManagedPanel>();
   private pendingChromeState = new Map<string, Record<string, unknown>>();
   private terminalFontSizes = new Map<string, number>();
+  private lastClipState = new Map<string, number>();
   private window: BaseWindow;
   private chromeView: WebContentsView;
   private _sidebarWidth = 0;
@@ -270,6 +271,7 @@ export class PanelManager {
       panel.chromeView.webContents.close();
     }
     this.terminalFontSizes.delete(id);
+    this.lastClipState.delete(id);
     this.panels.delete(id);
     this.pendingChromeState.delete(id);
   }
@@ -286,13 +288,14 @@ export class PanelManager {
       const panel = this.panels.get(update.panelId);
       if (!panel) continue;
       if (update.visible) {
-        // Clip panel bounds so native views never overlap the sidebar DOM
         const { y, height } = update.bounds;
+        const fullWidth = update.bounds.width;
         let { x, width } = update.bounds;
+        let clip = 0;
         if (sw > 0 && x < sw) {
-          const clip = sw - x;
+          clip = sw - x;
           x = sw;
-          width = Math.max(0, width - clip);
+          width = Math.max(0, fullWidth - clip);
         }
         if (width <= 0) {
           panel.view.setVisible(false);
@@ -309,6 +312,13 @@ export class PanelManager {
           panel.view.setBounds({ x, y, width, height });
         }
         panel.view.setVisible(true);
+
+        // Tell terminals to fix their container width so xterm.js keeps its
+        // column count while the view narrows during sidebar clipping.
+        if (panel.type === "terminal" && this.lastClipState.get(update.panelId) !== clip) {
+          this.lastClipState.set(update.panelId, clip);
+          panel.view.webContents.send("terminal:set-clip", { clip, fullWidth });
+        }
       } else {
         panel.view.setVisible(false);
         if (panel.chromeView) {

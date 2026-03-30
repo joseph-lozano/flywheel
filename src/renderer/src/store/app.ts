@@ -1,3 +1,4 @@
+import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { SIDEBAR } from "../../../shared/constants";
 import type { Project, PrStatus, Row } from "../../../shared/types";
@@ -39,9 +40,12 @@ export function createAppStore() {
     },
 
     addProject(project: Project): void {
-      setState("projects", [...state.projects, project]);
-      setState("activeProjectId", project.id);
-      setState("sidebarWidth", computeSidebarWidth([...state.projects]));
+      const newProjects = [...state.projects, project];
+      batch(() => {
+        setState("projects", newProjects);
+        setState("activeProjectId", project.id);
+        setState("sidebarWidth", computeSidebarWidth(newProjects));
+      });
     },
 
     removeProject(id: string): void {
