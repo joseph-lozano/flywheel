@@ -32,12 +32,12 @@ The page is wrapped in faux terminal window chrome — three dots, a tab bar. Th
 
 All fonts from the [Monaspace](https://github.com/githubnext/monaspace) family by GitHub:
 
-| Role | Font | Weight | Notes |
-|------|------|--------|-------|
-| Wordmark / logo | Monaspace Radon | Medium (500) | Handwritten variant. Title case: "Flywheel." with ochre dot. |
-| Headlines | Monaspace Neon | ExtraBold (800) | Geometric neo-grotesque. ~56px for hero h1. |
-| Body text | Monaspace Neon | Light (300) | Same family, lighter weight for readability. |
-| UI elements (CTAs, meta) | Monaspace Neon | Regular (400) | Labels, comments, meta line. |
+| Role                     | Font            | Weight          | Notes                                                        |
+| ------------------------ | --------------- | --------------- | ------------------------------------------------------------ |
+| Wordmark / logo          | Monaspace Radon | Medium (500)    | Handwritten variant. Title case: "Flywheel." with ochre dot. |
+| Headlines                | Monaspace Neon  | ExtraBold (800) | Geometric neo-grotesque. ~56px for hero h1.                  |
+| Body text                | Monaspace Neon  | Light (300)     | Same family, lighter weight for readability.                 |
+| UI elements (CTAs, meta) | Monaspace Neon  | Regular (400)   | Labels, comments, meta line.                                 |
 
 Font loading: `@font-face` declarations pointing to jsDelivr CDN (`cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/`). WOFF format.
 
@@ -45,17 +45,18 @@ Font loading: `@font-face` declarations pointing to jsDelivr CDN (`cdn.jsdelivr.
 
 Hybrid scheme: the app's navy background with honey ochre accents.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--bg` | `#0f0f1a` | Page background (matches app's global bg) |
-| `--text` | `#e0e0f0` | Primary text |
-| `--accent` | `#e8a830` | Honey ochre — wordmark, highlights, CTAs, interactive elements |
-| `--muted` | `#6a6a8a` | Body text, secondary content |
-| `--border` | `#2a2a4a` | Borders, dividers (matches app's sidebar border) |
-| `--faint` | `#1e1e38` | Subtle backgrounds, chrome bar |
-| `--comment` | `#2a2a4a` | Inline comments in CLI-style CTAs |
+| Token       | Value     | Usage                                                          |
+| ----------- | --------- | -------------------------------------------------------------- |
+| `--bg`      | `#0f0f1a` | Page background (matches app's global bg)                      |
+| `--text`    | `#e0e0f0` | Primary text                                                   |
+| `--accent`  | `#e8a830` | Honey ochre — wordmark, highlights, CTAs, interactive elements |
+| `--muted`   | `#6a6a8a` | Body text, secondary content                                   |
+| `--border`  | `#2a2a4a` | Borders, dividers (matches app's sidebar border)               |
+| `--faint`   | `#1e1e38` | Subtle backgrounds, chrome bar                                 |
+| `--comment` | `#2a2a4a` | Inline comments in CLI-style CTAs                              |
 
 Atmospheric depth via radial gradients:
+
 - Top-left: subtle ochre glow `rgba(200,140,40,0.06)`
 - Bottom-right: subtle indigo glow `rgba(99,102,241,0.04)`
 
@@ -104,6 +105,7 @@ Wrapped in terminal chrome:
 - Meta line: version, platforms. Faint color.
 
 CTA links:
+
 - Download: points to latest GitHub release asset (DMG for macOS, AppImage/deb for Linux). Detect platform via `navigator.platform` to show the right default — this is the one piece of JS on the page.
 - Star: points to the GitHub repo
 
@@ -133,6 +135,7 @@ Three compact callouts in a horizontal row, below the hero but still inside the 
 ### Interactions
 
 Minimal, CSS-only:
+
 - Blinking cursor on "strip" in headline (`animation: blink 1s step-end infinite`)
 - CTA hover: border color transitions to ochre
 - No JavaScript except platform detection for download link

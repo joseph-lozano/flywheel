@@ -28,7 +28,7 @@ const THEME = {
   font: {
     body: "'Monaspace Neon', monospace",
   },
-}
+};
 ```
 
 Existing constants (`SIDEBAR.ACCENT_COLOR`, `SIDEBAR.BORDER_COLOR`, `SIDEBAR.BACKGROUND`, `TERMINAL_DEFAULTS.theme`, etc.) are rewritten to reference `THEME` values.
@@ -41,8 +41,8 @@ Add `@font-face` declarations in `src/renderer/src/global.css`:
 
 ```css
 @font-face {
-  font-family: 'Monaspace Neon';
-  src: url('../assets/fonts/MonaspaceNeon-Light.woff') format('woff');
+  font-family: "Monaspace Neon";
+  src: url("../assets/fonts/MonaspaceNeon-Light.woff") format("woff");
   font-weight: 300;
   font-display: swap;
 }
@@ -57,19 +57,20 @@ The HTML panel files (`src/terminal/index.html`, `src/browser/browser-host.html`
 
 Every component with hardcoded color or font values is updated to reference `THEME`.
 
-| Current value | Becomes |
-|---|---|
-| `#6366f1` (accent) | `THEME.accent` |
-| `#0f0f1a` (body bg) | `THEME.bg` |
-| `#e0e0e0` (text) | `THEME.text` |
-| `#2a2a4a` (borders) | `THEME.border` |
-| `#1a1a2e` (panel/chrome bg) | `THEME.faint` |
-| `#12122a` (sidebar bg) | Derived — slightly darker than `THEME.faint` |
-| `rgba(99, 102, 241, ...)` (indigo glows) | Amber equivalent `rgba(232, 168, 48, ...)` |
+| Current value                                | Becomes                                                                                         |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `#6366f1` (accent)                           | `THEME.accent`                                                                                  |
+| `#0f0f1a` (body bg)                          | `THEME.bg`                                                                                      |
+| `#e0e0e0` (text)                             | `THEME.text`                                                                                    |
+| `#2a2a4a` (borders)                          | `THEME.border`                                                                                  |
+| `#1a1a2e` (panel/chrome bg)                  | `THEME.faint`                                                                                   |
+| `#12122a` (sidebar bg)                       | Derived — slightly darker than `THEME.faint`                                                    |
+| `rgba(99, 102, 241, ...)` (indigo glows)     | Amber equivalent `rgba(232, 168, 48, ...)`                                                      |
 | Various muted grays (`#555`, `#666`, `#888`) | `THEME.muted` where accent-adjacent; kept as neutral grays where they serve as generic dim text |
-| System sans-serif font stack | `THEME.font.body` |
+| System sans-serif font stack                 | `THEME.font.body`                                                                               |
 
 **Files:**
+
 - `src/renderer/src/global.css`
 - `src/renderer/src/App.tsx`
 - `src/renderer/src/components/Sidebar.tsx`
@@ -107,7 +108,7 @@ PANEL_COLORS = [
   { name: "Violet", hex: "#8b5cf6" },
   { name: "Orange", hex: "#f97316" },
   { name: "Teal", hex: "#14b8a6" },
-]
+];
 ```
 
 Any logic defaulting to `PANEL_COLORS[0]` now picks amber. Existing user data storing color by hex is unaffected.

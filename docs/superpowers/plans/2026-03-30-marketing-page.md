@@ -15,6 +15,7 @@
 ### Task 1: Scaffold HTML with fonts and CSS variables
 
 **Files:**
+
 - Create: `www/index.html`
 
 - [ ] **Step 1: Create the www directory and base HTML file**
@@ -24,71 +25,82 @@ Create `www/index.html` with the document skeleton, `@font-face` declarations, a
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flywheel — Your development command center</title>
-<meta name="description" content="Terminals, browsers, and processes in a single spatial workspace. Keyboard-driven. Project-organized.">
-<style>
-  @font-face {
-    font-family: 'Monaspace Radon';
-    src: url('https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceRadon-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flywheel — Your development command center</title>
+    <meta
+      name="description"
+      content="Terminals, browsers, and processes in a single spatial workspace. Keyboard-driven. Project-organized."
+    />
+    <style>
+      @font-face {
+        font-family: "Monaspace Radon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceRadon-Medium.woff")
+          format("woff");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
 
-  @font-face {
-    font-family: 'Monaspace Neon';
-    src: url('https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
-  }
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-Light.woff")
+          format("woff");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
 
-  @font-face {
-    font-family: 'Monaspace Neon';
-    src: url('https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-Regular.woff') format('woff');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-  }
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-Regular.woff")
+          format("woff");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
 
-  @font-face {
-    font-family: 'Monaspace Neon';
-    src: url('https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-ExtraBold.woff') format('woff');
-    font-weight: 800;
-    font-style: normal;
-    font-display: swap;
-  }
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-ExtraBold.woff")
+          format("woff");
+        font-weight: 800;
+        font-style: normal;
+        font-display: swap;
+      }
 
-  :root {
-    --bg: #0f0f1a;
-    --text: #e0e0f0;
-    --accent: #e8a830;
-    --muted: #6a6a8a;
-    --border: #2a2a4a;
-    --faint: #1e1e38;
-    --comment: #2a2a4a;
-  }
+      :root {
+        --bg: #0f0f1a;
+        --text: #e0e0f0;
+        --accent: #e8a830;
+        --muted: #6a6a8a;
+        --border: #2a2a4a;
+        --faint: #1e1e38;
+        --comment: #2a2a4a;
+      }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Monaspace Neon', monospace;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-</style>
-</head>
-<body>
-  <!-- Content goes here -->
-</body>
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Monaspace Neon", monospace;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Content goes here -->
+  </body>
 </html>
 ```
 
@@ -110,6 +122,7 @@ git commit -m "feat: scaffold marketing page with Monaspace fonts and CSS variab
 ### Task 2: Terminal chrome wrapper
 
 **Files:**
+
 - Modify: `www/index.html`
 
 - [ ] **Step 1: Add terminal chrome CSS**
@@ -118,7 +131,9 @@ Add these styles inside the existing `<style>` block, after the `body` rule:
 
 ```css
 @keyframes blink {
-  50% { border-color: transparent; }
+  50% {
+    border-color: transparent;
+  }
 }
 
 .terminal {
@@ -131,12 +146,15 @@ Add these styles inside the existing `<style>` block, after the `body` rule:
 }
 
 .terminal::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(200,140,40,0.06) 0%, transparent 45%),
-    radial-gradient(ellipse at 70% 90%, rgba(99,102,241,0.04) 0%, transparent 40%);
+    radial-gradient(ellipse at 20% 0%, rgba(200, 140, 40, 0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 90%, rgba(99, 102, 241, 0.04) 0%, transparent 40%);
   pointer-events: none;
 }
 
@@ -159,7 +177,7 @@ Add these styles inside the existing `<style>` block, after the `body` rule:
 
 .chrome-tab {
   margin-left: 16px;
-  font-family: 'Monaspace Radon', monospace;
+  font-family: "Monaspace Radon", monospace;
   font-size: 11px;
   font-weight: 500;
   color: var(--accent);
@@ -205,6 +223,7 @@ git commit -m "feat: add terminal chrome wrapper to marketing page"
 ### Task 3: Hero section — wordmark, headline, body
 
 **Files:**
+
 - Modify: `www/index.html`
 
 - [ ] **Step 1: Add hero CSS**
@@ -218,7 +237,7 @@ Add these styles inside the `<style>` block:
 }
 
 .wordmark {
-  font-family: 'Monaspace Radon', monospace;
+  font-family: "Monaspace Radon", monospace;
   font-size: 15px;
   font-weight: 500;
   color: var(--accent);
@@ -226,7 +245,7 @@ Add these styles inside the `<style>` block:
 }
 
 h1 {
-  font-family: 'Monaspace Neon', monospace;
+  font-family: "Monaspace Neon", monospace;
   font-size: 56px;
   font-weight: 800;
   line-height: 1.08;
@@ -263,13 +282,12 @@ Replace the `<!-- Hero and feature strip go here -->` comment inside `<main clas
 ```html
 <div class="wordmark">Flywheel.</div>
 
-<h1>Your entire stack.<br>One <span class="typed">strip</span></h1>
+<h1>Your entire stack.<br />One <span class="typed">strip</span></h1>
 
 <p class="body-text">
   Terminals, browsers, and processes — arranged
-  <span class="hl">spatially</span> in one scrollable workspace.
-  Organized by project. Navigated by keyboard.
-  No more <span class="hl">Alt-Tab</span>. No more lost windows.
+  <span class="hl">spatially</span> in one scrollable workspace. Organized by project. Navigated by
+  keyboard. No more <span class="hl">Alt-Tab</span>. No more lost windows.
 </p>
 
 <!-- CTAs go here -->
@@ -295,6 +313,7 @@ git commit -m "feat: add hero section — wordmark, headline, body copy"
 ### Task 4: CLI-style CTAs and meta line
 
 **Files:**
+
 - Modify: `www/index.html`
 
 - [ ] **Step 1: Add CTA and meta CSS**
@@ -318,7 +337,7 @@ Add these styles inside the `<style>` block:
   background: var(--faint);
   border: 1px solid var(--border);
   border-radius: 6px;
-  font-family: 'Monaspace Neon', monospace;
+  font-family: "Monaspace Neon", monospace;
   font-size: 12px;
   font-weight: 400;
   color: var(--muted);
@@ -379,19 +398,18 @@ Add this `<script>` tag just before `</body>`:
 ```html
 <script>
   (function () {
-    var p = navigator.platform || '';
-    var ua = navigator.userAgent || '';
-    var label = document.getElementById('download-label');
-    var comment = document.getElementById('download-comment');
+    var p = navigator.platform || "";
+    var ua = navigator.userAgent || "";
+    var label = document.getElementById("download-label");
+    var comment = document.getElementById("download-comment");
 
-    if (p.indexOf('Linux') !== -1 || ua.indexOf('Linux') !== -1) {
-      label.textContent = 'Download Flywheel';
-      comment.textContent = ua.indexOf('aarch64') !== -1 || ua.indexOf('arm') !== -1
-        ? '# Linux arm64'
-        : '# Linux x64';
+    if (p.indexOf("Linux") !== -1 || ua.indexOf("Linux") !== -1) {
+      label.textContent = "Download Flywheel";
+      comment.textContent =
+        ua.indexOf("aarch64") !== -1 || ua.indexOf("arm") !== -1 ? "# Linux arm64" : "# Linux x64";
     } else {
-      label.textContent = 'Download Flywheel';
-      comment.textContent = '# macOS arm64';
+      label.textContent = "Download Flywheel";
+      comment.textContent = "# macOS arm64";
     }
   })();
 </script>
@@ -415,6 +433,7 @@ git commit -m "feat: add CLI-style CTAs with platform detection and meta line"
 ### Task 5: Feature strip
 
 **Files:**
+
 - Modify: `www/index.html`
 
 - [ ] **Step 1: Add feature strip CSS**
@@ -501,6 +520,7 @@ git commit -m "feat: add feature strip section to marketing page"
 ### Task 6: Responsive polish and final review
 
 **Files:**
+
 - Modify: `www/index.html`
 
 - [ ] **Step 1: Add responsive styles**
@@ -546,6 +566,7 @@ Add these styles at the end of the `<style>` block:
 Run: Open browser dev tools, toggle device toolbar. Test at 375px (iPhone SE), 768px (tablet), and 1440px (desktop).
 
 Expected:
+
 - **375px:** Single-column features, smaller headline (36px), tighter padding. Everything readable, no horizontal overflow.
 - **768px:** Same as desktop, fits comfortably.
 - **1440px:** Terminal centered, max-width 720px, atmospheric gradients visible.
@@ -553,6 +574,7 @@ Expected:
 - [ ] **Step 3: Final visual check**
 
 Verify the complete page against the spec:
+
 - Radon wordmark "Flywheel." in ochre ✓
 - Neon ExtraBold headline with blinking cursor on "strip" ✓
 - Neon Light body with highlighted terms ✓
@@ -574,6 +596,7 @@ git commit -m "feat: add responsive styles and finalize marketing page"
 ### Task 7: Add www to .gitignore exclusions and update .gitignore
 
 **Files:**
+
 - Modify: `.gitignore` (if www or its contents would be ignored by existing rules)
 
 - [ ] **Step 1: Check if www/ is gitignored**

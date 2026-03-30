@@ -13,6 +13,7 @@
 ### Task 1: Download and bundle Monaspace Neon font files
 
 **Files:**
+
 - Create: `src/renderer/assets/fonts/MonaspaceNeon-Light.woff`
 - Create: `src/renderer/assets/fonts/MonaspaceNeon-Regular.woff`
 - Create: `src/renderer/assets/fonts/MonaspaceNeon-ExtraBold.woff`
@@ -46,6 +47,7 @@ git commit -m "chore: bundle Monaspace Neon font files (Light, Regular, ExtraBol
 ### Task 2: Add THEME object and update constants
 
 **Files:**
+
 - Modify: `src/shared/constants.ts`
 
 - [ ] **Step 1: Add the THEME constant and update SIDEBAR, TERMINAL_DEFAULTS, PANEL_COLORS**
@@ -142,6 +144,7 @@ export function goldenAngleColor(index: number): string {
 ```
 
 Key changes:
+
 - New `THEME` object with all marketing-page tokens plus `danger`, `surface`, `surfaceBorder` for dialog colors
 - `PANEL_COLORS`: Amber first (hex changed to `#e8a830`), old Amber entry replaced
 - `TERMINAL_DEFAULTS.theme`: cursor is `THEME.accent`, blue shifted to `#5b8def`, brightBlue to `#7cacf8`
@@ -169,6 +172,7 @@ git commit -m "feat: add centralized THEME object with amber accent color palett
 ### Task 3: Update global.css with @font-face declarations
 
 **Files:**
+
 - Modify: `src/renderer/src/global.css`
 
 - [ ] **Step 1: Replace global.css with font-face declarations and updated body styles**
@@ -237,6 +241,7 @@ git commit -m "feat: add Monaspace Neon @font-face declarations and update body 
 ### Task 4: Update PanelFrame component
 
 **Files:**
+
 - Modify: `src/renderer/src/components/PanelFrame.tsx`
 
 - [ ] **Step 1: Import THEME and update focus border colors**
@@ -297,6 +302,7 @@ git commit -m "feat: update PanelFrame focus border to amber accent"
 ### Task 5: Update HintBar component
 
 **Files:**
+
 - Modify: `src/renderer/src/components/HintBar.tsx`
 
 - [ ] **Step 1: Import THEME and update all hardcoded colors**
@@ -364,7 +370,11 @@ export default function HintBar(props: HintBarProps) {
   });
 
   const dimStyle = { color: "#444", "font-size": "11px" } as const;
-  const valStyle = { color: THEME.muted, "font-size": "11px", "font-family": THEME.font.body } as const;
+  const valStyle = {
+    color: THEME.muted,
+    "font-size": "11px",
+    "font-family": THEME.font.body,
+  } as const;
 
   return (
     <div
@@ -456,6 +466,7 @@ git commit -m "feat: update HintBar to use THEME constants"
 ### Task 6: Update ScrollIndicators component
 
 **Files:**
+
 - Modify: `src/renderer/src/components/ScrollIndicators.tsx`
 
 - [ ] **Step 1: Import THEME and update hardcoded colors**
@@ -574,6 +585,7 @@ git commit -m "feat: update ScrollIndicators to use THEME constants"
 ### Task 7: Update Sidebar component
 
 **Files:**
+
 - Modify: `src/renderer/src/components/Sidebar.tsx`
 
 - [ ] **Step 1: Import THEME and update all hardcoded colors**
@@ -586,15 +598,15 @@ import { SIDEBAR, THEME } from "../../../shared/constants";
 
 Then apply these replacements throughout the file:
 
-| Old value | New value | Locations |
-|---|---|---|
-| `"monospace"` (font-family on root div) | `THEME.font.body` | Line ~142 |
-| `"#e0e0e0"` (active/focused text) | `THEME.text` | Lines ~191, 242, 272, 334, 345, 355 |
-| `"#666"` (inactive text) | `THEME.muted` | Lines ~191, 242, 274 |
-| `"#555"` (dimmer text) | `"#555"` | Keep as-is (very dim, not accent-adjacent) |
-| `"#1a1a2e"` (context menu bg) | `THEME.faint` | Line ~319 |
-| `"#f43f5e"` (destructive text) | `THEME.danger` | Lines ~367, 393 |
-| `"rgba(244,63,94,0.1)"` (destructive hover) | `"rgba(244,63,94,0.1)"` | Keep as-is (tied to danger, not accent) |
+| Old value                                   | New value               | Locations                                  |
+| ------------------------------------------- | ----------------------- | ------------------------------------------ |
+| `"monospace"` (font-family on root div)     | `THEME.font.body`       | Line ~142                                  |
+| `"#e0e0e0"` (active/focused text)           | `THEME.text`            | Lines ~191, 242, 272, 334, 345, 355        |
+| `"#666"` (inactive text)                    | `THEME.muted`           | Lines ~191, 242, 274                       |
+| `"#555"` (dimmer text)                      | `"#555"`                | Keep as-is (very dim, not accent-adjacent) |
+| `"#1a1a2e"` (context menu bg)               | `THEME.faint`           | Line ~319                                  |
+| `"#f43f5e"` (destructive text)              | `THEME.danger`          | Lines ~367, 393                            |
+| `"rgba(244,63,94,0.1)"` (destructive hover) | `"rgba(244,63,94,0.1)"` | Keep as-is (tied to danger, not accent)    |
 
 - [ ] **Step 2: Verify TypeScript compiles**
 
@@ -613,6 +625,7 @@ git commit -m "feat: update Sidebar to use THEME constants"
 ### Task 8: Update dialog components (ConfirmDialog, RemoveRowDialog, RemoveProjectDialog, MissingRowDialog)
 
 **Files:**
+
 - Modify: `src/renderer/src/components/ConfirmDialog.tsx`
 - Modify: `src/renderer/src/components/RemoveRowDialog.tsx`
 - Modify: `src/renderer/src/components/RemoveProjectDialog.tsx`
@@ -1054,6 +1067,7 @@ git commit -m "feat: update dialog components to use THEME constants"
 ### Task 9: Update App.tsx toast colors
 
 **Files:**
+
 - Modify: `src/renderer/src/App.tsx`
 
 - [ ] **Step 1: Import THEME and update toast styling**
@@ -1067,6 +1081,7 @@ import { LAYOUT, THEME } from "../../shared/constants";
 Find the toast `<div>` near the bottom of the file (around line 952) and update its style:
 
 Old:
+
 ```tsx
 background: t.type === "error" ? "#f43f5e" : "#3b82f6",
 color: "#fff",
@@ -1075,6 +1090,7 @@ color: "#fff",
 ```
 
 New:
+
 ```tsx
 background: t.type === "error" ? THEME.danger : THEME.accent,
 color: t.type === "error" ? "#fff" : THEME.bg,
@@ -1096,6 +1112,7 @@ git commit -m "feat: update App.tsx toast to use THEME constants"
 ### Task 10: Update terminal panel HTML
 
 **Files:**
+
 - Modify: `src/terminal/index.html`
 
 - [ ] **Step 1: Add @font-face and update all hardcoded colors**
@@ -1194,6 +1211,7 @@ Replace the entire `<style>` block with:
 ```
 
 Changes:
+
 - Added `@font-face` for Monaspace Neon (Light + Regular)
 - `#1a1a2e` → `#1e1e38` (THEME.faint)
 - `#666` → `#6a6a8a` (THEME.muted)
@@ -1214,6 +1232,7 @@ git commit -m "feat: update terminal panel chrome to amber theme with Monaspace 
 ### Task 11: Update browser panel HTML
 
 **Files:**
+
 - Modify: `src/browser/browser-host.html`
 
 - [ ] **Step 1: Add @font-face and update all hardcoded colors**
@@ -1376,6 +1395,7 @@ Replace the entire `<style>` block with:
 ```
 
 Changes:
+
 - Added `@font-face` for Monaspace Neon (Light + Regular)
 - `#1a1a2e` → `#1e1e38` (THEME.faint)
 - `#666` → `#6a6a8a` (THEME.muted)
@@ -1415,6 +1435,7 @@ Expected: No new lint errors.
 
 Run: `npm run dev`
 Verify:
+
 - Sidebar header uses amber accent color
 - Panel focus border is amber with amber glow
 - Hint bar keyboard shortcuts use Monaspace Neon font
