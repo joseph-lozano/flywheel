@@ -291,7 +291,7 @@
   <main class="content">
     <div class="wordmark">Flywheel.</div>
 
-    <h1>Your entire stack.<br>One <span class="typed">strip</span></h1>
+    <h1 id="headline"></h1>
 
     <p class="body-text">
       Terminals, browsers, and processes — arranged
@@ -346,6 +346,17 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
   lucide.createIcons();
+
+  (function () {
+    var headlines = [
+      'All your dev tools.<br><span class="typed">Side by side.</span>',
+      'Everything you need.<br><span class="typed">Side by side.</span>',
+      'Your whole workflow,<br><span class="typed">side by side.</span>'
+    ];
+    document.getElementById('headline').innerHTML =
+      headlines[Math.floor(Math.random() * headlines.length)];
+  })();
+
   (function () {
     var p = navigator.platform || '';
     var ua = navigator.userAgent || '';
