@@ -67,7 +67,7 @@
 
   .terminal {
     width: 100%;
-    max-width: 720px;
+    max-width: 1200px;
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
@@ -195,14 +195,14 @@
   .meta {
     font-size: 11px;
     font-weight: 400;
-    color: var(--comment);
+    color: var(--muted);
     display: flex;
     gap: 24px;
   }
 
   .features {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
@@ -259,7 +259,7 @@
     }
 
     .features {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
     }
 
     .meta {
@@ -285,8 +285,8 @@
     <p class="body-text">
       Terminals, browsers, and processes — arranged
       <span class="hl">spatially</span> in one scrollable workspace.
-      Organized by project. Navigated by keyboard.
-      No more <span class="hl">Alt-Tab</span>. No more lost windows.
+      Every branch gets its own <span class="hl">isolated workspace</span>.
+      Keyboard-driven. No more <span class="hl">Alt-Tab</span>.
     </p>
 
     <div class="ctas">
@@ -316,7 +316,12 @@
       <div class="feature">
         <div class="feature-icon">◊</div>
         <div class="feature-label">Project-organized</div>
-        <div class="feature-desc">One project at a time. Switch instantly. Worktree-aware.</div>
+        <div class="feature-desc">One project at a time. Switch instantly between them.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⎇</div>
+        <div class="feature-label">Worktree-native</div>
+        <div class="feature-desc">Each branch gets its own isolated workspace with separate processes.</div>
       </div>
       <div class="feature">
         <div class="feature-icon">⌘</div>
