@@ -56,7 +56,7 @@ describe("createPrStatus", () => {
       expect(result.size).toBe(0);
     });
 
-    it("maps open PR to open status", async () => {
+    it("maps open PR to open status with url", async () => {
       mockExecFile.mockImplementation(
         (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
           const callback = (cb ?? _optsOrCb) as ExecFileCallback;
@@ -72,6 +72,8 @@ describe("createPrStatus", () => {
                 state: "OPEN",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/42",
+                number: 42,
               },
             ]),
           );
@@ -79,7 +81,11 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-a")).toBe("open");
+      expect(result.get("feat-a")).toEqual({
+        status: "open",
+        url: "https://github.com/owner/repo/pull/42",
+        number: 42,
+      });
     });
 
     it("maps draft PR to draft status", async () => {
@@ -98,6 +104,8 @@ describe("createPrStatus", () => {
                 state: "OPEN",
                 isDraft: true,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/43",
+                number: 43,
               },
             ]),
           );
@@ -105,7 +113,11 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-b")).toBe("draft");
+      expect(result.get("feat-b")).toEqual({
+        status: "draft",
+        url: "https://github.com/owner/repo/pull/43",
+        number: 43,
+      });
     });
 
     it("maps merged PR to merged status", async () => {
@@ -124,6 +136,8 @@ describe("createPrStatus", () => {
                 state: "MERGED",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/44",
+                number: 44,
               },
             ]),
           );
@@ -131,7 +145,11 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-c")).toBe("merged");
+      expect(result.get("feat-c")).toEqual({
+        status: "merged",
+        url: "https://github.com/owner/repo/pull/44",
+        number: 44,
+      });
     });
 
     it("maps closed PR to closed status", async () => {
@@ -150,6 +168,8 @@ describe("createPrStatus", () => {
                 state: "CLOSED",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/45",
+                number: 45,
               },
             ]),
           );
@@ -157,7 +177,11 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-d")).toBe("closed");
+      expect(result.get("feat-d")).toEqual({
+        status: "closed",
+        url: "https://github.com/owner/repo/pull/45",
+        number: 45,
+      });
     });
 
     it("maps closed draft PR to closed status", async () => {
@@ -176,6 +200,8 @@ describe("createPrStatus", () => {
                 state: "CLOSED",
                 isDraft: true,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/46",
+                number: 46,
               },
             ]),
           );
@@ -183,7 +209,11 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-draft-closed")).toBe("closed");
+      expect(result.get("feat-draft-closed")).toEqual({
+        status: "closed",
+        url: "https://github.com/owner/repo/pull/46",
+        number: 46,
+      });
     });
 
     it("picks most recent PR when multiple exist for same branch", async () => {
@@ -202,12 +232,16 @@ describe("createPrStatus", () => {
                 state: "CLOSED",
                 isDraft: false,
                 updatedAt: "2026-03-25T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/10",
+                number: 10,
               },
               {
                 headRefName: "feat-e",
                 state: "OPEN",
                 isDraft: false,
                 updatedAt: "2026-03-26T00:00:00Z",
+                url: "https://github.com/owner/repo/pull/11",
+                number: 11,
               },
             ]),
           );
@@ -215,7 +249,11 @@ describe("createPrStatus", () => {
       );
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
-      expect(result.get("feat-e")).toBe("open");
+      expect(result.get("feat-e")).toEqual({
+        status: "open",
+        url: "https://github.com/owner/repo/pull/11",
+        number: 11,
+      });
     });
 
     it("returns empty map when gh command fails", async () => {
@@ -234,6 +272,75 @@ describe("createPrStatus", () => {
       const prStatus = createPrStatus();
       const result = await prStatus.fetchPrStatuses("/test/project");
       expect(result.size).toBe(0);
+    });
+  });
+
+  describe("fetchRepoUrl", () => {
+    it("returns repo URL when gh is available", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          if (Array.isArray(args) && args.includes("--version")) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          callback(null, "https://github.com/owner/repo\n");
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchRepoUrl("/test/project");
+      expect(result).toBe("https://github.com/owner/repo");
+    });
+
+    it("returns undefined when gh is unavailable", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, _args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          callback(new Error("not found"));
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchRepoUrl("/test/project");
+      expect(result).toBeUndefined();
+    });
+
+    it("returns undefined when gh command fails", async () => {
+      let callCount = 0;
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          callCount++;
+          if (callCount === 1) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          callback(new Error("not a GitHub repo"));
+        },
+      );
+      const prStatus = createPrStatus();
+      const result = await prStatus.fetchRepoUrl("/test/project");
+      expect(result).toBeUndefined();
+    });
+
+    it("caches result and skips gh call on second fetch", async () => {
+      let repoViewCalls = 0;
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _optsOrCb: unknown, cb?: ExecFileCallback) => {
+          const callback = (cb ?? _optsOrCb) as ExecFileCallback;
+          if (Array.isArray(args) && args.includes("--version")) {
+            callback(null, "gh version 2.40.0\n");
+            return;
+          }
+          repoViewCalls++;
+          callback(null, "https://github.com/owner/repo\n");
+        },
+      );
+      const prStatus = createPrStatus();
+      const first = await prStatus.fetchRepoUrl("/test/project");
+      const second = await prStatus.fetchRepoUrl("/test/project");
+      expect(first).toBe("https://github.com/owner/repo");
+      expect(second).toBe("https://github.com/owner/repo");
+      expect(repoViewCalls).toBe(1);
     });
   });
 });
