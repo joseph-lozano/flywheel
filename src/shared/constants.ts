@@ -44,7 +44,7 @@ export const TERMINAL_DEFAULTS = {
   theme: {
     background: THEME.faint,
     foreground: THEME.text,
-    cursor: THEME.accent,
+    cursor: THEME.text,
     cursorAccent: THEME.faint,
     selectionBackground: "rgba(255, 255, 255, 0.2)",
     black: THEME.faint,
