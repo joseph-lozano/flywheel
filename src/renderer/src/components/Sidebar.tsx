@@ -59,6 +59,24 @@ function PullRequest(props: { size?: number; color?: string }) {
   );
 }
 
+function GitHub(props: { size?: number; color?: string }) {
+  return (
+    <svg
+      width={props.size ?? 12}
+      height={props.size ?? 12}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={props.color ?? "currentColor"}
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </svg>
+  );
+}
+
 const PR_STATUS_COLORS: Record<string, string> = {
   draft: "#8b949e",
   open: "#3fb950",
@@ -80,6 +98,7 @@ interface SidebarProps {
   onRemoveRow: (rowId: string, deleteFromDisk: boolean) => void;
   onDiscoverWorktrees: (projectId: string) => void;
   onOpenPrUrl?: (url: string) => void;
+  onOpenRepoUrl?: (projectId: string, url: string) => void;
   onModalShow?: () => void;
   onModalHide?: () => void;
   onBlurPanels?: () => void;
@@ -227,6 +246,36 @@ export default function Sidebar(props: SidebarProps) {
                   <span style={{ overflow: "hidden", "text-overflow": "ellipsis" }}>
                     {project.name}
                   </span>
+                  <Show when={project.repoUrl}>
+                    {(repoUrl) => (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          "align-items": "center",
+                          gap: "3px",
+                          "margin-left": "4px",
+                          color: "#555",
+                          "font-size": "10px",
+                          cursor: "pointer",
+                          "text-decoration": "none",
+                          "flex-shrink": 0,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textDecoration = "underline";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textDecoration = "none";
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          props.onOpenRepoUrl?.(project.id, repoUrl());
+                        }}
+                      >
+                        <GitHub />
+                        GitHub
+                      </span>
+                    )}
+                  </Show>
                 </div>
 
                 {/* Row list (when expanded) */}
