@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flywheel — Your development command center</title>
+    <meta
+      name="description"
+      content="Terminals, browsers, and processes in a single spatial workspace. Keyboard-driven. Project-organized."
+    />
+    <style>
+      @font-face {
+        font-family: "Monaspace Radon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceRadon-Medium.woff")
+          format("woff");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-Light.woff")
+          format("woff");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-Regular.woff")
+          format("woff");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Monaspace Neon";
+        src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.101/fonts/webfonts/MonaspaceNeon-ExtraBold.woff")
+          format("woff");
+        font-weight: 800;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      :root {
+        --bg: #0f0f1a;
+        --text: #e0e0f0;
+        --accent: #e8a830;
+        --muted: #6a6a8a;
+        --border: #2a2a4a;
+        --faint: #1e1e38;
+        --comment: #2a2a4a;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Monaspace Neon", monospace;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      @keyframes blink {
+        50% {
+          border-color: transparent;
+        }
+      }
+
+      .terminal {
+        width: 100%;
+        max-width: 1200px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .terminal::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(200, 140, 40, 0.06) 0%, transparent 45%),
+          radial-gradient(ellipse at 70% 90%, rgba(99, 102, 241, 0.04) 0%, transparent 40%);
+        pointer-events: none;
+      }
+
+      .chrome {
+        background: var(--faint);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+      }
+
+      .chrome-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+      }
+
+      .chrome-tab {
+        margin-left: 16px;
+        font-family: "Monaspace Radon", monospace;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--accent);
+        background: var(--bg);
+        padding: 4px 12px;
+        border-radius: 4px;
+      }
+
+      .content {
+        padding: 40px 48px 48px;
+        position: relative;
+      }
+
+      .wordmark {
+        font-family: "Monaspace Radon", monospace;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--accent);
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        font-family: "Monaspace Neon", monospace;
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -2px;
+        color: var(--text);
+        margin-bottom: 22px;
+      }
+
+      h1 .typed {
+        color: var(--accent);
+        border-right: 2px solid var(--accent);
+        padding-right: 2px;
+        animation: blink 1s step-end infinite;
+      }
+
+      .body-text {
+        font-size: 14px;
+        font-weight: 300;
+        line-height: 1.8;
+        color: var(--muted);
+        max-width: 560px;
+        margin-bottom: 32px;
+      }
+
+      .body-text .hl {
+        color: var(--accent);
+      }
+
+      .ctas {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 420px;
+        margin-bottom: 32px;
+      }
+
+      .cta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--faint);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-family: "Monaspace Neon", monospace;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--muted);
+        text-decoration: none;
+        transition: border-color 0.2s;
+      }
+
+      .cta:hover {
+        border-color: var(--accent);
+      }
+
+      .cta .prompt {
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+      }
+
+      .cta .prompt svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .cta .comment {
+        color: var(--comment);
+        margin-left: auto;
+      }
+
+      .meta {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--muted);
+        display: flex;
+        gap: 24px;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 40px;
+      }
+
+      .feature {
+        background: var(--bg);
+        padding: 20px 24px;
+      }
+
+      .feature-icon {
+        color: var(--accent);
+        margin-bottom: 10px;
+      }
+
+      .feature-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .feature-label {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+
+      .feature-desc {
+        font-size: 12px;
+        font-weight: 300;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 12px;
+        }
+
+        .terminal {
+          border-radius: 8px;
+        }
+
+        .content {
+          padding: 28px 24px 32px;
+        }
+
+        h1 {
+          font-size: 36px;
+          letter-spacing: -1px;
+        }
+
+        .ctas {
+          max-width: 100%;
+        }
+
+        .features {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .meta {
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="terminal">
+      <div class="chrome">
+        <div class="chrome-dot"></div>
+        <div class="chrome-dot"></div>
+        <div class="chrome-dot"></div>
+        <div class="chrome-tab">Flywheel.</div>
+      </div>
+      <main class="content">
+        <div class="wordmark">Flywheel.</div>
+
+        <h1 id="headline"></h1>
+
+        <p class="body-text">
+          Terminals, browsers, and processes — arranged
+          <span class="hl">spatially</span> in one scrollable workspace. Every branch gets its own
+          <span class="hl">isolated workspace</span>. Keyboard-driven. No more
+          <span class="hl">Alt-Tab</span>.
+        </p>
+
+        <div class="ctas">
+          <a
+            class="cta"
+            id="download-cta"
+            href="https://github.com/joseph-lozano/flywheel/releases/latest"
+          >
+            <span class="prompt"><i data-lucide="download"></i></span>
+            <span id="download-label">Download Flywheel</span>
+            <span class="comment" id="download-comment"># macOS arm64</span>
+          </a>
+          <a
+            class="cta"
+            href="https://github.com/joseph-lozano/flywheel"
+            target="_blank"
+            rel="noopener"
+          >
+            <span class="prompt"><i data-lucide="star"></i></span>
+            <span>Star on GitHub</span>
+            <span class="comment"># joseph-lozano/flywheel</span>
+          </a>
+        </div>
+
+        <div class="meta">
+          <span>v0.1.0-alpha</span>
+          <span>macOS arm64 · Linux x64/arm64</span>
+        </div>
+
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon"><i data-lucide="move-horizontal"></i></div>
+            <div class="feature-label">Spatial workspace</div>
+            <div class="feature-desc">Panels scroll in an infinite horizontal strip.</div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon"><i data-lucide="layers"></i></div>
+            <div class="feature-label">Project-organized</div>
+            <div class="feature-desc">One project at a time. Switch instantly between them.</div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon"><i data-lucide="git-branch"></i></div>
+            <div class="feature-label">Worktree-native</div>
+            <div class="feature-desc">
+              Each branch gets its own isolated workspace with separate processes.
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon"><i data-lucide="keyboard"></i></div>
+            <div class="feature-label">Keyboard-driven</div>
+            <div class="feature-desc">
+              Navigate, split, close — all from the keyboard. No mouse needed.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+
+      (function () {
+        var headlines = [
+          'All your dev tools,<br><span class="typed">side by side.</span>',
+          'Everything you need,<br><span class="typed">side by side.</span>',
+          'Your whole workflow,<br><span class="typed">side by side.</span>',
+          'Your entire stack,<br><span class="typed">side by side.</span>',
+          'Terminals and browsers,<br><span class="typed">side by side.</span>',
+        ];
+        document.getElementById("headline").innerHTML =
+          headlines[Math.floor(Math.random() * headlines.length)];
+      })();
+
+      (function () {
+        var p = navigator.platform || "";
+        var ua = navigator.userAgent || "";
+        var comment = document.getElementById("download-comment");
+
+        if (p.indexOf("Linux") !== -1 || ua.indexOf("Linux") !== -1) {
+          comment.textContent =
+            ua.indexOf("aarch64") !== -1 || ua.indexOf("arm") !== -1
+              ? "# Linux arm64"
+              : "# Linux x64";
+        }
+      })();
+    </script>
+  </body>
+</html>

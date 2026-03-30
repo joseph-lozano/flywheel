@@ -56,9 +56,9 @@ describe("addPanel", () => {
       actions.addPanel();
       actions.addPanel();
       actions.addPanel();
-      expect(state.panels[0].color).toBe("#6366f1");
-      expect(state.panels[1].color).toBe("#10b981");
-      expect(state.panels[2].color).toBe("#f59e0b");
+      expect(state.panels[0].color).toBe("#e8a830");
+      expect(state.panels[1].color).toBe("#6366f1");
+      expect(state.panels[2].color).toBe("#10b981");
     });
   });
 });

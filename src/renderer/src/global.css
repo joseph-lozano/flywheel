@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "Monaspace Neon";
+  src: url("../assets/fonts/MonaspaceNeon-Light.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Monaspace Neon";
+  src: url("../assets/fonts/MonaspaceNeon-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Monaspace Neon";
+  src: url("../assets/fonts/MonaspaceNeon-ExtraBold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -13,7 +37,7 @@ body,
   height: 100%;
   overflow: hidden;
   background: #0f0f1a;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  color: #e0e0e0;
+  font-family: "Monaspace Neon", monospace;
+  color: #e0e0f0;
   -webkit-font-smoothing: antialiased;
 }

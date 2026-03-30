@@ -1,5 +1,5 @@
 import { createSignal, For, onCleanup, onMount } from "solid-js";
-import { LAYOUT } from "../../../shared/constants";
+import { LAYOUT, THEME } from "../../../shared/constants";
 
 interface HintBarProps {
   viewportHeight: number;
@@ -60,7 +60,11 @@ export default function HintBar(props: HintBarProps) {
   });
 
   const dimStyle = { color: "#444", "font-size": "11px" } as const;
-  const valStyle = { color: "#666", "font-size": "11px", "font-family": "monospace" } as const;
+  const valStyle = {
+    color: THEME.muted,
+    "font-size": "11px",
+    "font-family": THEME.font.body,
+  } as const;
 
   return (
     <div
@@ -73,8 +77,8 @@ export default function HintBar(props: HintBarProps) {
         display: "flex",
         "flex-direction": isEmpty() ? "column" : undefined,
         "align-items": "center",
-        background: "#1a1a2e",
-        "border-top": isEmpty() ? undefined : "1px solid #252540",
+        background: THEME.faint,
+        "border-top": isEmpty() ? undefined : `1px solid ${THEME.surface}`,
         "user-select": "none",
         "font-size": "12px",
         "padding-left": "16px",
@@ -96,13 +100,13 @@ export default function HintBar(props: HintBarProps) {
             <span>
               <span
                 style={{
-                  color: "#888",
+                  color: THEME.muted,
                   "font-weight": "500",
-                  background: "#252540",
+                  background: THEME.surface,
                   padding: "2px 6px",
                   "border-radius": "3px",
                   "margin-right": "4px",
-                  "font-family": "monospace",
+                  "font-family": THEME.font.body,
                 }}
               >
                 {hint.key}
