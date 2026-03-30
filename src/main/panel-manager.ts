@@ -241,6 +241,12 @@ export class PanelManager {
     panel.view.webContents.navigationHistory.goForward();
   }
 
+  toggleBrowserDevTools(id: string): void {
+    const panel = this.panels.get(id);
+    if (panel?.type !== "browser") return;
+    panel.view.webContents.toggleDevTools();
+  }
+
   zoomPanel(id: string, direction: "in" | "out" | "reset", config: FlywheelConfig): void {
     const panel = this.panels.get(id);
     if (!panel) return;
