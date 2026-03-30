@@ -39,6 +39,7 @@ async function createWindow(): Promise<void> {
   }
 
   let allowQuit = false;
+  let closePending = false;
 
   mainWindow = new BaseWindow({
     width: 1200,
@@ -107,6 +108,9 @@ async function createWindow(): Promise<void> {
 
     e.preventDefault();
 
+    if (closePending) return;
+    closePending = true;
+
     void dialog
       .showMessageBox(mainWindow, {
         type: "question",
@@ -117,6 +121,7 @@ async function createWindow(): Promise<void> {
         cancelId: 0,
       })
       .then(({ response }) => {
+        closePending = false;
         if (response === 1) {
           allowQuit = true;
           app.quit();
