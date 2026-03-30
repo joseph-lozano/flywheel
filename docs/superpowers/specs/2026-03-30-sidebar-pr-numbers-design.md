@@ -29,6 +29,7 @@ Update `updatePrStatuses` action to also set `row.prUrl` from the update payload
 ### Sidebar rendering (`src/renderer/src/components/Sidebar.tsx`)
 
 Between the PR icon and branch name, render the PR number:
+
 - Extract number from `row.prUrl` (parse last path segment)
 - Display as `#N` in the PR status color, matching the icon
 - Always visible when a PR exists (no hover-only behavior)
