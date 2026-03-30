@@ -13,6 +13,7 @@
 ### Task 1: Add the quit confirmation handler
 
 **Files:**
+
 - Modify: `src/main/index.ts` — replace the existing `mainWindow.on("close", ...)` handler
 
 **Context:** The current `close` handler (around line 99) just disposes PTYs and panels. We need to intercept the event before cleanup, show a dialog, and only clean up + quit if the user confirms. Both quit paths (Cmd+Q and the red button) fire `mainWindow.on('close')`, so this one handler covers both.
@@ -30,40 +31,40 @@ let allowQuit = false;
 Find the current handler (around line 99):
 
 ```typescript
-  mainWindow.on("close", () => {
-    ptyManager.dispose();
-    panelManager.destroyAll();
-  });
+mainWindow.on("close", () => {
+  ptyManager.dispose();
+  panelManager.destroyAll();
+});
 ```
 
 Replace it with:
 
 ```typescript
-  mainWindow.on("close", (e) => {
-    if (allowQuit) {
-      ptyManager.dispose();
-      panelManager.destroyAll();
-      return;
-    }
+mainWindow.on("close", (e) => {
+  if (allowQuit) {
+    ptyManager.dispose();
+    panelManager.destroyAll();
+    return;
+  }
 
-    e.preventDefault();
+  e.preventDefault();
 
-    void dialog
-      .showMessageBox(mainWindow, {
-        type: "question",
-        message: "Quit Flywheel?",
-        detail: "Any running terminal processes will be terminated.",
-        buttons: ["Cancel", "Quit"],
-        defaultId: 0,
-        cancelId: 0,
-      })
-      .then(({ response }) => {
-        if (response === 1) {
-          allowQuit = true;
-          app.quit();
-        }
-      });
-  });
+  void dialog
+    .showMessageBox(mainWindow, {
+      type: "question",
+      message: "Quit Flywheel?",
+      detail: "Any running terminal processes will be terminated.",
+      buttons: ["Cancel", "Quit"],
+      defaultId: 0,
+      cancelId: 0,
+    })
+    .then(({ response }) => {
+      if (response === 1) {
+        allowQuit = true;
+        app.quit();
+      }
+    });
+});
 ```
 
 - [ ] **Step 3: Verify TypeScript compiles**

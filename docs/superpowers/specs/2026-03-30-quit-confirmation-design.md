@@ -12,6 +12,7 @@ Show a native confirmation dialog whenever the user tries to quit Flywheel — w
 The dialog always appears on quit, regardless of whether any terminals are busy. The user must explicitly confirm before the app closes.
 
 Dialog content:
+
 ```
 Quit Flywheel?
 Any running terminal processes will be terminated.
