@@ -49,7 +49,7 @@ initDotGrid(dotGridWrap);
 // Favicon load error → revert to globe
 faviconImg.addEventListener("error", () => {
   faviconImg.style.display = "none";
-  globeIcon.style.display = "";
+  globeIcon.style.display = "flex";
 });
 
 // Set icons
@@ -135,11 +135,12 @@ window.browserHost.onChromeState((partial) => {
   if ("faviconUrl" in partial) {
     if (s.faviconUrl) {
       faviconImg.src = s.faviconUrl;
-      faviconImg.style.display = "";
+      faviconImg.style.display = "block";
       globeIcon.style.display = "none";
     } else {
       faviconImg.style.display = "none";
-      globeIcon.style.display = "";
+      faviconImg.removeAttribute("src");
+      globeIcon.style.display = "flex";
     }
   }
 });

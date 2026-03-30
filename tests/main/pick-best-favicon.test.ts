@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickBestFavicon } from "../../src/main/panel-manager";
+import { pickBestFavicon, sanitizeFaviconUrl } from "../../src/main/panel-manager";
 
 describe("pickBestFavicon", () => {
   it("returns null for empty array", () => {
@@ -47,5 +47,33 @@ describe("pickBestFavicon", () => {
     expect(pickBestFavicon(["https://example.com/favicon.ico"])).toBe(
       "https://example.com/favicon.ico",
     );
+  });
+});
+
+describe("sanitizeFaviconUrl", () => {
+  it("allows https URLs", () => {
+    expect(sanitizeFaviconUrl("https://example.com/favicon.png")).toBe(
+      "https://example.com/favicon.png",
+    );
+  });
+
+  it("allows http URLs", () => {
+    expect(sanitizeFaviconUrl("http://localhost/favicon.ico")).toBe("http://localhost/favicon.ico");
+  });
+
+  it("rejects data: URIs", () => {
+    expect(sanitizeFaviconUrl("data:image/png;base64,abc123")).toBeNull();
+  });
+
+  it("rejects javascript: URLs", () => {
+    expect(sanitizeFaviconUrl("javascript:alert(1)")).toBeNull();
+  });
+
+  it("rejects blob: URLs", () => {
+    expect(sanitizeFaviconUrl("blob:https://example.com/abc")).toBeNull();
+  });
+
+  it("returns null for null input", () => {
+    expect(sanitizeFaviconUrl(null)).toBeNull();
   });
 });

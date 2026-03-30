@@ -21,6 +21,11 @@ export function pickBestFavicon(favicons: string[]): string | null {
   return favicons[0];
 }
 
+/** Only allow http/https favicon URLs — rejects data: URIs, javascript: URLs, etc. */
+export function sanitizeFaviconUrl(url: string | null): string | null {
+  return url && /^https?:\/\//.test(url) ? url : null;
+}
+
 interface ManagedPanel {
   id: string;
   type: "terminal" | "placeholder" | "browser";
@@ -284,10 +289,8 @@ export class PanelManager {
 
       // Forward favicon to chrome strip — prefer smallest icon for the 16px display
       view.webContents.on("page-favicon-updated", (_event, favicons) => {
-        const url = pickBestFavicon(favicons);
-        const safeUrl = url && /^https?:\/\//.test(url) ? url : null;
         chromeStripView.webContents.send("panel:chrome-state", {
-          faviconUrl: safeUrl,
+          faviconUrl: sanitizeFaviconUrl(pickBestFavicon(favicons)),
         });
       });
 
