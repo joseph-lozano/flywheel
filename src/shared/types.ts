@@ -16,6 +16,7 @@ export interface Project {
   rows: Row[];
   activeRowId: string;
   expanded: boolean;
+  repoUrl?: string;
 }
 
 export type PrStatus = "draft" | "open" | "merged" | "closed";
@@ -82,6 +83,7 @@ export interface CheckBranchesResult {
 }
 export interface CheckPrStatusResult {
   updates: { rowId: string; prStatus: PrStatus | undefined; prUrl: string | undefined }[];
+  repoUrl?: string;
 }
 
 export interface ShortcutAction {
