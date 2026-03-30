@@ -470,10 +470,14 @@ function setupIpcHandlers(): void {
     if (!project) return { updates: [] };
 
     const statuses = await prStatusChecker.fetchPrStatuses(project.path);
-    const updates = project.rows.map((row) => ({
-      rowId: row.id,
-      prStatus: statuses.get(row.branch),
-    }));
+    const updates = project.rows.map((row) => {
+      const pr = statuses.get(row.branch);
+      return {
+        rowId: row.id,
+        prStatus: pr?.status,
+        prUrl: pr?.url,
+      };
+    });
 
     return { updates };
   });
