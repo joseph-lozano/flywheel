@@ -199,7 +199,9 @@ function setupIpcHandlers(): void {
 
   // Browser navigation
   ipcMain.on("browser:navigate", (_event, data: { panelId: string; url: string }) => {
-    panelManager.navigateBrowser(data.panelId, data.url);
+    const safeUrl = sanitizeBrowserUrl(data.url);
+    if (!safeUrl) return;
+    panelManager.navigateBrowser(data.panelId, safeUrl);
   });
 
   ipcMain.on("browser:reload", (_event, data: { panelId: string }) => {
@@ -252,7 +254,9 @@ function setupIpcHandlers(): void {
 
   // Terminal link detection → open as browser panel
   ipcMain.on("browser:open-url-from-terminal", (_event, data: { url: string }) => {
-    chromeView.webContents.send("browser:open-url", { url: data.url });
+    const safeUrl = sanitizeBrowserUrl(data.url);
+    if (!safeUrl) return;
+    chromeView.webContents.send("browser:open-url", { url: safeUrl });
   });
 
   // Close confirmation flow

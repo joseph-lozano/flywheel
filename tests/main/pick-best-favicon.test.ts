@@ -117,6 +117,10 @@ describe("sanitizeBrowserUrl", () => {
     expect(sanitizeBrowserUrl("data:text/html,<h1>hi</h1>")).toBeNull();
   });
 
+  it("rejects blob URLs", () => {
+    expect(sanitizeBrowserUrl("blob:https://example.com/abc")).toBeNull();
+  });
+
   it("rejects invalid URLs", () => {
     expect(sanitizeBrowserUrl("not a url")).toBeNull();
   });
