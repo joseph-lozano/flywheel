@@ -319,10 +319,11 @@ function setupIpcHandlers(): void {
 
   // Native dialog: missing row
   ipcMain.handle("dialog:missing-row", async (_event, data: { branch: string }) => {
+    const branch = typeof data.branch === "string" ? data.branch : "unknown";
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: "warning",
       message: "Worktree not found",
-      detail: `The directory for "${data.branch}" no longer exists on disk.`,
+      detail: `The directory for "${branch}" no longer exists on disk.`,
       buttons: ["Cancel", "Remove Row"],
       defaultId: 0,
       cancelId: 0,
