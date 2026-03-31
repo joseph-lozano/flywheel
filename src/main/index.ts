@@ -464,7 +464,15 @@ function setupIpcHandlers(): void {
     async (_event, data: { projectId: string; deleteWorktrees: boolean }) => {
       const project = projectStore.getProjects().find((p) => p.id === data.projectId);
       return await removeProjectTransactional(project, data.deleteWorktrees, {
-        removeWorktree: (projectPath, worktreePath) => {
+        removeWorktree: async (projectPath, worktreePath) => {
+          const hookCommand = configManager.getForProject(projectPath).hooks?.onWorktreeRemove;
+          const hookResult = await runCleanupHook(hookCommand, worktreePath);
+          if (!hookResult.ok) {
+            chromeView.webContents.send("toast", {
+              message: `Cleanup hook failed: ${hookResult.error}`,
+              type: "error",
+            });
+          }
           return worktreeManager.removeWorktree(projectPath, worktreePath);
         },
         cleanupRow: (rowId) => {
