@@ -6,23 +6,34 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "*.ts"
-      - "*.js"
-      - "*.json"
-      - "eslint.config.*"
-      - "tsconfig*"
-      - "vitest*"
-      - "electron.*"
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      code: ${{ github.event_name == 'push' || steps.diff.outputs.code == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Detect changed files
+        if: github.event_name == 'pull_request'
+        id: diff
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if echo "$CHANGED" | grep -qE '\.(ts|tsx|js|jsx|cjs|mjs|json)$|eslint\.config|tsconfig|vitest|electron\.(vite|builder)'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   lint-and-test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - name: Check for expiring secrets
@@ -43,8 +54,12 @@ jobs:
       - run: npm test
 
   build:
-    needs: lint-and-test
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    needs: [changes, lint-and-test]
+    if: |
+      always() &&
+      needs.changes.outputs.code == 'true' &&
+      needs.lint-and-test.result == 'success' &&
+      (github.event_name == 'push' || github.event.pull_request.draft == false)
     strategy:
       fail-fast: false
       matrix:
@@ -65,3 +80,14 @@ jobs:
       - run: npm ci
       - run: npx electron-vite build
       - run: npx electron-builder --${{ matrix.platform }} --publish never
+
+  ci-ok:
+    # Use this as the single required status check in branch protection.
+    # Always runs and reports success only if no upstream job failed.
+    if: always()
+    needs: [lint-and-test, build]
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          [[ "${{ needs.lint-and-test.result }}" =~ ^(success|skipped)$ ]] &&
+          [[ "${{ needs.build.result }}" =~ ^(success|skipped)$ ]]
