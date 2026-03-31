@@ -476,7 +476,7 @@ export default function App() {
       showToast(result.error);
       return;
     }
-    if (result.diskErrors.length > 0) {
+    if (result.diskError) {
       if (project) {
         for (const rowId of result.removedRowIds) {
           cleanupLocalRowState(rowId);
@@ -493,9 +493,7 @@ export default function App() {
         }
       }
 
-      const detail = formatDiskRemovalError(result.diskErrors[0]);
-      const extraCount = result.diskErrors.length - 1;
-      showToast(extraCount > 0 ? `${detail} (+${extraCount} more)` : detail);
+      showToast(formatDiskRemovalError(result.diskError));
       return;
     }
     if (!result.removed) return;

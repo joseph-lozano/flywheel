@@ -37,12 +37,10 @@ export async function removeProjectTransactional(
     return {
       removed: false,
       error: "Project not found",
-      diskErrors: [],
       removedRowIds: [],
     };
   }
 
-  const diskErrors: DiskRemovalError[] = [];
   const removedRowIds: string[] = [];
   if (deleteWorktrees) {
     for (const row of project.rows) {
@@ -53,10 +51,9 @@ export async function removeProjectTransactional(
         dependencies.removeRow(project.id, row.id);
         removedRowIds.push(row.id);
       } catch (error) {
-        diskErrors.push(toDiskRemovalError(row, error));
         return {
           removed: false,
-          diskErrors,
+          diskError: toDiskRemovalError(row, error),
           removedRowIds,
         };
       }
@@ -71,7 +68,6 @@ export async function removeProjectTransactional(
 
   return {
     removed: true,
-    diskErrors: [],
     removedRowIds,
   };
 }

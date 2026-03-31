@@ -89,14 +89,12 @@ describe("transactional removals", () => {
 
     expect(result).toEqual({
       removed: false,
-      diskErrors: [
-        {
-          rowId: "row-b",
-          branch: "feat-b",
-          path: "/tmp/project/feat-b",
-          message: "permission denied",
-        },
-      ],
+      diskError: {
+        rowId: "row-b",
+        branch: "feat-b",
+        path: "/tmp/project/feat-b",
+        message: "permission denied",
+      },
       removedRowIds: ["row-a"],
     });
     expect(cleanupRow).toHaveBeenCalledTimes(1);
@@ -146,7 +144,6 @@ describe("transactional removals", () => {
 
     expect(result).toEqual({
       removed: true,
-      diskErrors: [],
       removedRowIds: ["row-a", "row-b"],
     });
     expect(removeWorktree).toHaveBeenCalledTimes(2);
@@ -200,7 +197,6 @@ describe("transactional removals", () => {
 
     expect(result).toEqual({
       removed: true,
-      diskErrors: [],
       removedRowIds: [],
     });
     expect(removeWorktree).not.toHaveBeenCalled();
@@ -209,5 +205,70 @@ describe("transactional removals", () => {
     expect(cleanupRow).toHaveBeenNthCalledWith(2, "row-a");
     expect(removeRow).not.toHaveBeenCalled();
     expect(removeProject).toHaveBeenCalledWith(project.id);
+  });
+
+  it("returns an error when the row is missing", async () => {
+    const removeWorktree = vi.fn();
+    const cleanupRow = vi.fn();
+    const removeRow = vi.fn();
+
+    const result = await removeRowTransactional(undefined, undefined, true, {
+      removeWorktree,
+      cleanupRow,
+      removeRow,
+    });
+
+    expect(result).toEqual({
+      removed: false,
+      error: "Row not found",
+    });
+    expect(removeWorktree).not.toHaveBeenCalled();
+    expect(cleanupRow).not.toHaveBeenCalled();
+    expect(removeRow).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when trying to remove the default row", async () => {
+    const project = makeProject();
+    const removeWorktree = vi.fn();
+    const cleanupRow = vi.fn();
+    const removeRow = vi.fn();
+
+    const result = await removeRowTransactional(project, project.rows[0], true, {
+      removeWorktree,
+      cleanupRow,
+      removeRow,
+    });
+
+    expect(result).toEqual({
+      removed: false,
+      error: "Cannot remove the default row",
+    });
+    expect(removeWorktree).not.toHaveBeenCalled();
+    expect(cleanupRow).not.toHaveBeenCalled();
+    expect(removeRow).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when the project is missing", async () => {
+    const removeWorktree = vi.fn();
+    const cleanupRow = vi.fn();
+    const removeRow = vi.fn();
+    const removeProject = vi.fn();
+
+    const result = await removeProjectTransactional(undefined, true, {
+      removeWorktree,
+      cleanupRow,
+      removeRow,
+      removeProject,
+    });
+
+    expect(result).toEqual({
+      removed: false,
+      error: "Project not found",
+      removedRowIds: [],
+    });
+    expect(removeWorktree).not.toHaveBeenCalled();
+    expect(cleanupRow).not.toHaveBeenCalled();
+    expect(removeRow).not.toHaveBeenCalled();
+    expect(removeProject).not.toHaveBeenCalled();
   });
 });
