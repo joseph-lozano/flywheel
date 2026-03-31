@@ -13,6 +13,7 @@
 ### Task 1: Extend FlywheelConfig with hooks type
 
 **Files:**
+
 - Modify: `src/shared/config.ts:1-29`
 - Test: `tests/shared/config.test.ts`
 
@@ -103,6 +104,7 @@ git commit -m "feat: add hooks type to FlywheelConfig"
 ### Task 2: Add hooks validation to ConfigManager
 
 **Files:**
+
 - Modify: `src/main/config-manager.ts:7-20` (RawYamlConfig), `src/main/config-manager.ts:83-114` (validateTypes)
 - Test: `tests/main/config-manager.test.ts`
 
@@ -213,6 +215,7 @@ git commit -m "feat: validate hooks in ConfigManager"
 ### Task 3: Add startup hook injection to PtyManager
 
 **Files:**
+
 - Modify: `src/main/pty-manager.ts:35-75` (create method)
 - Test: `tests/main/pty-manager.test.ts`
 
@@ -335,6 +338,7 @@ git commit -m "feat: add startup hook injection to PtyManager.create"
 ### Task 4: Wire startup hook through IPC and renderer
 
 **Files:**
+
 - Modify: `src/main/index.ts:184-186` (pty:create handler)
 - Modify: `src/preload/index.ts:189-191` (createTerminalWithCwd)
 - Modify: `src/renderer/src/App.tsx:174-182` (handleCreateRow), `src/renderer/src/App.tsx:375-383` (auto-create effect)
@@ -420,6 +424,7 @@ git commit -m "feat: wire startup hook through IPC and renderer"
 ### Task 5: Add cleanup hook to row removal
 
 **Files:**
+
 - Create: `src/main/hooks.ts`
 - Test: `tests/main/hooks.test.ts`
 
@@ -525,6 +530,7 @@ git commit -m "feat: add runCleanupHook utility"
 ### Task 6: Wire cleanup hook into row removal flow
 
 **Files:**
+
 - Modify: `src/main/index.ts:549-575` (row:remove handler)
 
 - [ ] **Step 1: Import runCleanupHook and wire into row:remove handler**
@@ -621,6 +627,7 @@ git commit -m "feat: wire cleanup hook into row removal flow"
 ### Task 7: Add flywheel.yaml to git and final verification
 
 **Files:**
+
 - Stage: `flywheel.yaml`
 
 - [ ] **Step 1: Run the full test suite**

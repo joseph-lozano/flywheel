@@ -22,7 +22,9 @@ Add optional `hooks` to `FlywheelConfig`:
 
 ```typescript
 export interface FlywheelConfig {
-  preferences: { /* existing */ };
+  preferences: {
+    /* existing */
+  };
   hooks?: {
     onWorktreeCreate?: string;
     onWorktreeRemove?: string;
