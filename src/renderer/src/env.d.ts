@@ -100,8 +100,8 @@ interface FlywheelAPI {
   checkRowPath(path: string): Promise<{ exists: boolean }>;
 
   // Native context menus
-  showProjectContextMenu(projectId: string, hasWorktrees: boolean): Promise<{ action: string }>;
-  showRowContextMenu(): Promise<{ action: string }>;
+  showProjectContextMenu(): Promise<{ action: "new-row" | "discover" | "remove" | "cancel" }>;
+  showRowContextMenu(): Promise<{ action: "remove" | "cancel" }>;
 
   // Native dialogs
   showRemoveRowDialog(): Promise<{ action: "remove" | "delete" | "cancel" }>;

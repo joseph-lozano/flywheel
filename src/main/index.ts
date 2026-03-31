@@ -291,7 +291,8 @@ function setupIpcHandlers(): void {
 
   // Native context menus (rendered above WebContentsViews, unlike DOM overlays)
   ipcMain.handle("context-menu:project", async () => {
-    return new Promise<{ action: string }>((resolve) => {
+    type Action = "new-row" | "discover" | "remove" | "cancel";
+    return new Promise<{ action: Action }>((resolve) => {
       const template: Electron.MenuItemConstructorOptions[] = [
         {
           label: "New Row",
@@ -324,7 +325,7 @@ function setupIpcHandlers(): void {
   });
 
   ipcMain.handle("context-menu:row", async () => {
-    return new Promise<{ action: string }>((resolve) => {
+    return new Promise<{ action: "remove" | "cancel" }>((resolve) => {
       const template: Electron.MenuItemConstructorOptions[] = [
         {
           label: "Remove Row",

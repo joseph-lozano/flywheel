@@ -227,13 +227,12 @@ contextBridge.exposeInMainWorld("api", {
   },
 
   // Native context menus
-  showProjectContextMenu: (
-    projectId: string,
-    hasWorktrees: boolean,
-  ): Promise<{ action: string }> => {
-    return ipcRenderer.invoke("context-menu:project", { projectId, hasWorktrees });
+  showProjectContextMenu: (): Promise<{
+    action: "new-row" | "discover" | "remove" | "cancel";
+  }> => {
+    return ipcRenderer.invoke("context-menu:project");
   },
-  showRowContextMenu: (): Promise<{ action: string }> => {
+  showRowContextMenu: (): Promise<{ action: "remove" | "cancel" }> => {
     return ipcRenderer.invoke("context-menu:row");
   },
 

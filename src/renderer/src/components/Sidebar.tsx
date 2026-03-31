@@ -110,7 +110,7 @@ export default function Sidebar(props: SidebarProps) {
     const onCreateRow = props.onCreateRow;
     const onDiscoverWorktrees = props.onDiscoverWorktrees;
     const onRemoveProject = props.onRemoveProject;
-    void window.api.showProjectContextMenu(projectId, hasWorktrees).then(({ action }) => {
+    void window.api.showProjectContextMenu().then(({ action }) => {
       if (action === "new-row") onCreateRow(projectId);
       else if (action === "discover") onDiscoverWorktrees(projectId);
       else if (action === "remove") {
