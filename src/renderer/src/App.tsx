@@ -86,11 +86,11 @@ export default function App() {
 
   // --- Row management ---
 
-  async function handleSwitchRow(projectId: string, targetRowId: string): Promise<void> {
+  async function handleSwitchRow(projectId: string, targetRowId: string): Promise<boolean> {
     const epoch = ++switchEpoch;
 
     const project = appStore.state.projects.find((p) => p.id === projectId);
-    if (!project) return;
+    if (!project) return false;
 
     const crossProject = projectId !== appStore.state.activeProjectId;
 
@@ -111,7 +111,7 @@ export default function App() {
     }
 
     const currentRowId = project.activeRowId;
-    if (!crossProject && currentRowId === targetRowId) return;
+    if (!crossProject && currentRowId === targetRowId) return true;
 
     // Check if target row's path still exists on disk
     const targetRow = project.rows.find((r) => r.id === targetRowId);
@@ -119,7 +119,7 @@ export default function App() {
       const { exists } = await window.api.checkRowPath(targetRow.path);
 
       // A newer switch has superseded this one — bail out
-      if (epoch !== switchEpoch) return;
+      if (epoch !== switchEpoch) return false;
 
       if (!exists) {
         // For cross-project, we already switched — show the current active row
@@ -130,7 +130,7 @@ export default function App() {
         void window.api.showMissingRowDialog(targetRow.branch).then(({ confirmed }) => {
           if (confirmed) void handleRemoveRow(targetRowId, false);
         });
-        return;
+        return false;
       }
     }
 
@@ -155,6 +155,8 @@ export default function App() {
 
     // Check for branch renames
     refreshBranches(projectId);
+
+    return true;
   }
 
   async function handleCreateRow(projectId: string): Promise<void> {
@@ -869,19 +871,21 @@ export default function App() {
         onDiscoverWorktrees={(projectId) => {
           void handleDiscoverWorktrees(projectId);
         }}
-        onOpenPrUrl={(url) => {
-          const s = activeStrip();
-          if (s) {
+        onOpenPrUrl={(projectId, rowId, url) => {
+          void handleSwitchRow(projectId, rowId).then((switched) => {
+            if (!switched) return;
+            const s = getStripStore(rowId);
             const panel = s.actions.addPanel("browser", url);
             window.api.createBrowserPanel(panel.id, url);
-          }
+          });
         }}
         onOpenRepoUrl={(projectId, url) => {
           const project = appStore.state.projects.find((p) => p.id === projectId);
           if (!project) return;
           const defaultRow = project.rows.find((r) => r.isDefault);
           if (!defaultRow) return;
-          void handleSwitchRow(projectId, defaultRow.id).then(() => {
+          void handleSwitchRow(projectId, defaultRow.id).then((switched) => {
+            if (!switched) return;
             const s = getStripStore(defaultRow.id);
             const panel = s.actions.addPanel("browser", url);
             window.api.createBrowserPanel(panel.id, url);
