@@ -1,8 +1,15 @@
-import type { Project, RemoveProjectResult, RemoveRowResult, Row } from "../shared/types";
+import type {
+  DiskRemovalError,
+  Project,
+  RemoveProjectResult,
+  RemoveRowResult,
+  Row,
+} from "../shared/types";
 
 interface ProjectRemovalDependencies {
   removeWorktree: (projectPath: string, worktreePath: string) => Promise<void>;
   cleanupRow: (rowId: string) => void;
+  removeRow: (projectId: string, rowId: string) => void;
   removeProject: (projectId: string) => void;
 }
 
@@ -12,7 +19,7 @@ interface RowRemovalDependencies {
   removeRow: (projectId: string, rowId: string) => void;
 }
 
-function toDiskRemovalError(row: Row, error: unknown) {
+function toDiskRemovalError(row: Row, error: unknown): DiskRemovalError {
   return {
     rowId: row.id,
     branch: row.branch,
@@ -31,29 +38,33 @@ export async function removeProjectTransactional(
       removed: false,
       error: "Project not found",
       diskErrors: [],
+      removedRowIds: [],
     };
   }
 
-  const diskErrors = [];
+  const diskErrors: DiskRemovalError[] = [];
+  const removedRowIds: string[] = [];
   if (deleteWorktrees) {
     for (const row of project.rows) {
       if (row.isDefault) continue;
       try {
         await dependencies.removeWorktree(project.path, row.path);
+        dependencies.cleanupRow(row.id);
+        dependencies.removeRow(project.id, row.id);
+        removedRowIds.push(row.id);
       } catch (error) {
         diskErrors.push(toDiskRemovalError(row, error));
+        return {
+          removed: false,
+          diskErrors,
+          removedRowIds,
+        };
       }
     }
   }
 
-  if (diskErrors.length > 0) {
-    return {
-      removed: false,
-      diskErrors,
-    };
-  }
-
   for (const row of project.rows) {
+    if (removedRowIds.includes(row.id)) continue;
     dependencies.cleanupRow(row.id);
   }
   dependencies.removeProject(project.id);
@@ -61,6 +72,7 @@ export async function removeProjectTransactional(
   return {
     removed: true,
     diskErrors: [],
+    removedRowIds,
   };
 }
 

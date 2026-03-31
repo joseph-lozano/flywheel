@@ -36,6 +36,14 @@ export default function App() {
     return `Failed to delete ${error.branch} at ${error.path}: ${error.message}`;
   }
 
+  function cleanupLocalRowState(rowId: string): void {
+    for (const id of [...createdPanelIds]) {
+      if (id.startsWith(rowId)) createdPanelIds.delete(id);
+    }
+    stripStores.delete(rowId);
+    stripSnapshots.delete(rowId);
+  }
+
   // --- Store helpers ---
 
   function getStripStore(rowId: string): ReturnType<typeof createStripStore> {
@@ -187,11 +195,7 @@ export default function App() {
     }
     if (!removeResult.removed) return;
 
-    for (const id of [...createdPanelIds]) {
-      if (id.startsWith(rowId)) createdPanelIds.delete(id);
-    }
-    stripStores.delete(rowId);
-    stripSnapshots.delete(rowId);
+    cleanupLocalRowState(rowId);
 
     const projectId = project.id;
     appStore.actions.removeRow(projectId, rowId);
@@ -473,6 +477,22 @@ export default function App() {
       return;
     }
     if (result.diskErrors.length > 0) {
+      if (project) {
+        for (const rowId of result.removedRowIds) {
+          cleanupLocalRowState(rowId);
+          appStore.actions.removeRow(project.id, rowId);
+        }
+
+        if (wasActive && result.removedRowIds.length > 0) {
+          const updatedProject = appStore.state.projects.find((p) => p.id === project.id);
+          if (updatedProject) {
+            window.api.hideAllPanels();
+            window.api.showPanelsByPrefix(updatedProject.activeRowId);
+            getStripStore(updatedProject.activeRowId);
+          }
+        }
+      }
+
       const detail = formatDiskRemovalError(result.diskErrors[0]);
       const extraCount = result.diskErrors.length - 1;
       showToast(extraCount > 0 ? `${detail} (+${extraCount} more)` : detail);
@@ -483,11 +503,7 @@ export default function App() {
     // Clean up all rows' panel IDs, strip stores, and snapshots
     if (project) {
       for (const row of project.rows) {
-        for (const id of [...createdPanelIds]) {
-          if (id.startsWith(row.id)) createdPanelIds.delete(id);
-        }
-        stripStores.delete(row.id);
-        stripSnapshots.delete(row.id);
+        cleanupLocalRowState(row.id);
       }
     }
 

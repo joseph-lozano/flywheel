@@ -387,6 +387,9 @@ function setupIpcHandlers(): void {
           ptyManager.killByPrefix(rowId);
           panelManager.destroyByPrefix(rowId);
         },
+        removeRow: (projectId, rowId) => {
+          projectStore.removeRow(projectId, rowId);
+        },
         removeProject: (projectId) => {
           projectStore.removeProject(projectId);
         },

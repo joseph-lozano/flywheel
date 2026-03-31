@@ -83,6 +83,7 @@ export interface RemoveProjectResult {
   removed: boolean;
   error?: string;
   diskErrors: DiskRemovalError[];
+  removedRowIds: string[];
 }
 export interface RemoveRowResult {
   removed: boolean;
