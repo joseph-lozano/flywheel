@@ -146,11 +146,13 @@ export class WorktreeManager {
     await this.git(projectPath, ["fetch", "--prune", remote]);
   }
 
-  async resolveBase(projectPath: string): Promise<string> {
-    const remote = await this.getPrimaryRemote(projectPath);
-    if (remote) {
+  async resolveBase(projectPath: string, options?: { preferRemote?: boolean }): Promise<string> {
+    if (options?.preferRemote !== false) {
+      const remote = await this.getPrimaryRemote(projectPath);
       try {
-        return await this.git(projectPath, ["rev-parse", "--verify", `${remote}/HEAD`]);
+        if (remote) {
+          return await this.git(projectPath, ["rev-parse", "--verify", `${remote}/HEAD`]);
+        }
       } catch {
         // Some remotes do not expose a HEAD symref locally; fall back to the current branch.
       }

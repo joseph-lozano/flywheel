@@ -74,6 +74,20 @@ describe("WorktreeManager", () => {
       expect(base).toBe("abc123");
     });
 
+    it("falls back to HEAD when remote HEAD cannot be resolved", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("remote")) cb(null, "origin\n");
+          else if (args.includes("origin/HEAD")) cb(new Error("missing remote HEAD"));
+          else if (args.includes("HEAD")) cb(null, "def456\n");
+          else cb(new Error("not found"));
+        },
+      );
+
+      const base = await manager.resolveBase("/test/project");
+      expect(base).toBe("def456");
+    });
+
     it("falls back to HEAD when no remote", async () => {
       mockExecFile.mockImplementation(
         (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
@@ -84,6 +98,26 @@ describe("WorktreeManager", () => {
       );
       const base = await manager.resolveBase("/test/project");
       expect(base).toBe("def456");
+    });
+
+    it("can skip remote resolution and use local HEAD directly", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("HEAD")) cb(null, "def456\n");
+          else cb(new Error("not found"));
+        },
+      );
+
+      const base = await manager.resolveBase("/test/project", { preferRemote: false });
+
+      expect(base).toBe("def456");
+      expect(mockExecFile).toHaveBeenCalledTimes(1);
+      expect(mockExecFile).toHaveBeenCalledWith(
+        "git",
+        ["-C", "/test/project", "rev-parse", "--verify", "HEAD"],
+        {},
+        expect.any(Function),
+      );
     });
   });
 
