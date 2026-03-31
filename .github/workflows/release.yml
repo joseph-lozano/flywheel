@@ -51,7 +51,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Upload test artifact
         if: github.event_name == 'workflow_dispatch'
@@ -100,7 +100,7 @@ jobs:
       - name: Package and publish
         run: pnpm exec electron-builder --linux --${{ matrix.arch }} --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Upload test artifact
         if: github.event_name == 'workflow_dispatch'
@@ -120,71 +120,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
-          run_install: false
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-
       - name: Determine tag
         id: tag
         run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
-      - name: Create release on main repo
+      - name: Update GitHub Release notes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ steps.tag.outputs.version }}"
+          VERSION="${TAG#v}"
           PRERELEASE=""
           if echo "$TAG" | grep -qE '-(alpha|beta|rc)'; then
             PRERELEASE="--prerelease"
           fi
-          gh release create "$TAG" --generate-notes $PRERELEASE
 
-          # Clean up notes: keep only feat/fix entries, strip PR links (private repo)
-          gh release view "$TAG" --json body -q .body \
-            | node scripts/clean-release-notes.js \
-            | gh release edit "$TAG" --notes-file -
+          # Extract this version's section from CHANGELOG.md (Changesets writes ## X.Y.Z, no v prefix)
+          NOTES=$(awk "/^## $VERSION/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
 
-      - name: Copy release notes to flywheel-releases
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          TAG="${{ steps.tag.outputs.version }}"
-          BODY=$(gh release view "$TAG" --repo joseph-lozano/flywheel --json body -q .body)
-          gh release edit "$TAG" --repo joseph-lozano/flywheel-releases --notes "$BODY"
-
-      - name: Update CHANGELOG.md in flywheel-releases
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          TAG="${{ steps.tag.outputs.version }}"
-          BODY=$(gh release view "$TAG" --repo joseph-lozano/flywheel --json body -q .body)
-
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/joseph-lozano/flywheel-releases.git" flywheel-releases-repo
-          cd flywheel-releases-repo
-
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog" > CHANGELOG.md
-          fi
-
-          # Create new entry: preserve header, prepend new version
-          {
-            echo "# Changelog"
-            echo ""
-            echo "## $TAG"
-            echo ""
-            echo "$BODY"
-            echo ""
-            tail -n +2 CHANGELOG.md
-          } > CHANGELOG.tmp
-          mv CHANGELOG.tmp CHANGELOG.md
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "docs: update changelog for $TAG"
-          git push
+          gh release edit "$TAG" --notes "$NOTES" $PRERELEASE
