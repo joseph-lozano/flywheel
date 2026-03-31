@@ -25,5 +25,5 @@
 ## Skip
 
 - Files under `out/` or `dist/`
-- `package-lock.json` changes
+- `pnpm-lock.yaml` changes
 - Generated type declarations
