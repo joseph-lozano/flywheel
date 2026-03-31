@@ -297,6 +297,61 @@ function setupIpcHandlers(): void {
     }
   });
 
+  // Native context menus (rendered above WebContentsViews, unlike DOM overlays)
+  ipcMain.handle("context-menu:project", async () => {
+    type Action = "new-row" | "discover" | "remove" | "cancel";
+    return new Promise<{ action: Action }>((resolve) => {
+      const template: Electron.MenuItemConstructorOptions[] = [
+        {
+          label: "New Row",
+          click: () => {
+            resolve({ action: "new-row" });
+          },
+        },
+        {
+          label: "Discover Worktrees",
+          click: () => {
+            resolve({ action: "discover" });
+          },
+        },
+        { type: "separator" },
+        {
+          label: "Remove Project",
+          click: () => {
+            resolve({ action: "remove" });
+          },
+        },
+      ];
+      const menu = Menu.buildFromTemplate(template);
+      menu.popup({
+        window: mainWindow,
+        callback: () => {
+          resolve({ action: "cancel" });
+        },
+      });
+    });
+  });
+
+  ipcMain.handle("context-menu:row", async () => {
+    return new Promise<{ action: "remove" | "cancel" }>((resolve) => {
+      const template: Electron.MenuItemConstructorOptions[] = [
+        {
+          label: "Remove Row",
+          click: () => {
+            resolve({ action: "remove" });
+          },
+        },
+      ];
+      const menu = Menu.buildFromTemplate(template);
+      menu.popup({
+        window: mainWindow,
+        callback: () => {
+          resolve({ action: "cancel" });
+        },
+      });
+    });
+  });
+
   // Native dialog: remove row confirmation
   ipcMain.handle("dialog:remove-row", async () => {
     const { response } = await dialog.showMessageBox(mainWindow, {
