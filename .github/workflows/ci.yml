@@ -23,9 +23,13 @@ jobs:
       - name: Detect changed files
         if: github.event_name == 'pull_request'
         id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-          if echo "$CHANGED" | grep -qE '\.(ts|tsx|js|jsx|cjs|mjs|json)$|eslint\.config|tsconfig|vitest|electron\.(vite|builder)|\.github/workflows'; then
+          CHANGED=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+          # Skip CI only when ALL changed files are known non-code files.
+          # Unknown file types default to triggering CI (safer).
+          if echo "$CHANGED" | grep -qvE '\.(md|png|svg|icns|gif|jpg|jpeg)$|^docs/|^LICENSE'; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
