@@ -565,16 +565,17 @@ function setupIpcHandlers(): void {
       }
     }
 
-    // Run cleanup hook before removal
+    // Fire cleanup hook in the background (non-blocking)
     if (targetRow) {
       const hookCommand = configManager.get().hooks?.onWorktreeRemove;
-      const hookResult = await runCleanupHook(hookCommand, targetRow.path);
-      if (!hookResult.ok) {
-        chromeView.webContents.send("toast", {
-          message: `Cleanup hook failed: ${hookResult.error}`,
-          type: "error",
-        });
-      }
+      void runCleanupHook(hookCommand, targetRow.path).then((hookResult) => {
+        if (!hookResult.ok) {
+          chromeView.webContents.send("toast", {
+            message: `Cleanup hook failed: ${hookResult.error}`,
+            type: "error",
+          });
+        }
+      });
     }
 
     return await removeRowTransactional(targetProject, targetRow, data.deleteFromDisk, {
