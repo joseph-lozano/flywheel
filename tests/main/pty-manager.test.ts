@@ -244,6 +244,56 @@ describe("PtyManager exit handling", () => {
   });
 });
 
+describe("startup hook", () => {
+  let manager: PtyManager;
+  const mockSendToPanel = vi.fn();
+  const mockSendToChrome = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    let onDataCb: ((data: string) => void) | null = null;
+    let onExitCb: ((exit: { exitCode: number }) => void) | null = null;
+    mockPty.onData = vi.fn((cb: (data: string) => void) => {
+      onDataCb = cb;
+      return { dispose: vi.fn() };
+    });
+    mockPty.onExit = vi.fn((cb: (exit: { exitCode: number }) => void) => {
+      onExitCb = cb;
+      return { dispose: vi.fn() };
+    });
+    mockPty.process = defaultShellName;
+    mockPty._triggerData = (data: string) => onDataCb?.(data);
+    mockPty._triggerExit = (code: number) => onExitCb?.({ exitCode: code });
+    manager = new PtyManager(mockSendToPanel, mockSendToChrome);
+  });
+
+  afterEach(() => {
+    manager.dispose();
+    vi.useRealTimers();
+  });
+
+  it("writes hook command to PTY after first data", () => {
+    manager.create("panel-1", "/tmp/cwd", "pnpm install");
+    mockPty._triggerData?.("$ ");
+    expect(mockPty.write).toHaveBeenCalledWith("pnpm install\n");
+  });
+
+  it("does not write hook command when hookCommand is undefined", () => {
+    manager.create("panel-1", "/tmp/cwd");
+    mockPty._triggerData?.("$ ");
+    expect(mockPty.write).not.toHaveBeenCalled();
+  });
+
+  it("writes hook command only once even with multiple data events", () => {
+    manager.create("panel-1", "/tmp/cwd", "pnpm install");
+    mockPty._triggerData?.("$ ");
+    mockPty._triggerData?.("more output");
+    expect(mockPty.write).toHaveBeenCalledTimes(1);
+    expect(mockPty.write).toHaveBeenCalledWith("pnpm install\n");
+  });
+});
+
 describe("PtyManager environment injection", () => {
   let manager: PtyManager;
   const mockSendToPanel = vi.fn();

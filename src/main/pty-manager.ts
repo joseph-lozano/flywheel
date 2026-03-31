@@ -32,7 +32,7 @@ export class PtyManager {
     }, FLUSH_INTERVAL_MS);
   }
 
-  create(panelId: string, cwd?: string): void {
+  create(panelId: string, cwd?: string, hookCommand?: string): void {
     if (this.ptys.has(panelId)) return;
     const shell = process.env.SHELL ?? "/bin/zsh";
     const shellName = basename(shell);
@@ -49,6 +49,7 @@ export class PtyManager {
       cwd: cwd ?? process.cwd(),
       env,
     });
+    let hookFired = false;
     const managed: ManagedPty = {
       panelId,
       pty: ptyProcess,
@@ -59,6 +60,10 @@ export class PtyManager {
     };
     ptyProcess.onData((data: string) => {
       if (!managed.disposed) managed.buffer += data;
+      if (hookCommand && !hookFired) {
+        hookFired = true;
+        ptyProcess.write(hookCommand + "\n");
+      }
     });
     ptyProcess.onExit(({ exitCode }) => {
       if (!managed.disposed) {
