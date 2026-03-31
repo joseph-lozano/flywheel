@@ -26,6 +26,21 @@ export function sanitizeFaviconUrl(url: string | null): string | null {
   return url && /^https?:\/\//.test(url) ? url : null;
 }
 
+/** Only allow browser panels to navigate to http/https URLs or about:blank. */
+export function sanitizeBrowserUrl(url: string | null): string | null {
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "about:") {
+      return parsed.href === "about:blank" ? parsed.href : null;
+    }
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
 interface ManagedPanel {
   id: string;
   type: "terminal" | "placeholder" | "browser";
@@ -126,8 +141,9 @@ export class PanelManager {
     // suppress any stray window.open() calls. Browser panels route target="_blank"
     // to create new strip panels.
     view.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
-      if (panelType === "browser") {
-        this.chromeView.webContents.send("browser:open-url", { url: targetUrl });
+      const safeTargetUrl = sanitizeBrowserUrl(targetUrl);
+      if (panelType === "browser" && safeTargetUrl) {
+        this.chromeView.webContents.send("browser:open-url", { url: safeTargetUrl });
       }
       return { action: "deny" };
     });
@@ -136,14 +152,19 @@ export class PanelManager {
       view.webContents.on("context-menu", (_event, params) => {
         const menuItems: Electron.MenuItemConstructorOptions[] = [];
 
+        const safeLinkUrl = sanitizeBrowserUrl(params.linkURL);
         if (params.linkURL) {
           menuItems.push(
-            {
-              label: "Open Link in Browser Panel",
-              click: () => {
-                this.chromeView.webContents.send("browser:open-url", { url: params.linkURL });
-              },
-            },
+            ...(safeLinkUrl
+              ? [
+                  {
+                    label: "Open Link in Browser Panel",
+                    click: () => {
+                      this.chromeView.webContents.send("browser:open-url", { url: safeLinkUrl });
+                    },
+                  } satisfies Electron.MenuItemConstructorOptions,
+                ]
+              : []),
             {
               label: "Copy Link Address",
               click: () => {
@@ -169,11 +190,12 @@ export class PanelManager {
               },
             },
           );
-          if (params.srcURL) {
+          const safeImageUrl = sanitizeBrowserUrl(params.srcURL);
+          if (safeImageUrl) {
             menuItems.push({
               label: "Open Image in Browser Panel",
               click: () => {
-                this.chromeView.webContents.send("browser:open-url", { url: params.srcURL });
+                this.chromeView.webContents.send("browser:open-url", { url: safeImageUrl });
               },
             });
           }
@@ -233,7 +255,7 @@ export class PanelManager {
         });
       }
     } else if (panelType === "browser") {
-      const url = "url" in options ? options.url : "about:blank";
+      const url = sanitizeBrowserUrl("url" in options ? options.url : null) ?? "about:blank";
       void view.webContents.loadURL(url);
 
       // Create the chrome strip view for browser panels
@@ -347,7 +369,9 @@ export class PanelManager {
   navigateBrowser(id: string, url: string): void {
     const panel = this.panels.get(id);
     if (panel?.type !== "browser") return;
-    void panel.view.webContents.loadURL(url);
+    const safeUrl = sanitizeBrowserUrl(url);
+    if (!safeUrl) return;
+    void panel.view.webContents.loadURL(safeUrl);
   }
 
   reloadBrowser(id: string): void {

@@ -9,7 +9,7 @@ import { initAutoUpdater } from "./auto-updater";
 import { ConfigManager } from "./config-manager";
 import { filterDiscoveredWorktrees } from "./discover";
 import { fixPath } from "./fix-path";
-import { PanelManager } from "./panel-manager";
+import { PanelManager, sanitizeBrowserUrl } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
 import { PtyManager } from "./pty-manager";
@@ -220,7 +220,9 @@ function setupIpcHandlers(): void {
 
   // Browser host chrome strip → navigate
   ipcMain.on("browser:navigate-from-host", (_event, data: { panelId: string; url: string }) => {
-    panelManager.navigateBrowser(data.panelId, data.url);
+    const safeUrl = sanitizeBrowserUrl(data.url);
+    if (!safeUrl) return;
+    panelManager.navigateBrowser(data.panelId, safeUrl);
   });
 
   // Chrome view → send chrome state to a panel's views

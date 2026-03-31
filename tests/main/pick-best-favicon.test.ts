@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { pickBestFavicon, sanitizeFaviconUrl } from "../../src/main/panel-manager";
+import {
+  pickBestFavicon,
+  sanitizeBrowserUrl,
+  sanitizeFaviconUrl,
+} from "../../src/main/panel-manager";
 
 describe("pickBestFavicon", () => {
   it("returns null for empty array", () => {
@@ -81,5 +85,43 @@ describe("sanitizeFaviconUrl", () => {
 
   it("returns null for null input", () => {
     expect(sanitizeFaviconUrl(null)).toBeNull();
+  });
+});
+
+describe("sanitizeBrowserUrl", () => {
+  it("allows https URLs", () => {
+    expect(sanitizeBrowserUrl("https://example.com/docs")).toBe("https://example.com/docs");
+  });
+
+  it("allows http URLs", () => {
+    expect(sanitizeBrowserUrl("http://localhost:3000/")).toBe("http://localhost:3000/");
+  });
+
+  it("allows about:blank", () => {
+    expect(sanitizeBrowserUrl("about:blank")).toBe("about:blank");
+  });
+
+  it("rejects other about URLs", () => {
+    expect(sanitizeBrowserUrl("about:srcdoc")).toBeNull();
+  });
+
+  it("rejects file URLs", () => {
+    expect(sanitizeBrowserUrl("file:///etc/passwd")).toBeNull();
+  });
+
+  it("rejects javascript URLs", () => {
+    expect(sanitizeBrowserUrl("javascript:alert(1)")).toBeNull();
+  });
+
+  it("rejects data URLs", () => {
+    expect(sanitizeBrowserUrl("data:text/html,<h1>hi</h1>")).toBeNull();
+  });
+
+  it("rejects invalid URLs", () => {
+    expect(sanitizeBrowserUrl("not a url")).toBeNull();
+  });
+
+  it("returns null for null input", () => {
+    expect(sanitizeBrowserUrl(null)).toBeNull();
   });
 });
