@@ -264,10 +264,21 @@ function setupIpcHandlers(): void {
 
     if (ptyManager.isBusy(data.panelId)) {
       const processName = ptyManager.getForegroundProcess(data.panelId) ?? "unknown";
-      chromeView.webContents.send("pty:confirm-close", {
-        panelId: data.panelId,
-        processName,
-      });
+      void dialog
+        .showMessageBox(mainWindow, {
+          type: "warning",
+          message: `Process "${processName}" is running. Close anyway?`,
+          buttons: ["Cancel", "Close"],
+          defaultId: 0,
+          cancelId: 0,
+        })
+        .then(({ response }) => {
+          if (response === 1) {
+            ptyManager.kill(data.panelId);
+            panelManager.destroyPanel(data.panelId);
+            chromeView.webContents.send("pty:exit", { panelId: data.panelId, exitCode: -1 });
+          }
+        });
     } else {
       // kill() sets disposed=true before calling pty.kill(), which suppresses the
       // real onExit callback. We must send a synthetic pty:exit so the chrome view
@@ -278,16 +289,46 @@ function setupIpcHandlers(): void {
     }
   });
 
-  ipcMain.on(
-    "pty:confirm-close-response",
-    (_event, data: { panelId: string; confirmed: boolean }) => {
-      if (data.confirmed) {
-        ptyManager.kill(data.panelId);
-        panelManager.destroyPanel(data.panelId);
-        chromeView.webContents.send("pty:exit", { panelId: data.panelId, exitCode: -1 });
-      }
-    },
-  );
+  // Native dialog: remove row confirmation
+  ipcMain.handle("dialog:remove-row", async () => {
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: "question",
+      message: "Remove this worktree row?",
+      buttons: ["Cancel", "Remove from Flywheel", "Remove and delete from disk"],
+      defaultId: 0,
+      cancelId: 0,
+    });
+    if (response === 1) return { action: "remove" as const };
+    if (response === 2) return { action: "delete" as const };
+    return { action: "cancel" as const };
+  });
+
+  // Native dialog: remove project confirmation
+  ipcMain.handle("dialog:remove-project", async () => {
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: "question",
+      message: "This project has worktree rows. Delete them from disk?",
+      buttons: ["Cancel", "Remove from Flywheel", "Remove and delete worktrees"],
+      defaultId: 0,
+      cancelId: 0,
+    });
+    if (response === 1) return { action: "remove" as const };
+    if (response === 2) return { action: "delete" as const };
+    return { action: "cancel" as const };
+  });
+
+  // Native dialog: missing row
+  ipcMain.handle("dialog:missing-row", async (_event, data: { branch: string }) => {
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: "warning",
+      message: "Worktree not found",
+      detail: `The directory for "${data.branch}" no longer exists on disk.`,
+      buttons: ["Cancel", "Remove Row"],
+      defaultId: 0,
+      cancelId: 0,
+    });
+    return { confirmed: response === 1 };
+  });
 
   // Focus management
   ipcMain.on("panel:focus", (_event, data: { panelId: string }) => {

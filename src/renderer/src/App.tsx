@@ -1,9 +1,7 @@
 import { Show, batch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import { LAYOUT, THEME } from "../../shared/constants";
 import type { PanelBoundsUpdate } from "../../shared/types";
-import ConfirmDialog from "./components/ConfirmDialog";
 import HintBar from "./components/HintBar";
-import MissingRowDialog from "./components/MissingRowDialog";
 import ScrollIndicators from "./components/ScrollIndicators";
 import Sidebar from "./components/Sidebar";
 import Strip from "./components/Strip";
@@ -23,15 +21,6 @@ export default function App() {
 
   let switchEpoch = 0; // Concurrency guard: "latest wins" for async row/project switches
 
-  const [confirmClose, setConfirmClose] = createSignal<{
-    panelId: string;
-    processName: string;
-  } | null>(null);
-  const [missingRow, setMissingRow] = createSignal<{
-    projectId: string;
-    rowId: string;
-    branch: string;
-  } | null>(null);
   const [viewportHeight, setViewportHeight] = createSignal(window.innerHeight);
   const [toast, setToast] = createSignal<{ message: string; type: "error" | "info" } | null>(null);
   const [appDefaultZoom, setAppDefaultZoom] = createSignal(0);
@@ -138,7 +127,9 @@ export default function App() {
           window.api.showPanelsByPrefix(currentRowId);
           getStripStore(currentRowId);
         }
-        setMissingRow({ projectId, rowId: targetRowId, branch: targetRow.branch });
+        void window.api.showMissingRowDialog(targetRow.branch).then(({ confirmed }) => {
+          if (confirmed) void handleRemoveRow(targetRowId, false);
+        });
         return;
       }
     }
@@ -648,25 +639,6 @@ export default function App() {
     }
   }
 
-  // --- Confirm close ---
-
-  function handleConfirmResponse(confirmed: boolean): void {
-    const data = confirmClose();
-    if (data) {
-      window.api.confirmCloseResponse(data.panelId, confirmed);
-      if (confirmed) {
-        const strip = findStripByPanelId(data.panelId);
-        if (strip) {
-          strip.actions.removePanelById(data.panelId);
-        }
-        createdPanelIds.delete(data.panelId);
-      }
-      setConfirmClose(null);
-      const activeProject = appStore.actions.getActiveProject();
-      if (activeProject) window.api.showPanelsByPrefix(activeProject.activeRowId);
-    }
-  }
-
   // --- Mount ---
 
   onMount(() => {
@@ -698,11 +670,6 @@ export default function App() {
       const strip = findStripByPanelId(data.panelId);
       if (strip) strip.actions.removePanelById(data.panelId);
       createdPanelIds.delete(data.panelId);
-    });
-
-    window.api.onConfirmClose((data) => {
-      window.api.hideAllPanels();
-      setConfirmClose(data);
     });
 
     window.api.onPanelTitle((data) => {
@@ -921,13 +888,6 @@ export default function App() {
           });
         }}
         onBlurPanels={() => activeStrip()?.actions.blurPanel()}
-        onModalShow={() => {
-          window.api.hideAllPanels();
-        }}
-        onModalHide={() => {
-          const project = appStore.actions.getActiveProject();
-          if (project) window.api.showPanelsByPrefix(project.activeRowId);
-        }}
       />
       <Strip
         layout={layout()}
@@ -948,31 +908,6 @@ export default function App() {
         sidebarWidth={sidebarWidth()}
         rowCount={appStore.actions.getActiveProject()?.rows.length ?? 0}
       />
-      <Show when={confirmClose()} keyed>
-        {(data) => (
-          <ConfirmDialog
-            processName={data.processName}
-            onConfirm={() => {
-              handleConfirmResponse(true);
-            }}
-            onCancel={() => {
-              handleConfirmResponse(false);
-            }}
-          />
-        )}
-      </Show>
-      <Show when={missingRow()} keyed>
-        {(data) => (
-          <MissingRowDialog
-            branch={data.branch}
-            onCancel={() => setMissingRow(null)}
-            onRemove={() => {
-              void handleRemoveRow(data.rowId, false);
-              setMissingRow(null);
-            }}
-          />
-        )}
-      </Show>
       <Show when={toast()} keyed>
         {(t) => (
           <div

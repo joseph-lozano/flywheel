@@ -30,10 +30,8 @@ interface FlywheelAPI {
   createTerminal(panelId: string): void;
   onPtyExit(callback: (data: { panelId: string; exitCode: number }) => void): void;
 
-  // Close with busy-check
+  // Close with busy-check (confirmation handled by native dialog in main process)
   closePanel(panelId: string): void;
-  onConfirmClose(callback: (data: { panelId: string; processName: string }) => void): void;
-  confirmCloseResponse(panelId: string, confirmed: boolean): void;
 
   // Focus management
   focusPanel(panelId: string): void;
@@ -100,6 +98,11 @@ interface FlywheelAPI {
   checkBranches(projectId: string): Promise<CheckBranchesResult>;
   checkPrStatus(projectId: string): Promise<CheckPrStatusResult>;
   checkRowPath(path: string): Promise<{ exists: boolean }>;
+
+  // Native dialogs
+  showRemoveRowDialog(): Promise<{ action: "remove" | "delete" | "cancel" }>;
+  showRemoveProjectDialog(): Promise<{ action: "remove" | "delete" | "cancel" }>;
+  showMissingRowDialog(branch: string): Promise<{ confirmed: boolean }>;
 
   // Zoom
   zoomPanel(panelId: string, direction: "in" | "out" | "reset", defaultValue?: number): void;
