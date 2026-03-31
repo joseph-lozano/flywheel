@@ -292,6 +292,21 @@ describe("startup hook", () => {
     expect(mockPty.write).toHaveBeenCalledTimes(1);
     expect(mockPty.write).toHaveBeenCalledWith("pnpm install\n");
   });
+
+  it("fires hook via fallback timer if shell produces no output", () => {
+    manager.create("panel-1", "/tmp/cwd", "pnpm install");
+    expect(mockPty.write).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(500);
+    expect(mockPty.write).toHaveBeenCalledWith("pnpm install\n");
+  });
+
+  it("cancels fallback timer when data arrives first", () => {
+    manager.create("panel-1", "/tmp/cwd", "pnpm install");
+    mockPty._triggerData?.("$ ");
+    expect(mockPty.write).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(500);
+    expect(mockPty.write).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("PtyManager environment injection", () => {

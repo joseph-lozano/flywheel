@@ -40,6 +40,24 @@ export class ConfigManager {
     return this.config;
   }
 
+  getForProject(projectPath: string): FlywheelConfig {
+    const layers: Partial<FlywheelConfig>[] = [];
+
+    const local = this.readYaml(join(projectPath, "flywheel.local.yaml"));
+    if (local) layers.push(local);
+
+    const project = this.readYaml(join(projectPath, "flywheel.yaml"));
+    if (project) layers.push(project);
+
+    const globalPath = this.getGlobalConfigPath();
+    if (globalPath) {
+      const global = this.readYaml(globalPath);
+      if (global) layers.push(global);
+    }
+
+    return mergeConfigs(layers);
+  }
+
   private buildConfig(): FlywheelConfig {
     const layers: Partial<FlywheelConfig>[] = [];
 

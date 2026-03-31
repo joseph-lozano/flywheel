@@ -153,6 +153,18 @@ describe("ConfigManager", () => {
     expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
   });
 
+  it("getForProject reads config for a different project without changing active config", () => {
+    mockFiles.set("/some/project/flywheel.yaml", "preferences:\n  terminal:\n    fontSize: 16");
+    mockFiles.set("/other/project/flywheel.yaml", "hooks:\n  onWorktreeRemove: git clean -xdf");
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    const otherConfig = manager.getForProject("/other/project");
+    expect(otherConfig.hooks?.onWorktreeRemove).toBe("git clean -xdf");
+    // Active config unchanged
+    expect(manager.get().preferences.terminal.fontSize).toBe(16);
+    expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
+  });
+
   it("keeps valid values when sibling values have wrong types", () => {
     mockFiles.set(
       "/some/project/flywheel.yaml",
