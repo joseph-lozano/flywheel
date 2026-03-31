@@ -95,7 +95,7 @@ interface SidebarProps {
   onCreateRow: (projectId: string) => void;
   onRemoveRow: (rowId: string, deleteFromDisk: boolean) => void;
   onDiscoverWorktrees: (projectId: string) => void;
-  onOpenPrUrl?: (url: string) => void;
+  onOpenPrUrl?: (projectId: string, rowId: string, url: string) => void;
   onOpenRepoUrl?: (projectId: string, url: string) => void;
   onBlurPanels?: () => void;
 }
@@ -339,7 +339,9 @@ export default function Sidebar(props: SidebarProps) {
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (row.prUrl) props.onOpenPrUrl?.(row.prUrl);
+                                  if (row.prUrl) {
+                                    props.onOpenPrUrl?.(project.id, row.id, row.prUrl);
+                                  }
                                 }}
                               >
                                 #{row.prNumber}
