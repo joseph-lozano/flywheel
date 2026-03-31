@@ -137,7 +137,8 @@ function setupIpcHandlers(): void {
       if (data.type === "terminal") {
         panelManager.createPanel(data.id, { type: "terminal" });
       } else if (data.type === "browser") {
-        panelManager.createPanel(data.id, { type: "browser", url: data.url ?? "about:blank" });
+        const safeUrl = sanitizeBrowserUrl(data.url ?? null) ?? "about:blank";
+        panelManager.createPanel(data.id, { type: "browser", url: safeUrl });
       } else {
         panelManager.createPanel(data.id, { color: data.color ?? "#333" });
       }
