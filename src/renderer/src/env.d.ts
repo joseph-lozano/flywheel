@@ -44,6 +44,9 @@ interface FlywheelAPI {
   hideAllPanels(): void;
   showAllPanels(): void;
 
+  // Terminal panels
+  clearTerminal(panelId: string): void;
+
   // Browser panels
   createBrowserPanel(id: string, url: string): void;
   reloadBrowser(panelId: string): void;

@@ -90,6 +90,11 @@ export class PanelManager {
         else if (input.key === "," || input.key === "<") action = { type: "reload-config" };
         else if (input.key === "i") action = { type: "toggle-devtools" };
       } else {
+        if (input.key === "k" && panelType === "terminal") {
+          event.preventDefault();
+          view.webContents.send("terminal:clear");
+          return;
+        }
         if (input.key === "ArrowLeft") action = { type: "focus-left" };
         else if (input.key === "ArrowRight") action = { type: "focus-right" };
         else if (input.key === "t") action = { type: "new-panel" };

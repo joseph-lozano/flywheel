@@ -70,6 +70,11 @@ contextBridge.exposeInMainWorld("pty", {
       callback(data);
     });
   },
+  onClear: (callback: () => void) => {
+    ipcRenderer.on("terminal:clear", () => {
+      callback();
+    });
+  },
   closePanel: (panelId: string) => {
     ipcRenderer.send("panel:close-request", { panelId });
   },
