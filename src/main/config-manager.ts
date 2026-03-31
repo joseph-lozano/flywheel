@@ -17,6 +17,10 @@ interface RawYamlConfig {
       defaultZoom?: unknown;
     };
   };
+  hooks?: {
+    onWorktreeCreate?: unknown;
+    onWorktreeRemove?: unknown;
+  };
 }
 
 export class ConfigManager {
@@ -82,33 +86,45 @@ export class ConfigManager {
 
   private validateTypes(obj: RawYamlConfig, path: string): void {
     const prefs = obj.preferences;
-    if (!prefs || typeof prefs !== "object") return;
-
-    const terminal = prefs.terminal;
-    if (terminal && typeof terminal === "object") {
-      if (terminal.fontFamily !== undefined && typeof terminal.fontFamily !== "string") {
-        console.warn(`Invalid terminal.fontFamily in ${path}, expected string`);
-        delete terminal.fontFamily;
+    if (prefs && typeof prefs === "object") {
+      const terminal = prefs.terminal;
+      if (terminal && typeof terminal === "object") {
+        if (terminal.fontFamily !== undefined && typeof terminal.fontFamily !== "string") {
+          console.warn(`Invalid terminal.fontFamily in ${path}, expected string`);
+          delete terminal.fontFamily;
+        }
+        if (terminal.fontSize !== undefined && typeof terminal.fontSize !== "number") {
+          console.warn(`Invalid terminal.fontSize in ${path}, expected number`);
+          delete terminal.fontSize;
+        }
       }
-      if (terminal.fontSize !== undefined && typeof terminal.fontSize !== "number") {
-        console.warn(`Invalid terminal.fontSize in ${path}, expected number`);
-        delete terminal.fontSize;
+
+      const browser = prefs.browser;
+      if (browser && typeof browser === "object") {
+        if (browser.defaultZoom !== undefined && typeof browser.defaultZoom !== "number") {
+          console.warn(`Invalid browser.defaultZoom in ${path}, expected number`);
+          delete browser.defaultZoom;
+        }
+      }
+
+      const appPrefs = prefs.app;
+      if (appPrefs && typeof appPrefs === "object") {
+        if (appPrefs.defaultZoom !== undefined && typeof appPrefs.defaultZoom !== "number") {
+          console.warn(`Invalid app.defaultZoom in ${path}, expected number`);
+          delete appPrefs.defaultZoom;
+        }
       }
     }
 
-    const browser = prefs.browser;
-    if (browser && typeof browser === "object") {
-      if (browser.defaultZoom !== undefined && typeof browser.defaultZoom !== "number") {
-        console.warn(`Invalid browser.defaultZoom in ${path}, expected number`);
-        delete browser.defaultZoom;
+    const hooks = obj.hooks;
+    if (hooks && typeof hooks === "object") {
+      if (hooks.onWorktreeCreate !== undefined && typeof hooks.onWorktreeCreate !== "string") {
+        console.warn(`Invalid hooks.onWorktreeCreate in ${path}, expected string`);
+        delete hooks.onWorktreeCreate;
       }
-    }
-
-    const appPrefs = prefs.app;
-    if (appPrefs && typeof appPrefs === "object") {
-      if (appPrefs.defaultZoom !== undefined && typeof appPrefs.defaultZoom !== "number") {
-        console.warn(`Invalid app.defaultZoom in ${path}, expected number`);
-        delete appPrefs.defaultZoom;
+      if (hooks.onWorktreeRemove !== undefined && typeof hooks.onWorktreeRemove !== "string") {
+        console.warn(`Invalid hooks.onWorktreeRemove in ${path}, expected string`);
+        delete hooks.onWorktreeRemove;
       }
     }
   }

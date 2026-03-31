@@ -120,6 +120,39 @@ describe("ConfigManager", () => {
     expect(config.preferences.app.defaultZoom).toBe(DEFAULT_CONFIG.preferences.app.defaultZoom);
   });
 
+  it("loads hooks from project config", () => {
+    mockFiles.set(
+      "/some/project/flywheel.yaml",
+      "hooks:\n  onWorktreeCreate: pnpm install\n  onWorktreeRemove: git clean -xdf",
+    );
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    expect(manager.get().hooks?.onWorktreeCreate).toBe("pnpm install");
+    expect(manager.get().hooks?.onWorktreeRemove).toBe("git clean -xdf");
+  });
+
+  it("drops hooks values with wrong types", () => {
+    mockFiles.set(
+      "/some/project/flywheel.yaml",
+      "hooks:\n  onWorktreeCreate: 123\n  onWorktreeRemove: true",
+    );
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    expect(manager.get().hooks?.onWorktreeCreate).toBeUndefined();
+    expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
+  });
+
+  it("keeps valid hook when sibling has wrong type", () => {
+    mockFiles.set(
+      "/some/project/flywheel.yaml",
+      'hooks:\n  onWorktreeCreate: "pnpm install"\n  onWorktreeRemove: 42',
+    );
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    expect(manager.get().hooks?.onWorktreeCreate).toBe("pnpm install");
+    expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
+  });
+
   it("keeps valid values when sibling values have wrong types", () => {
     mockFiles.set(
       "/some/project/flywheel.yaml",
