@@ -135,11 +135,14 @@ jobs:
           TAG="${{ steps.tag.outputs.version }}"
           VERSION="${TAG#v}"
           PRERELEASE=""
-          if echo "$TAG" | grep -qE '-(alpha|beta|rc)'; then
+          if [[ "$TAG" =~ -(alpha|beta|rc) ]]; then
             PRERELEASE="--prerelease"
           fi
 
           # Extract this version's section from CHANGELOG.md (Changesets writes ## X.Y.Z, no v prefix)
-          NOTES=$(awk "/^## $VERSION/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+          NOTES=""
+          if [ -f CHANGELOG.md ]; then
+            NOTES=$(awk "/^## $VERSION/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+          fi
 
           gh release edit "$TAG" --notes "$NOTES" $PRERELEASE
