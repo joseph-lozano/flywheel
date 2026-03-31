@@ -99,6 +99,10 @@ interface FlywheelAPI {
   checkPrStatus(projectId: string): Promise<CheckPrStatusResult>;
   checkRowPath(path: string): Promise<{ exists: boolean }>;
 
+  // Native context menus
+  showProjectContextMenu(projectId: string, hasWorktrees: boolean): Promise<{ action: string }>;
+  showRowContextMenu(): Promise<{ action: string }>;
+
   // Native dialogs
   showRemoveRowDialog(): Promise<{ action: "remove" | "delete" | "cancel" }>;
   showRemoveProjectDialog(): Promise<{ action: "remove" | "delete" | "cancel" }>;

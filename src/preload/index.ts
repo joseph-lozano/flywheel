@@ -226,6 +226,17 @@ contextBridge.exposeInMainWorld("api", {
     return ipcRenderer.invoke("row:check-path", { path });
   },
 
+  // Native context menus
+  showProjectContextMenu: (
+    projectId: string,
+    hasWorktrees: boolean,
+  ): Promise<{ action: string }> => {
+    return ipcRenderer.invoke("context-menu:project", { projectId, hasWorktrees });
+  },
+  showRowContextMenu: (): Promise<{ action: string }> => {
+    return ipcRenderer.invoke("context-menu:row");
+  },
+
   // Native dialogs
   showRemoveRowDialog: (): Promise<{ action: "remove" | "delete" | "cancel" }> => {
     return ipcRenderer.invoke("dialog:remove-row");

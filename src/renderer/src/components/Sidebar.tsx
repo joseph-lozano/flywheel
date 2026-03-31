@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
+import { For, Show, createSignal } from "solid-js";
 import { SIDEBAR, THEME } from "../../../shared/constants";
 import type { Project } from "../../../shared/types";
 
@@ -101,42 +101,45 @@ interface SidebarProps {
 }
 
 export default function Sidebar(props: SidebarProps) {
-  const [contextMenu, setContextMenu] = createSignal<{
-    x: number;
-    y: number;
-    projectId?: string;
-    rowId?: string;
-    isDefault?: boolean;
-  } | null>(null);
   const [hoveredId, setHoveredId] = createSignal<string | null>(null);
 
   function handleProjectContext(e: MouseEvent, projectId: string) {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, projectId });
+    const project = props.projects.find((p) => p.id === projectId);
+    const hasWorktrees = project?.rows.some((r) => !r.isDefault) ?? false;
+    const onCreateRow = props.onCreateRow;
+    const onDiscoverWorktrees = props.onDiscoverWorktrees;
+    const onRemoveProject = props.onRemoveProject;
+    void window.api.showProjectContextMenu(projectId, hasWorktrees).then(({ action }) => {
+      if (action === "new-row") onCreateRow(projectId);
+      else if (action === "discover") onDiscoverWorktrees(projectId);
+      else if (action === "remove") {
+        if (hasWorktrees) {
+          void window.api.showRemoveProjectDialog().then(({ action: dialogAction }) => {
+            if (dialogAction === "remove") onRemoveProject(projectId, false);
+            else if (dialogAction === "delete") onRemoveProject(projectId, true);
+          });
+        } else {
+          onRemoveProject(projectId, false);
+        }
+      }
+    });
   }
 
   function handleRowContext(e: MouseEvent, rowId: string, isDefault: boolean) {
     e.preventDefault();
     e.stopPropagation();
     if (isDefault) return;
-    setContextMenu({ x: e.clientX, y: e.clientY, rowId, isDefault });
+    const onRemoveRow = props.onRemoveRow;
+    void window.api.showRowContextMenu().then(({ action }) => {
+      if (action === "remove") {
+        void window.api.showRemoveRowDialog().then(({ action: dialogAction }) => {
+          if (dialogAction === "remove") onRemoveRow(rowId, false);
+          else if (dialogAction === "delete") onRemoveRow(rowId, true);
+        });
+      }
+    });
   }
-
-  function closeContextMenu() {
-    setContextMenu(null);
-  }
-
-  createEffect(() => {
-    if (contextMenu()) {
-      const handler = () => {
-        closeContextMenu();
-      };
-      window.addEventListener("click", handler);
-      onCleanup(() => {
-        window.removeEventListener("click", handler);
-      });
-    }
-  });
 
   return (
     <div
@@ -156,7 +159,6 @@ export default function Sidebar(props: SidebarProps) {
         "z-index": "20",
       }}
       onMouseDown={() => props.onBlurPanels?.()}
-      onClick={closeContextMenu}
     >
       {/* Header */}
       <div
@@ -375,115 +377,6 @@ export default function Sidebar(props: SidebarProps) {
       >
         + Add Project
       </div>
-
-      {/* Context menu */}
-      <Show when={contextMenu()} keyed>
-        {(menu) => (
-          <div
-            style={{
-              position: "fixed",
-              left: `${menu.x}px`,
-              top: `${menu.y}px`,
-              background: THEME.faint,
-              border: `1px solid ${SIDEBAR.BORDER_COLOR}`,
-              "border-radius": "4px",
-              padding: "4px 0",
-              "z-index": "100",
-              "box-shadow": "0 4px 12px rgba(0,0,0,0.4)",
-            }}
-          >
-            <Show when={menu.projectId}>
-              <div
-                style={{
-                  padding: "6px 16px",
-                  color: THEME.text,
-                  "font-size": "11px",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                onClick={() => {
-                  const pid = menu.projectId;
-                  if (pid) props.onCreateRow(pid);
-                  setContextMenu(null);
-                }}
-              >
-                New Row
-              </div>
-              <div
-                style={{
-                  padding: "6px 16px",
-                  color: THEME.text,
-                  "font-size": "11px",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                onClick={() => {
-                  const pid = menu.projectId;
-                  if (pid) props.onDiscoverWorktrees(pid);
-                  setContextMenu(null);
-                }}
-              >
-                Discover Worktrees
-              </div>
-              <div
-                style={{
-                  padding: "6px 16px",
-                  color: THEME.danger,
-                  "font-size": "11px",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(244,63,94,0.1)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                onClick={() => {
-                  const pid = menu.projectId;
-                  if (!pid) return;
-                  const project = props.projects.find((p) => p.id === pid);
-                  const hasWorktrees = project?.rows.some((r) => !r.isDefault);
-                  setContextMenu(null);
-                  if (hasWorktrees) {
-                    // eslint-disable-next-line solid/reactivity -- callback from native dialog, not reactive tracking
-                    void window.api.showRemoveProjectDialog().then(({ action }) => {
-                      if (action === "remove") props.onRemoveProject(pid, false);
-                      else if (action === "delete") props.onRemoveProject(pid, true);
-                    });
-                  } else {
-                    props.onRemoveProject(pid, false);
-                  }
-                }}
-              >
-                Remove Project
-              </div>
-            </Show>
-            <Show when={menu.rowId && !menu.isDefault}>
-              <div
-                style={{
-                  padding: "6px 16px",
-                  color: THEME.danger,
-                  "font-size": "11px",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(244,63,94,0.1)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                onClick={() => {
-                  const rid = menu.rowId;
-                  setContextMenu(null);
-                  if (rid) {
-                    // eslint-disable-next-line solid/reactivity -- callback from native dialog, not reactive tracking
-                    void window.api.showRemoveRowDialog().then(({ action }) => {
-                      if (action === "remove") props.onRemoveRow(rid, false);
-                      else if (action === "delete") props.onRemoveRow(rid, true);
-                    });
-                  }
-                }}
-              >
-                Remove Row
-              </div>
-            </Show>
-          </div>
-        )}
-      </Show>
     </div>
   );
 }
