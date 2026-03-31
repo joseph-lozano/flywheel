@@ -52,7 +52,8 @@ describe("WorktreeManager", () => {
     it("resolves origin/HEAD when remote exists", async () => {
       mockExecFile.mockImplementation(
         (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
-          if (args.includes("origin/HEAD")) cb(null, "abc123\n");
+          if (args.includes("remote")) cb(null, "origin\n");
+          else if (args.includes("origin/HEAD")) cb(null, "abc123\n");
           else cb(new Error("not found"));
         },
       );
@@ -60,16 +61,111 @@ describe("WorktreeManager", () => {
       expect(base).toBe("abc123");
     });
 
+    it("uses the configured remote when origin is absent", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("remote")) cb(null, "upstream\n");
+          else if (args.includes("upstream/HEAD")) cb(null, "abc123\n");
+          else cb(new Error("not found"));
+        },
+      );
+
+      const base = await manager.resolveBase("/test/project");
+      expect(base).toBe("abc123");
+    });
+
+    it("falls back to HEAD when remote HEAD cannot be resolved", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("remote")) cb(null, "origin\n");
+          else if (args.includes("origin/HEAD")) cb(new Error("missing remote HEAD"));
+          else if (args.includes("HEAD")) cb(null, "def456\n");
+          else cb(new Error("not found"));
+        },
+      );
+
+      const base = await manager.resolveBase("/test/project");
+      expect(base).toBe("def456");
+    });
+
     it("falls back to HEAD when no remote", async () => {
       mockExecFile.mockImplementation(
         (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
-          if (args.includes("origin/HEAD")) cb(new Error("no remote"));
+          if (args.includes("remote")) cb(null, "\n");
           else if (args.includes("HEAD")) cb(null, "def456\n");
           else cb(new Error("not found"));
         },
       );
       const base = await manager.resolveBase("/test/project");
       expect(base).toBe("def456");
+    });
+
+    it("can skip remote resolution and use local HEAD directly", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("HEAD")) cb(null, "def456\n");
+          else cb(new Error("not found"));
+        },
+      );
+
+      const base = await manager.resolveBase("/test/project", { preferRemote: false });
+
+      expect(base).toBe("def456");
+      expect(mockExecFile).toHaveBeenCalledTimes(1);
+      expect(mockExecFile).toHaveBeenCalledWith(
+        "git",
+        ["-C", "/test/project", "rev-parse", "--verify", "HEAD"],
+        {},
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe("fetchLatestRemote", () => {
+    it("fetches origin when a remote is configured", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("remote")) cb(null, "upstream\norigin\n");
+          else if (args.includes("fetch")) cb(null, "");
+          else cb(new Error("not found"));
+        },
+      );
+
+      await manager.fetchLatestRemote("/test/project");
+
+      expect(mockExecFile).toHaveBeenNthCalledWith(
+        1,
+        "git",
+        ["-C", "/test/project", "remote"],
+        {},
+        expect.any(Function),
+      );
+      expect(mockExecFile).toHaveBeenNthCalledWith(
+        2,
+        "git",
+        ["-C", "/test/project", "fetch", "--prune", "origin"],
+        {},
+        expect.any(Function),
+      );
+    });
+
+    it("does nothing when no remote is configured", async () => {
+      mockExecFile.mockImplementation(
+        (_cmd: string, args: string[], _opts: unknown, cb: ExecFileCallback) => {
+          if (args.includes("remote")) cb(null, "\n");
+          else cb(new Error("not found"));
+        },
+      );
+
+      await manager.fetchLatestRemote("/test/project");
+
+      expect(mockExecFile).toHaveBeenCalledTimes(1);
+      expect(mockExecFile).toHaveBeenCalledWith(
+        "git",
+        ["-C", "/test/project", "remote"],
+        {},
+        expect.any(Function),
+      );
     });
   });
 

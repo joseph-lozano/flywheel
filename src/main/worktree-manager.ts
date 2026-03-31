@@ -139,12 +139,26 @@ export class WorktreeManager {
     return join(this.worktreeRoot, projectName, worktreeName);
   }
 
-  async resolveBase(projectPath: string): Promise<string> {
-    try {
-      return await this.git(projectPath, ["rev-parse", "--verify", "origin/HEAD"]);
-    } catch {
-      return await this.git(projectPath, ["rev-parse", "--verify", "HEAD"]);
+  async fetchLatestRemote(projectPath: string): Promise<void> {
+    const remote = await this.getPrimaryRemote(projectPath);
+    if (!remote) return;
+
+    await this.git(projectPath, ["fetch", "--prune", remote]);
+  }
+
+  async resolveBase(projectPath: string, options?: { preferRemote?: boolean }): Promise<string> {
+    if (options?.preferRemote !== false) {
+      const remote = await this.getPrimaryRemote(projectPath);
+      try {
+        if (remote) {
+          return await this.git(projectPath, ["rev-parse", "--verify", `${remote}/HEAD`]);
+        }
+      } catch {
+        // Some remotes do not expose a HEAD symref locally; fall back to the current branch.
+      }
     }
+
+    return await this.git(projectPath, ["rev-parse", "--verify", "HEAD"]);
   }
 
   async createWorktree(
@@ -205,6 +219,17 @@ export class WorktreeManager {
 
   async getDefaultBranch(projectPath: string): Promise<string> {
     return await this.git(projectPath, ["rev-parse", "--abbrev-ref", "HEAD"]);
+  }
+
+  private async getPrimaryRemote(projectPath: string): Promise<string | null> {
+    const output = await this.git(projectPath, ["remote"]);
+    const remotes = output
+      .split("\n")
+      .map((remote) => remote.trim())
+      .filter((remote) => remote.length > 0);
+
+    if (remotes.includes("origin")) return "origin";
+    return remotes[0] ?? null;
   }
 
   private git(cwd: string, args: string[]): Promise<string> {

@@ -543,7 +543,20 @@ function setupIpcHandlers(): void {
     const worktreePath = worktreeManager.getWorktreePath(project.name, name);
 
     try {
-      const base = await worktreeManager.resolveBase(project.path);
+      let base: string;
+
+      try {
+        await worktreeManager.fetchLatestRemote(project.path);
+        base = await worktreeManager.resolveBase(project.path);
+      } catch (err) {
+        console.warn(`Failed to fetch latest remote for ${project.path}:`, err);
+        chromeView.webContents.send("toast", {
+          message: "Failed to fetch latest remote. Creating worktree from local HEAD instead.",
+          type: "info",
+        });
+        base = await worktreeManager.resolveBase(project.path, { preferRemote: false });
+      }
+
       await worktreeManager.createWorktree(project.path, name, worktreePath, base);
     } catch (err) {
       return { error: `Failed to create worktree: ${(err as Error).message}` };
