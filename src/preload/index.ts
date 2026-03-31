@@ -72,20 +72,9 @@ contextBridge.exposeInMainWorld("api", {
     });
   },
 
-  // New: Close with busy-check
+  // Close with busy-check (confirmation now handled by native dialog in main process)
   closePanel: (panelId: string) => {
     ipcRenderer.send("panel:close-request", { panelId });
-  },
-  onConfirmClose: (callback: (data: { panelId: string; processName: string }) => void) => {
-    ipcRenderer.on(
-      "pty:confirm-close",
-      (_event, data: { panelId: string; processName: string }) => {
-        callback(data);
-      },
-    );
-  },
-  confirmCloseResponse: (panelId: string, confirmed: boolean) => {
-    ipcRenderer.send("pty:confirm-close-response", { panelId, confirmed });
   },
 
   // Focus management
@@ -235,6 +224,17 @@ contextBridge.exposeInMainWorld("api", {
   },
   checkRowPath: (path: string): Promise<{ exists: boolean }> => {
     return ipcRenderer.invoke("row:check-path", { path });
+  },
+
+  // Native dialogs
+  showRemoveRowDialog: (): Promise<{ action: "remove" | "delete" | "cancel" }> => {
+    return ipcRenderer.invoke("dialog:remove-row");
+  },
+  showRemoveProjectDialog: (): Promise<{ action: "remove" | "delete" | "cancel" }> => {
+    return ipcRenderer.invoke("dialog:remove-project");
+  },
+  showMissingRowDialog: (branch: string): Promise<{ confirmed: boolean }> => {
+    return ipcRenderer.invoke("dialog:missing-row", { branch });
   },
 
   // Zoom

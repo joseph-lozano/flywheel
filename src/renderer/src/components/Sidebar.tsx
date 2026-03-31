@@ -1,8 +1,6 @@
 import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
 import { SIDEBAR, THEME } from "../../../shared/constants";
 import type { Project } from "../../../shared/types";
-import RemoveProjectDialog from "./RemoveProjectDialog";
-import RemoveRowDialog from "./RemoveRowDialog";
 
 // Lucide icons as inline SVGs
 function ChevronDown(props: { size?: number; color?: string }) {
@@ -99,8 +97,6 @@ interface SidebarProps {
   onDiscoverWorktrees: (projectId: string) => void;
   onOpenPrUrl?: (url: string) => void;
   onOpenRepoUrl?: (projectId: string, url: string) => void;
-  onModalShow?: () => void;
-  onModalHide?: () => void;
   onBlurPanels?: () => void;
 }
 
@@ -113,10 +109,6 @@ export default function Sidebar(props: SidebarProps) {
     isDefault?: boolean;
   } | null>(null);
   const [hoveredId, setHoveredId] = createSignal<string | null>(null);
-  const [removeConfirm, setRemoveConfirm] = createSignal<{ rowId: string } | null>(null);
-  const [removeProjectConfirm, setRemoveProjectConfirm] = createSignal<{
-    projectId: string;
-  } | null>(null);
 
   function handleProjectContext(e: MouseEvent, projectId: string) {
     e.preventDefault();
@@ -451,8 +443,11 @@ export default function Sidebar(props: SidebarProps) {
                   const hasWorktrees = project?.rows.some((r) => !r.isDefault);
                   setContextMenu(null);
                   if (hasWorktrees) {
-                    setRemoveProjectConfirm({ projectId: pid });
-                    props.onModalShow?.();
+                    // eslint-disable-next-line solid/reactivity -- callback from native dialog, not reactive tracking
+                    void window.api.showRemoveProjectDialog().then(({ action }) => {
+                      if (action === "remove") props.onRemoveProject(pid, false);
+                      else if (action === "delete") props.onRemoveProject(pid, true);
+                    });
                   } else {
                     props.onRemoveProject(pid, false);
                   }
@@ -473,59 +468,20 @@ export default function Sidebar(props: SidebarProps) {
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 onClick={() => {
                   const rid = menu.rowId;
-                  if (rid) setRemoveConfirm({ rowId: rid });
                   setContextMenu(null);
-                  props.onModalShow?.();
+                  if (rid) {
+                    // eslint-disable-next-line solid/reactivity -- callback from native dialog, not reactive tracking
+                    void window.api.showRemoveRowDialog().then(({ action }) => {
+                      if (action === "remove") props.onRemoveRow(rid, false);
+                      else if (action === "delete") props.onRemoveRow(rid, true);
+                    });
+                  }
                 }}
               >
                 Remove Row
               </div>
             </Show>
           </div>
-        )}
-      </Show>
-
-      {/* Row removal confirmation */}
-      <Show when={removeConfirm()} keyed>
-        {(confirm) => (
-          <RemoveRowDialog
-            onRemoveFromFlywheel={() => {
-              props.onRemoveRow(confirm.rowId, false);
-              setRemoveConfirm(null);
-              props.onModalHide?.();
-            }}
-            onDeleteFromDisk={() => {
-              props.onRemoveRow(confirm.rowId, true);
-              setRemoveConfirm(null);
-              props.onModalHide?.();
-            }}
-            onCancel={() => {
-              setRemoveConfirm(null);
-              props.onModalHide?.();
-            }}
-          />
-        )}
-      </Show>
-
-      {/* Project removal confirmation (when project has worktree rows) */}
-      <Show when={removeProjectConfirm()} keyed>
-        {(confirm) => (
-          <RemoveProjectDialog
-            onRemoveFromFlywheel={() => {
-              props.onRemoveProject(confirm.projectId, false);
-              setRemoveProjectConfirm(null);
-              props.onModalHide?.();
-            }}
-            onDeleteWorktrees={() => {
-              props.onRemoveProject(confirm.projectId, true);
-              setRemoveProjectConfirm(null);
-              props.onModalHide?.();
-            }}
-            onCancel={() => {
-              setRemoveProjectConfirm(null);
-              props.onModalHide?.();
-            }}
-          />
         )}
       </Show>
     </div>
