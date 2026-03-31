@@ -186,8 +186,8 @@ contextBridge.exposeInMainWorld("api", {
   listProjects: (): Promise<{ projects: Project[]; activeProjectId: string | null }> => {
     return ipcRenderer.invoke("project:list");
   },
-  createTerminalWithCwd: (panelId: string, cwd: string) => {
-    ipcRenderer.send("pty:create", { panelId, cwd });
+  createTerminalWithCwd: (panelId: string, cwd: string, runHook?: boolean) => {
+    ipcRenderer.send("pty:create", { panelId, cwd, runHook });
   },
   hidePanelsByPrefix: (prefix: string) => {
     ipcRenderer.send("panel:hide-by-prefix", { prefix });

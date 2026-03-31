@@ -17,6 +17,7 @@ export default function App() {
   const stripStores = new Map<string, ReturnType<typeof createStripStore>>();
   const stripSnapshots = new Map<string, StripSnapshot>();
   const createdPanelIds = new Set<string>();
+  const newlyCreatedRows = new Set<string>();
   let currentAnimation: AnimationHandle | null = null;
 
   let switchEpoch = 0; // Concurrency guard: "latest wins" for async row/project switches
@@ -177,6 +178,7 @@ export default function App() {
       showToast(result.error);
       return;
     }
+    newlyCreatedRows.add(result.row.id);
     appStore.actions.addRow(projectId, result.row);
     void handleSwitchRow(projectId, result.row.id);
   }
@@ -378,8 +380,9 @@ export default function App() {
     if (!strip || !row) return;
     if (strip.state.panels.length > 0) return;
 
+    const runHook = newlyCreatedRows.delete(row.id);
     const panel = strip.actions.addPanel("terminal");
-    window.api.createTerminalWithCwd(panel.id, row.path);
+    window.api.createTerminalWithCwd(panel.id, row.path, runHook || undefined);
   });
 
   // --- Wheel handler ---

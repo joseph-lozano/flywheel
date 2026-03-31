@@ -181,8 +181,12 @@ function setupIpcHandlers(): void {
   });
 
   // PTY handlers
-  ipcMain.on("pty:create", (_event, data: { panelId: string; cwd?: string }) => {
-    ptyManager.create(data.panelId, data.cwd);
+  ipcMain.on("pty:create", (_event, data: { panelId: string; cwd?: string; runHook?: boolean }) => {
+    let hookCommand: string | undefined;
+    if (data.runHook) {
+      hookCommand = configManager.get().hooks?.onWorktreeCreate;
+    }
+    ptyManager.create(data.panelId, data.cwd, hookCommand);
   });
 
   ipcMain.on("pty:input", (_event, data: { panelId: string; data: string }) => {
