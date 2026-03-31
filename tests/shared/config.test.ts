@@ -49,3 +49,35 @@ describe("mergeConfigs", () => {
     expect(result.preferences.terminal.fontSize).toBe(20);
   });
 });
+
+describe("hooks config", () => {
+  it("DEFAULT_CONFIG has no hooks", () => {
+    expect(DEFAULT_CONFIG.hooks).toBeUndefined();
+  });
+
+  it("merges hooks from override", () => {
+    const override = {
+      hooks: {
+        onWorktreeCreate: "pnpm install",
+        onWorktreeRemove: "git clean -xdf",
+      },
+    } as Partial<FlywheelConfig>;
+    const result = mergeConfigs([override]);
+    expect(result.hooks?.onWorktreeCreate).toBe("pnpm install");
+    expect(result.hooks?.onWorktreeRemove).toBe("git clean -xdf");
+    // preferences still get defaults
+    expect(result.preferences.terminal.fontFamily).toBe("monospace");
+  });
+
+  it("higher-precedence hooks override lower", () => {
+    const local = {
+      hooks: { onWorktreeCreate: "npm ci" },
+    } as Partial<FlywheelConfig>;
+    const project = {
+      hooks: { onWorktreeCreate: "pnpm install", onWorktreeRemove: "rm -rf node_modules" },
+    } as Partial<FlywheelConfig>;
+    const result = mergeConfigs([local, project]);
+    expect(result.hooks?.onWorktreeCreate).toBe("npm ci");
+    expect(result.hooks?.onWorktreeRemove).toBe("rm -rf node_modules");
+  });
+});
