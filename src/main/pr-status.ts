@@ -1,5 +1,5 @@
 import { execFile } from "child_process";
-import type { PrStatus } from "../shared/types";
+import type { BranchPrInfo, PrStatus } from "../shared/types";
 
 interface GhPrEntry {
   headRefName: string;
@@ -13,6 +13,10 @@ interface GhPrEntry {
 export function createPrStatus() {
   let ghCheck: boolean | null = null;
 
+  function emptyPrStatuses(): ReadonlyMap<string, BranchPrInfo> {
+    return new Map<string, BranchPrInfo>();
+  }
+
   async function ghAvailable(): Promise<boolean> {
     if (ghCheck !== null) return ghCheck;
     return new Promise((resolve) => {
@@ -23,11 +27,9 @@ export function createPrStatus() {
     });
   }
 
-  async function fetchPrStatuses(
-    projectPath: string,
-  ): Promise<Map<string, { status: PrStatus; url: string; number: number }>> {
+  async function fetchPrStatuses(projectPath: string): Promise<ReadonlyMap<string, BranchPrInfo>> {
     const available = await ghAvailable();
-    if (!available) return new Map<string, { status: PrStatus; url: string; number: number }>();
+    if (!available) return emptyPrStatuses();
 
     return new Promise((resolve) => {
       execFile(
@@ -45,7 +47,7 @@ export function createPrStatus() {
         { cwd: projectPath },
         (err, stdout) => {
           if (err) {
-            resolve(new Map<string, { status: PrStatus; url: string; number: number }>());
+            resolve(emptyPrStatuses());
             return;
           }
 
@@ -60,7 +62,7 @@ export function createPrStatus() {
               }
             }
 
-            const result = new Map<string, { status: PrStatus; url: string; number: number }>();
+            const result = new Map<string, BranchPrInfo>();
             for (const [branch, pr] of byBranch) {
               let status: PrStatus;
               if (pr.state === "MERGED") {
@@ -76,7 +78,7 @@ export function createPrStatus() {
             }
             resolve(result);
           } catch {
-            resolve(new Map<string, { status: PrStatus; url: string; number: number }>());
+            resolve(emptyPrStatuses());
           }
         },
       );

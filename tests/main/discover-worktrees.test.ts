@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { filterDiscoveredWorktrees } from "../../src/main/discover";
-import type { Project, PrStatus } from "../../src/shared/types";
+import type { BranchPrInfo, Project } from "../../src/shared/types";
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
@@ -35,9 +35,9 @@ describe("filterDiscoveredWorktrees", () => {
   ];
 
   it("skips worktrees whose branch has a merged PR", () => {
-    const prStatuses = new Map<string, PrStatus>([
-      ["feat-merged", "merged"],
-      ["feat-open", "open"],
+    const prStatuses = new Map<string, BranchPrInfo>([
+      ["feat-merged", { status: "merged", url: "https://example.com/pr/1", number: 1 }],
+      ["feat-open", { status: "open", url: "https://example.com/pr/2", number: 2 }],
     ]);
 
     const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses);
@@ -51,10 +51,10 @@ describe("filterDiscoveredWorktrees", () => {
   });
 
   it("skips worktrees whose branch has a closed or merged PR", () => {
-    const prStatuses = new Map<string, PrStatus>([
-      ["feat-merged", "merged"],
-      ["feat-closed", "closed"],
-      ["feat-open", "draft"],
+    const prStatuses = new Map<string, BranchPrInfo>([
+      ["feat-merged", { status: "merged", url: "https://example.com/pr/1", number: 1 }],
+      ["feat-closed", { status: "closed", url: "https://example.com/pr/2", number: 2 }],
+      ["feat-open", { status: "draft", url: "https://example.com/pr/3", number: 3 }],
     ]);
 
     const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses);
@@ -68,7 +68,7 @@ describe("filterDiscoveredWorktrees", () => {
   });
 
   it("adds all worktrees when gh is unavailable (empty map)", () => {
-    const prStatuses = new Map<string, PrStatus>();
+    const prStatuses = new Map<string, BranchPrInfo>();
 
     const rows = filterDiscoveredWorktrees(project, worktrees, prStatuses);
     const branches = rows.map((r) => r.branch);
