@@ -21,6 +21,12 @@ export interface Project {
 
 export type PrStatus = "draft" | "open" | "merged" | "closed";
 
+export interface BranchPrInfo {
+  status: PrStatus;
+  url: string;
+  number: number;
+}
+
 export interface Row {
   id: string;
   projectId: string;

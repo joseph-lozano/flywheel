@@ -1,12 +1,12 @@
 import { randomUUID } from "crypto";
 import { goldenAngleColor } from "../shared/constants";
-import type { Project, PrStatus, Row } from "../shared/types";
+import type { BranchPrInfo, Project, Row } from "../shared/types";
 import type { WorktreeInfo } from "./worktree-manager";
 
 export function filterDiscoveredWorktrees(
   project: Project,
   worktrees: WorktreeInfo[],
-  prStatuses: Map<string, PrStatus>,
+  prStatuses: ReadonlyMap<string, BranchPrInfo>,
 ): Row[] {
   const existingPaths = new Set(project.rows.map((r) => r.path));
   const newRows: Row[] = [];
@@ -15,7 +15,7 @@ export function filterDiscoveredWorktrees(
     if (existingPaths.has(wt.path)) continue;
     if (wt.path === project.path) continue;
     const prStatus = prStatuses.get(wt.branch);
-    if (prStatus === "merged" || prStatus === "closed") continue;
+    if (prStatus?.status === "merged" || prStatus?.status === "closed") continue;
     const row: Row = {
       id: randomUUID(),
       projectId: project.id,

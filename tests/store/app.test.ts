@@ -222,7 +222,9 @@ describe("PR status updates", () => {
   it("updatePrStatuses sets prStatus on matching rows", () => {
     withAppStore(({ state, actions }) => {
       actions.addProject(mkProject("p1", "test"));
-      actions.updatePrStatuses("p1", [{ rowId: "p1-row-default", prStatus: "open" }]);
+      actions.updatePrStatuses("p1", [
+        { rowId: "p1-row-default", prStatus: "open", prUrl: undefined, prNumber: undefined },
+      ]);
       expect(state.projects[0].rows[0].prStatus).toBe("open");
     });
   });
@@ -230,8 +232,12 @@ describe("PR status updates", () => {
   it("updatePrStatuses clears prStatus when undefined", () => {
     withAppStore(({ state, actions }) => {
       actions.addProject(mkProject("p1", "test"));
-      actions.updatePrStatuses("p1", [{ rowId: "p1-row-default", prStatus: "open" }]);
-      actions.updatePrStatuses("p1", [{ rowId: "p1-row-default", prStatus: undefined }]);
+      actions.updatePrStatuses("p1", [
+        { rowId: "p1-row-default", prStatus: "open", prUrl: undefined, prNumber: undefined },
+      ]);
+      actions.updatePrStatuses("p1", [
+        { rowId: "p1-row-default", prStatus: undefined, prUrl: undefined, prNumber: undefined },
+      ]);
       expect(state.projects[0].rows[0].prStatus).toBeUndefined();
     });
   });
@@ -239,7 +245,9 @@ describe("PR status updates", () => {
   it("updatePrStatuses ignores unknown project", () => {
     withAppStore(({ state, actions }) => {
       actions.addProject(mkProject("p1", "test"));
-      actions.updatePrStatuses("unknown", [{ rowId: "p1-row-default", prStatus: "open" }]);
+      actions.updatePrStatuses("unknown", [
+        { rowId: "p1-row-default", prStatus: "open", prUrl: undefined, prNumber: undefined },
+      ]);
       expect(state.projects[0].rows[0].prStatus).toBeUndefined();
     });
   });

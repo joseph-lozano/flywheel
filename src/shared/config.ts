@@ -55,9 +55,9 @@ function deepMerge(
 }
 
 export function mergeConfigs(layers: Partial<FlywheelConfig>[]): FlywheelConfig {
-  let result = structuredClone(DEFAULT_CONFIG) as Record<string, unknown>;
+  let result = structuredClone(DEFAULT_CONFIG) as unknown as Record<string, unknown>;
   for (let i = layers.length - 1; i >= 0; i--) {
-    result = deepMerge(result, layers[i] as Record<string, unknown>);
+    result = deepMerge(result, layers[i] as unknown as Record<string, unknown>);
   }
   return result as unknown as FlywheelConfig;
 }
