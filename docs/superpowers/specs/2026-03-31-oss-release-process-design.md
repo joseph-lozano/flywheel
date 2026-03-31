@@ -48,6 +48,7 @@ Add scripts to `package.json`:
 **Contributor workflow:** Run `pnpm changeset` during a PR to generate a `.changeset/*.md` file describing the change (patch/minor/major + description). Commit the file alongside the PR changes.
 
 **Release workflow (manual):**
+
 1. Run `pnpm changeset version` — bumps `package.json`, writes/updates `CHANGELOG.md`, deletes consumed changeset files
 2. Review `CHANGELOG.md`
 3. Commit (`chore: release vX.Y.Z`), tag (`git tag vX.Y.Z`), push both
