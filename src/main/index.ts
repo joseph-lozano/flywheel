@@ -13,6 +13,7 @@ import { PanelManager } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
 import { PtyManager } from "./pty-manager";
+import { removeProjectTransactional, removeRowTransactional } from "./remove";
 import { installScripts } from "./scripts";
 import { WorktreeManager } from "./worktree-manager";
 
@@ -378,25 +379,21 @@ function setupIpcHandlers(): void {
     "project:remove",
     async (_event, data: { projectId: string; deleteWorktrees: boolean }) => {
       const project = projectStore.getProjects().find((p) => p.id === data.projectId);
-      const errors: string[] = [];
-      if (project) {
-        for (const row of project.rows) {
-          ptyManager.killByPrefix(row.id);
-          panelManager.destroyByPrefix(row.id);
-        }
-        if (data.deleteWorktrees) {
-          for (const row of project.rows) {
-            if (row.isDefault) continue;
-            try {
-              await worktreeManager.removeWorktree(project.path, row.path);
-            } catch (err) {
-              errors.push((err as Error).message);
-            }
-          }
-        }
-      }
-      projectStore.removeProject(data.projectId);
-      return { errors };
+      return await removeProjectTransactional(project, data.deleteWorktrees, {
+        removeWorktree: (projectPath, worktreePath) => {
+          return worktreeManager.removeWorktree(projectPath, worktreePath);
+        },
+        cleanupRow: (rowId) => {
+          ptyManager.killByPrefix(rowId);
+          panelManager.destroyByPrefix(rowId);
+        },
+        removeRow: (projectId, rowId) => {
+          projectStore.removeRow(projectId, rowId);
+        },
+        removeProject: (projectId) => {
+          projectStore.removeProject(projectId);
+        },
+      });
     },
   );
 
@@ -489,24 +486,18 @@ function setupIpcHandlers(): void {
       }
     }
 
-    if (!targetProject || !targetRow) return { error: "Row not found" };
-    if (targetRow.isDefault) return { error: "Cannot remove the default row" };
-
-    // Kill PTYs and destroy panels for this row
-    ptyManager.killByPrefix(data.rowId);
-    panelManager.destroyByPrefix(data.rowId);
-
-    let diskError: string | undefined;
-    if (data.deleteFromDisk) {
-      try {
-        await worktreeManager.removeWorktree(targetProject.path, targetRow.path);
-      } catch (err) {
-        diskError = (err as Error).message;
-      }
-    }
-
-    projectStore.removeRow(targetProject.id, data.rowId);
-    return { error: diskError };
+    return await removeRowTransactional(targetProject, targetRow, data.deleteFromDisk, {
+      removeWorktree: (projectPath, worktreePath) => {
+        return worktreeManager.removeWorktree(projectPath, worktreePath);
+      },
+      cleanupRow: (rowId) => {
+        ptyManager.killByPrefix(rowId);
+        panelManager.destroyByPrefix(rowId);
+      },
+      removeRow: (projectId, rowId) => {
+        projectStore.removeRow(projectId, rowId);
+      },
+    });
   });
 
   ipcMain.handle("row:discover", async (_event, data: { projectId: string }) => {

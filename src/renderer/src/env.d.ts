@@ -7,6 +7,7 @@ import type {
   CreateRowResult,
   DiscoverWorktreesResult,
   Project,
+  RemoveProjectResult,
   RemoveRowResult,
 } from "../../shared/types";
 
@@ -78,7 +79,7 @@ interface FlywheelAPI {
 
   // Project management
   addProject(): Promise<Project | null>;
-  removeProject(projectId: string, deleteWorktrees?: boolean): Promise<{ errors: string[] }>;
+  removeProject(projectId: string, deleteWorktrees?: boolean): Promise<RemoveProjectResult>;
   switchProject(projectId: string): void;
   listProjects(): Promise<{
     projects: Project[];

@@ -1,6 +1,6 @@
 import { Show, batch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import { LAYOUT, THEME } from "../../shared/constants";
-import type { PanelBoundsUpdate } from "../../shared/types";
+import type { DiskRemovalError, PanelBoundsUpdate } from "../../shared/types";
 import HintBar from "./components/HintBar";
 import ScrollIndicators from "./components/ScrollIndicators";
 import Sidebar from "./components/Sidebar";
@@ -30,6 +30,18 @@ export default function App() {
     clearTimeout(toastTimer);
     setToast({ message, type });
     toastTimer = setTimeout(() => setToast(null), 3000);
+  }
+
+  function formatDiskRemovalError(error: DiskRemovalError): string {
+    return `Failed to delete ${error.branch} at ${error.path}: ${error.message}`;
+  }
+
+  function cleanupLocalRowState(rowId: string): void {
+    for (const id of [...createdPanelIds]) {
+      if (id.startsWith(rowId)) createdPanelIds.delete(id);
+    }
+    stripStores.delete(rowId);
+    stripSnapshots.delete(rowId);
   }
 
   // --- Store helpers ---
@@ -175,13 +187,17 @@ export default function App() {
     const wasActive = project.activeRowId === rowId;
 
     const removeResult = await window.api.removeRow(rowId, deleteFromDisk);
-    if (removeResult.error) showToast(removeResult.error);
-
-    for (const id of [...createdPanelIds]) {
-      if (id.startsWith(rowId)) createdPanelIds.delete(id);
+    if (removeResult.error) {
+      showToast(removeResult.error);
+      return;
     }
-    stripStores.delete(rowId);
-    stripSnapshots.delete(rowId);
+    if (removeResult.diskError) {
+      showToast(formatDiskRemovalError(removeResult.diskError));
+      return;
+    }
+    if (!removeResult.removed) return;
+
+    cleanupLocalRowState(rowId);
 
     const projectId = project.id;
     appStore.actions.removeRow(projectId, rowId);
@@ -458,18 +474,36 @@ export default function App() {
     const wasActive = appStore.state.activeProjectId === projectId;
 
     const result = await window.api.removeProject(projectId, deleteWorktrees);
-    if (result.errors.length > 0) {
-      showToast(`Failed to remove ${result.errors.length} worktree(s)`);
+    if (result.error) {
+      showToast(result.error);
+      return;
     }
+    if (result.diskError) {
+      if (project) {
+        for (const rowId of result.removedRowIds) {
+          cleanupLocalRowState(rowId);
+          appStore.actions.removeRow(project.id, rowId);
+        }
+
+        if (wasActive && result.removedRowIds.length > 0) {
+          const updatedProject = appStore.state.projects.find((p) => p.id === project.id);
+          if (updatedProject) {
+            window.api.hideAllPanels();
+            window.api.showPanelsByPrefix(updatedProject.activeRowId);
+            getStripStore(updatedProject.activeRowId);
+          }
+        }
+      }
+
+      showToast(formatDiskRemovalError(result.diskError));
+      return;
+    }
+    if (!result.removed) return;
 
     // Clean up all rows' panel IDs, strip stores, and snapshots
     if (project) {
       for (const row of project.rows) {
-        for (const id of [...createdPanelIds]) {
-          if (id.startsWith(row.id)) createdPanelIds.delete(id);
-        }
-        stripStores.delete(row.id);
-        stripSnapshots.delete(row.id);
+        cleanupLocalRowState(row.id);
       }
     }
 
