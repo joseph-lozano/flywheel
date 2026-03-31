@@ -1,7 +1,3 @@
-preferences:
-  app:
-    defaultZoom: 2
-
 hooks:
   onWorktreeCreate: "mise trust && mise install && pnpm install --frozen-lockfile"
   onWorktreeRemove: "git clean -xdf"

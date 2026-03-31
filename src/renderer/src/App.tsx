@@ -814,11 +814,11 @@ export default function App() {
       window.api.zoomApp("reset", config.preferences.app.defaultZoom);
     });
 
-    // Re-apply app zoom on config reload (only if defaultZoom changed)
     window.api.onToast((data) => {
       showToast(data.message, data.type);
     });
 
+    // Re-apply app zoom on config reload (only if defaultZoom changed)
     // eslint-disable-next-line solid/reactivity -- IPC handler intentionally reads latest reactive state
     window.api.onConfigUpdated((config) => {
       const prev = appDefaultZoom();
