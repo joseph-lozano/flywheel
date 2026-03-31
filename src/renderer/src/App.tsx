@@ -713,7 +713,7 @@ export default function App() {
         const strip = findStripByPanelId(data.panelId);
         if (strip) {
           const idx = strip.state.panels.findIndex((p) => p.id === data.panelId);
-          if (idx >= 0 && idx !== strip.state.focusedIndex) {
+          if (idx >= 0) {
             strip.actions.jumpTo(idx);
           }
         }
