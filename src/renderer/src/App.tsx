@@ -777,35 +777,17 @@ export default function App() {
       clearInterval(branchCheckInterval);
     });
 
-    // PR status polling — runs every 15s while window is focused
-    let prStatusInterval: ReturnType<typeof setInterval> | null = null;
-
-    function startPrPolling(): void {
-      if (prStatusInterval) return;
+    // PR status polling — runs every 15s
+    {
       const project = appStore.actions.getActiveProject();
       if (project) refreshPrStatuses(project.id);
-      prStatusInterval = setInterval(() => {
-        const project = appStore.actions.getActiveProject();
-        if (project) refreshPrStatuses(project.id);
-      }, 15_000);
     }
-
-    function stopPrPolling(): void {
-      if (prStatusInterval) {
-        clearInterval(prStatusInterval);
-        prStatusInterval = null;
-      }
-    }
-
-    // Start polling immediately (app starts focused)
-    startPrPolling();
-
-    window.addEventListener("focus", startPrPolling);
-    window.addEventListener("blur", stopPrPolling);
+    const prStatusInterval = setInterval(() => {
+      const project = appStore.actions.getActiveProject();
+      if (project) refreshPrStatuses(project.id);
+    }, 15_000);
     onCleanup(() => {
-      stopPrPolling();
-      window.removeEventListener("focus", startPrPolling);
-      window.removeEventListener("blur", stopPrPolling);
+      clearInterval(prStatusInterval);
     });
 
     // Apply app zoom from config on startup
