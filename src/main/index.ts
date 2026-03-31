@@ -193,6 +193,18 @@ function setupIpcHandlers(): void {
     ptyManager.resize(data.panelId, data.cols, data.rows);
   });
 
+  ipcMain.on("terminal:drop-files", (_event, data: { panelId?: unknown; paths?: unknown }) => {
+    if (typeof data.panelId !== "string" || data.panelId.length === 0) return;
+    if (
+      !Array.isArray(data.paths) ||
+      !data.paths.every((path): path is string => typeof path === "string")
+    ) {
+      return;
+    }
+    if (!ptyManager.hasPty(data.panelId)) return;
+    ptyManager.dropFiles(data.panelId, data.paths);
+  });
+
   // Terminal clear (from chrome shortcut handler)
   ipcMain.on("terminal:clear", (_event, data: { panelId: string }) => {
     const view = panelManager.getPanelView(data.panelId);

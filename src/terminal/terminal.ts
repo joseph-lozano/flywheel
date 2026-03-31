@@ -12,6 +12,7 @@ declare global {
   interface Window {
     pty: {
       input: (panelId: string, data: string) => void;
+      dropFiles: (panelId: string, files: File[]) => void;
       onOutput: (callback: (data: string) => void) => void;
       resize: (panelId: string, cols: number, rows: number) => void;
       onExit: (callback: (exitCode: number) => void) => void;
@@ -40,6 +41,11 @@ const panelId = window.pty.getPanelId();
 let terminal: Terminal;
 let fitAddon: FitAddon;
 
+function hasDroppedFiles(event: DragEvent): boolean {
+  const types = event.dataTransfer?.types;
+  return types ? Array.from(types).includes("Files") : false;
+}
+
 async function initTerminal(): Promise<void> {
   const config = await window.pty.getConfig();
 
@@ -59,6 +65,43 @@ async function initTerminal(): Promise<void> {
 
   const container = document.getElementById("terminal")!;
   terminal.open(container);
+
+  let dragDepth = 0;
+  const setDropHover = (active: boolean): void => {
+    document.body.classList.toggle("drag-files-active", active);
+  };
+
+  document.addEventListener("dragenter", (event) => {
+    if (!hasDroppedFiles(event)) return;
+    event.preventDefault();
+    dragDepth++;
+    setDropHover(true);
+  });
+
+  document.addEventListener("dragover", (event) => {
+    if (!hasDroppedFiles(event)) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+    setDropHover(true);
+  });
+
+  document.addEventListener("dragleave", (event) => {
+    if (!hasDroppedFiles(event)) return;
+    event.preventDefault();
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) setDropHover(false);
+  });
+
+  document.addEventListener("drop", (event) => {
+    if (!hasDroppedFiles(event)) return;
+    event.preventDefault();
+    dragDepth = 0;
+    setDropHover(false);
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length === 0) return;
+    window.pty.dropFiles(panelId, files);
+    terminal.focus();
+  });
 
   // Try WebGL, fall back to canvas
   try {

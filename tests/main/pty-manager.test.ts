@@ -80,6 +80,25 @@ describe("PtyManager", () => {
     expect(mockPty.write).toHaveBeenCalledWith("ls\r");
   });
 
+  it("quotes dropped file paths and writes them as one paste payload", () => {
+    manager.create("panel-1");
+    manager.dropFiles("panel-1", [
+      "/Users/test/My Screenshot.png",
+      "/Users/test/it's-fine.png",
+      "/Users/test/notes.txt",
+      "/Users/test/readme.md",
+    ]);
+    expect(mockPty.write).toHaveBeenCalledWith(
+      "'/Users/test/My Screenshot.png' '/Users/test/it'\\''s-fine.png' '/Users/test/notes.txt' '/Users/test/readme.md' ",
+    );
+  });
+
+  it("ignores dropped files when the list is empty", () => {
+    manager.create("panel-1");
+    manager.dropFiles("panel-1", []);
+    expect(mockPty.write).not.toHaveBeenCalled();
+  });
+
   it("ignores write for unknown panelId", () => {
     manager.write("unknown", "data");
     expect(mockPty.write).not.toHaveBeenCalled();
