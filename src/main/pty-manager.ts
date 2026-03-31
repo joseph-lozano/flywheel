@@ -9,6 +9,9 @@ interface ManagedPty {
   shellName: string;
   lastTitle: string;
   disposed: boolean;
+  hookCommand?: string;
+  hookTimer: ReturnType<typeof setTimeout> | null;
+  hookSent: boolean;
 }
 
 type SendToPanelFn = (panelId: string, channel: string, data: unknown) => void;
@@ -17,6 +20,7 @@ type SendToChromeFn = (channel: string, data: unknown) => void;
 const FLUSH_INTERVAL_MS = 16;
 
 const TITLE_CHECK_INTERVAL = 30; // check every ~30 flushes (~0.5s)
+const HOOK_FALLBACK_DELAY_MS = 500;
 
 export class PtyManager {
   private ptys = new Map<string, ManagedPty>();
@@ -32,7 +36,7 @@ export class PtyManager {
     }, FLUSH_INTERVAL_MS);
   }
 
-  create(panelId: string, cwd?: string): void {
+  create(panelId: string, cwd?: string, hookCommand?: string): void {
     if (this.ptys.has(panelId)) return;
     const shell = process.env.SHELL ?? "/bin/zsh";
     const shellName = basename(shell);
@@ -56,11 +60,22 @@ export class PtyManager {
       shellName,
       lastTitle: shellName,
       disposed: false,
+      hookCommand,
+      hookTimer: null,
+      hookSent: false,
     };
+    if (hookCommand) {
+      managed.hookTimer = setTimeout(() => {
+        this.sendHookCommand(managed);
+      }, HOOK_FALLBACK_DELAY_MS);
+    }
     ptyProcess.onData((data: string) => {
-      if (!managed.disposed) managed.buffer += data;
+      if (managed.disposed) return;
+      managed.buffer += data;
+      this.sendHookCommand(managed);
     });
     ptyProcess.onExit(({ exitCode }) => {
+      this.clearHookTimer(managed);
       if (!managed.disposed) {
         if (managed.buffer.length > 0) {
           this.sendToPanel(panelId, "pty:output", { panelId, data: managed.buffer });
@@ -100,6 +115,7 @@ export class PtyManager {
     const managed = this.ptys.get(panelId);
     if (!managed) return;
     managed.disposed = true;
+    this.clearHookTimer(managed);
     managed.pty.kill();
     this.ptys.delete(panelId);
   }
@@ -110,6 +126,7 @@ export class PtyManager {
         const managed = this.ptys.get(panelId);
         if (!managed) continue;
         managed.disposed = true;
+        this.clearHookTimer(managed);
         managed.pty.kill();
         this.ptys.delete(panelId);
       }
@@ -136,6 +153,20 @@ export class PtyManager {
 
   private quoteForShell(value: string): string {
     return `'${value.replaceAll("'", "'\\''")}'`;
+  }
+
+  private clearHookTimer(managed: ManagedPty): void {
+    if (managed.hookTimer) {
+      clearTimeout(managed.hookTimer);
+      managed.hookTimer = null;
+    }
+  }
+
+  private sendHookCommand(managed: ManagedPty): void {
+    if (managed.disposed || managed.hookSent || !managed.hookCommand) return;
+    managed.hookSent = true;
+    this.clearHookTimer(managed);
+    managed.pty.write(managed.hookCommand + "\n");
   }
 
   private flush(): void {
@@ -175,6 +206,7 @@ export class PtyManager {
     }
     for (const managed of this.ptys.values()) {
       managed.disposed = true;
+      this.clearHookTimer(managed);
       managed.pty.kill();
     }
     this.ptys.clear();

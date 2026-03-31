@@ -9,6 +9,7 @@ import { initAutoUpdater } from "./auto-updater";
 import { ConfigManager } from "./config-manager";
 import { filterDiscoveredWorktrees } from "./discover";
 import { fixPath } from "./fix-path";
+import { runCleanupHook } from "./hooks";
 import { PanelManager, sanitizeBrowserUrl } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
@@ -181,8 +182,17 @@ function setupIpcHandlers(): void {
   });
 
   // PTY handlers
-  ipcMain.on("pty:create", (_event, data: { panelId: string; cwd?: string }) => {
-    ptyManager.create(data.panelId, data.cwd);
+  ipcMain.on("pty:create", (_event, data: { panelId: string; cwd?: string; runHook?: boolean }) => {
+    let hookCommand: string | undefined;
+    if (data.runHook && data.cwd) {
+      const project = projectStore
+        .getProjects()
+        .find((p) => p.rows.some((r) => r.path === data.cwd));
+      if (project) {
+        hookCommand = configManager.getForProject(project.path).hooks?.onWorktreeCreate;
+      }
+    }
+    ptyManager.create(data.panelId, data.cwd, hookCommand);
   });
 
   ipcMain.on("pty:input", (_event, data: { panelId: string; data: string }) => {
@@ -561,7 +571,15 @@ function setupIpcHandlers(): void {
     }
 
     return await removeRowTransactional(targetProject, targetRow, data.deleteFromDisk, {
-      removeWorktree: (projectPath, worktreePath) => {
+      removeWorktree: async (projectPath, worktreePath) => {
+        const hookCommand = configManager.getForProject(projectPath).hooks?.onWorktreeRemove;
+        const hookResult = await runCleanupHook(hookCommand, worktreePath);
+        if (!hookResult.ok) {
+          chromeView.webContents.send("toast", {
+            message: `Cleanup hook failed: ${hookResult.error}`,
+            type: "error",
+          });
+        }
         return worktreeManager.removeWorktree(projectPath, worktreePath);
       },
       cleanupRow: (rowId) => {

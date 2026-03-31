@@ -11,6 +11,10 @@ export interface FlywheelConfig {
       defaultZoom: number;
     };
   };
+  hooks?: {
+    onWorktreeCreate?: string;
+    onWorktreeRemove?: string;
+  };
 }
 
 export const DEFAULT_CONFIG: FlywheelConfig = {

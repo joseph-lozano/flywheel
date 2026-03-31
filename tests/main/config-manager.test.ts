@@ -120,6 +120,65 @@ describe("ConfigManager", () => {
     expect(config.preferences.app.defaultZoom).toBe(DEFAULT_CONFIG.preferences.app.defaultZoom);
   });
 
+  it("loads hooks from project config", () => {
+    mockFiles.set(
+      "/some/project/flywheel.yaml",
+      "hooks:\n  onWorktreeCreate: pnpm install\n  onWorktreeRemove: git clean -xdf",
+    );
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    expect(manager.get().hooks?.onWorktreeCreate).toBe("pnpm install");
+    expect(manager.get().hooks?.onWorktreeRemove).toBe("git clean -xdf");
+  });
+
+  it("drops hooks values with wrong types", () => {
+    mockFiles.set(
+      "/some/project/flywheel.yaml",
+      "hooks:\n  onWorktreeCreate: 123\n  onWorktreeRemove: true",
+    );
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    expect(manager.get().hooks?.onWorktreeCreate).toBeUndefined();
+    expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
+  });
+
+  it("keeps valid hook when sibling has wrong type", () => {
+    mockFiles.set(
+      "/some/project/flywheel.yaml",
+      'hooks:\n  onWorktreeCreate: "pnpm install"\n  onWorktreeRemove: 42',
+    );
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    expect(manager.get().hooks?.onWorktreeCreate).toBe("pnpm install");
+    expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
+  });
+
+  it("getForProject reads config for a different project without changing active config", () => {
+    mockFiles.set("/some/project/flywheel.yaml", "preferences:\n  terminal:\n    fontSize: 16");
+    mockFiles.set("/other/project/flywheel.yaml", "hooks:\n  onWorktreeRemove: git clean -xdf");
+    const manager = new ConfigManager();
+    manager.load("/some/project");
+    const otherConfig = manager.getForProject("/other/project");
+    expect(otherConfig.hooks?.onWorktreeRemove).toBe("git clean -xdf");
+    // Active config unchanged
+    expect(manager.get().preferences.terminal.fontSize).toBe(16);
+    expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
+  });
+
+  it("getForProject respects local > project > global precedence", () => {
+    process.env.XDG_CONFIG_HOME = "/home/user/.config";
+    mockFiles.set(
+      "/home/user/.config/flywheel.yaml",
+      'hooks:\n  onWorktreeCreate: "global-cmd"\n  onWorktreeRemove: "global-cleanup"',
+    );
+    mockFiles.set("/other/project/flywheel.yaml", 'hooks:\n  onWorktreeCreate: "project-cmd"');
+    mockFiles.set("/other/project/flywheel.local.yaml", 'hooks:\n  onWorktreeCreate: "local-cmd"');
+    const manager = new ConfigManager();
+    const config = manager.getForProject("/other/project");
+    expect(config.hooks?.onWorktreeCreate).toBe("local-cmd");
+    expect(config.hooks?.onWorktreeRemove).toBe("global-cleanup");
+  });
+
   it("keeps valid values when sibling values have wrong types", () => {
     mockFiles.set(
       "/some/project/flywheel.yaml",
