@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { FlywheelConfig } from "../shared/config";
 
 // Horizontal scroll → strip (existing behavior, unchanged)
@@ -17,6 +17,13 @@ window.addEventListener(
 contextBridge.exposeInMainWorld("pty", {
   input: (panelId: string, data: string) => {
     ipcRenderer.send("pty:input", { panelId, data });
+  },
+  dropFiles: (panelId: string, files: File[]) => {
+    const paths = files
+      .map((file) => webUtils.getPathForFile(file))
+      .filter((path) => path.length > 0);
+    if (paths.length === 0) return;
+    ipcRenderer.send("terminal:drop-files", { panelId, paths });
   },
   onOutput: (callback: (data: string) => void) => {
     ipcRenderer.on("pty:output", (_event, payload: { data: string }) => {

@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Run
 
 - `mise install` — install the repo-pinned Node.js and pnpm versions
+- If bare `pnpm` is unavailable in the shell, run commands via `mise exec -- ...` instead, e.g. `mise exec -- pnpm test`
 - `pnpm install --frozen-lockfile` — clean install (required before first run; rebuilds node-pty for Electron via postinstall)
 - `pnpm dev` — dev server with hot reload
 - `pnpm test` — run all tests (`vitest run`)

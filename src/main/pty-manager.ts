@@ -80,6 +80,16 @@ export class PtyManager {
     managed.pty.write(data);
   }
 
+  dropFiles(panelId: string, paths: string[]): void {
+    const managed = this.ptys.get(panelId);
+    if (!managed) return;
+
+    if (paths.length === 0) return;
+
+    const payload = `${paths.map((path) => this.quoteForShell(path)).join(" ")} `;
+    managed.pty.write(payload);
+  }
+
   resize(panelId: string, cols: number, rows: number): void {
     const managed = this.ptys.get(panelId);
     if (!managed) return;
@@ -122,6 +132,10 @@ export class PtyManager {
     const fg = managed.pty.process;
     if (!fg) return false;
     return basename(fg) !== managed.shellName;
+  }
+
+  private quoteForShell(value: string): string {
+    return `'${value.replaceAll("'", "'\\''")}'`;
   }
 
   private flush(): void {
