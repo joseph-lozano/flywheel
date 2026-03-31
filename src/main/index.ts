@@ -9,7 +9,7 @@ import { initAutoUpdater } from "./auto-updater";
 import { ConfigManager } from "./config-manager";
 import { filterDiscoveredWorktrees } from "./discover";
 import { fixPath } from "./fix-path";
-import { PanelManager } from "./panel-manager";
+import { PanelManager, sanitizeBrowserUrl } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
 import { PtyManager } from "./pty-manager";
@@ -138,7 +138,8 @@ function setupIpcHandlers(): void {
       if (data.type === "terminal") {
         panelManager.createPanel(data.id, { type: "terminal" });
       } else if (data.type === "browser") {
-        panelManager.createPanel(data.id, { type: "browser", url: data.url ?? "about:blank" });
+        const safeUrl = sanitizeBrowserUrl(data.url ?? null) ?? "about:blank";
+        panelManager.createPanel(data.id, { type: "browser", url: safeUrl });
       } else {
         panelManager.createPanel(data.id, { color: data.color ?? "#333" });
       }
@@ -200,7 +201,9 @@ function setupIpcHandlers(): void {
 
   // Browser navigation
   ipcMain.on("browser:navigate", (_event, data: { panelId: string; url: string }) => {
-    panelManager.navigateBrowser(data.panelId, data.url);
+    const safeUrl = sanitizeBrowserUrl(data.url);
+    if (!safeUrl) return;
+    panelManager.navigateBrowser(data.panelId, safeUrl);
   });
 
   ipcMain.on("browser:reload", (_event, data: { panelId: string }) => {
@@ -221,7 +224,9 @@ function setupIpcHandlers(): void {
 
   // Browser host chrome strip → navigate
   ipcMain.on("browser:navigate-from-host", (_event, data: { panelId: string; url: string }) => {
-    panelManager.navigateBrowser(data.panelId, data.url);
+    const safeUrl = sanitizeBrowserUrl(data.url);
+    if (!safeUrl) return;
+    panelManager.navigateBrowser(data.panelId, safeUrl);
   });
 
   // Chrome view → send chrome state to a panel's views
@@ -251,7 +256,9 @@ function setupIpcHandlers(): void {
 
   // Terminal link detection → open as browser panel
   ipcMain.on("browser:open-url-from-terminal", (_event, data: { url: string }) => {
-    chromeView.webContents.send("browser:open-url", { url: data.url });
+    const safeUrl = sanitizeBrowserUrl(data.url);
+    if (!safeUrl) return;
+    chromeView.webContents.send("browser:open-url", { url: safeUrl });
   });
 
   // Close confirmation flow
