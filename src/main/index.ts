@@ -9,6 +9,7 @@ import { initAutoUpdater } from "./auto-updater";
 import { ConfigManager } from "./config-manager";
 import { filterDiscoveredWorktrees } from "./discover";
 import { fixPath } from "./fix-path";
+import { runCleanupHook } from "./hooks";
 import { PanelManager, sanitizeBrowserUrl } from "./panel-manager";
 import { createPrStatus } from "./pr-status";
 import { ProjectStore } from "./project-store";
@@ -561,6 +562,18 @@ function setupIpcHandlers(): void {
         targetProject = p;
         targetRow = row;
         break;
+      }
+    }
+
+    // Run cleanup hook before removal
+    if (targetRow) {
+      const hookCommand = configManager.get().hooks?.onWorktreeRemove;
+      const hookResult = await runCleanupHook(hookCommand, targetRow.path);
+      if (!hookResult.ok) {
+        chromeView.webContents.send("toast", {
+          message: `Cleanup hook failed: ${hookResult.error}`,
+          type: "error",
+        });
       }
     }
 

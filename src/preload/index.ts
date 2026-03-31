@@ -172,6 +172,11 @@ contextBridge.exposeInMainWorld("api", {
       callback(data);
     });
   },
+  onToast: (callback: (data: { message: string; type: "error" | "info" }) => void) => {
+    ipcRenderer.on("toast", (_event, data: { message: string; type: "error" | "info" }) => {
+      callback(data);
+    });
+  },
 
   // Project management
   addProject: (): Promise<Project | null> => {

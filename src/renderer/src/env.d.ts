@@ -63,6 +63,7 @@ interface FlywheelAPI {
   onBrowserTitleChanged(callback: (data: { panelId: string; title: string }) => void): void;
   onBrowserOpenUrl(callback: (data: { url: string }) => void): void;
   onPanelClosed(callback: (data: { panelId: string }) => void): void;
+  onToast(callback: (data: { message: string; type: "error" | "info" }) => void): void;
   sendChromeState(
     panelId: string,
     state: {
@@ -85,7 +86,7 @@ interface FlywheelAPI {
     projects: Project[];
     activeProjectId: string | null;
   }>;
-  createTerminalWithCwd(panelId: string, cwd: string): void;
+  createTerminalWithCwd(panelId: string, cwd: string, runHook?: boolean): void;
   hidePanelsByPrefix(prefix: string): void;
   showPanelsByPrefix(prefix: string): void;
   destroyPanelsByPrefix(prefix: string): void;
