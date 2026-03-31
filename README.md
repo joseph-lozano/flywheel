@@ -40,16 +40,36 @@ CSC_IDENTITY_AUTO_DISCOVERY=false pnpm package:dir
 
 ## Releasing
 
-Releases are published to [flywheel-releases](https://github.com/joseph-lozano/flywheel-releases) as signed, notarized DMGs.
+Releases are published to this repo as signed, notarized DMGs and Linux packages.
 
-1. Bump version in `package.json`
-2. Commit: `git commit -am "release: v0.x.x"`
-3. Tag: `git tag v0.x.x`
-4. Push: `git push origin main v0.x.x`
+### Documenting changes
 
-The tag push triggers the release workflow, which builds, signs, notarizes, and publishes the DMG. The tag version must match `package.json` or CI will fail.
+Run this during a PR to describe what changed:
 
-Release notes are auto-generated from merged PRs and published to both the main repo and [flywheel-releases](https://github.com/joseph-lozano/flywheel-releases). A cumulative `CHANGELOG.md` is maintained in `flywheel-releases`. Pre-release tags (alpha/beta/rc) are marked as pre-releases.
+```bash
+pnpm changeset
+```
+
+This creates a `.changeset/*.md` file — commit it alongside your PR changes.
+
+### Publishing a release
+
+When ready to cut a release:
+
+```bash
+# 1. Bump version and generate CHANGELOG.md from pending changesets
+GITHUB_TOKEN=<your-pat> pnpm changeset version
+
+# 2. Review CHANGELOG.md, then commit and tag
+git add -A
+git commit -m "chore: release vX.Y.Z"
+git tag vX.Y.Z
+git push origin main vX.Y.Z
+```
+
+The tag push triggers the release workflow, which builds, signs, notarizes, and publishes the artifacts. The tag version must match `package.json` or CI will fail. Pre-release tags (alpha/beta/rc) are marked as pre-releases.
+
+> **Note:** `GITHUB_TOKEN` is required by `@changesets/changelog-github` to enrich entries with PR links. Without it, changeset falls back to a plain format.
 
 ### Manual test builds
 
@@ -59,28 +79,26 @@ Trigger a test build from any branch (requires the workflow on `main`):
 gh workflow run release.yml --ref <branch-name>
 ```
 
-The DMG is uploaded as a workflow artifact (not published to releases).
+The artifacts are uploaded as workflow artifacts (not published to releases).
 
 ## CI
 
 GitHub Actions with status checks required on `main`:
 
-| Job           | Runners                                        | What                               |
-| ------------- | ---------------------------------------------- | ---------------------------------- |
-| test          | ubuntu-22.04, ubuntu-24.04                     | `vitest run`                       |
-| build         | ubuntu-22.04, ubuntu-24.04, macos-14, macos-15 | `electron-vite build`              |
-| check-secrets | ubuntu-24.04                                   | Warns when GH_TOKEN is near expiry |
+| Job   | Runners                                  | What                  |
+| ----- | ---------------------------------------- | --------------------- |
+| test  | ubuntu-24.04                             | `vitest run`          |
+| build | ubuntu-24.04, ubuntu-24.04-arm, macos-15 | `electron-vite build` |
 
 ## Required Secrets
 
-| Secret                        | Purpose                                      |
-| ----------------------------- | -------------------------------------------- |
-| `CSC_LINK`                    | Base64-encoded .p12 signing certificate      |
-| `CSC_KEY_PASSWORD`            | Certificate password                         |
-| `APPLE_ID`                    | Apple ID email                               |
-| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarization       |
-| `APPLE_TEAM_ID`               | Developer team ID                            |
-| `GH_TOKEN`                    | PAT with write access to `flywheel-releases` |
+| Secret                        | Purpose                                 |
+| ----------------------------- | --------------------------------------- |
+| `CSC_LINK`                    | Base64-encoded .p12 signing certificate |
+| `CSC_KEY_PASSWORD`            | Certificate password                    |
+| `APPLE_ID`                    | Apple ID email                          |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarization  |
+| `APPLE_TEAM_ID`               | Developer team ID                       |
 
 ## Tech Stack
 

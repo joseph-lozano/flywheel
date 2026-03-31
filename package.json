@@ -23,7 +23,9 @@
     "package": "electron-vite build && electron-builder --mac",
     "package:dir": "electron-vite build && electron-builder --mac --dir",
     "package:linux": "electron-vite build && electron-builder --linux",
-    "package:linux:dir": "electron-vite build && electron-builder --linux --dir"
+    "package:linux:dir": "electron-vite build && electron-builder --linux --dir",
+    "changeset": "changeset",
+    "changeset:version": "changeset version"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
@@ -49,9 +51,11 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "@electron/rebuild": "^4.0.3",
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.30.0",
     "@electron/notarize": "^3.1.1",
+    "@electron/rebuild": "^4.0.3",
+    "@eslint/js": "^9.39.4",
     "electron": "^41.0.0",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",

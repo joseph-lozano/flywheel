@@ -56,4 +56,4 @@ deb:
 publish:
   provider: github
   owner: joseph-lozano
-  repo: flywheel-releases
+  repo: flywheel
