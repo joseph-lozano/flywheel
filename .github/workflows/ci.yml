@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "src/**"
+      - "*.ts"
+      - "*.js"
+      - "*.json"
+      - "eslint.config.*"
+      - "tsconfig*"
+      - "vitest*"
+      - "electron.*"
 
 concurrency:
   group: ci-${{ github.ref }}
