@@ -553,6 +553,12 @@ export default function App() {
         if (focused.type === "browser") window.api.toggleBrowserDevTools(focused.id);
         break;
       }
+      case "clear-terminal": {
+        if (!strip) break;
+        const focused = strip.state.panels[strip.state.focusedIndex];
+        if (focused.type === "terminal") window.api.clearTerminal(focused.id);
+        break;
+      }
       case "close-panel":
         handleClosePanel();
         break;

@@ -191,6 +191,12 @@ function setupIpcHandlers(): void {
     ptyManager.resize(data.panelId, data.cols, data.rows);
   });
 
+  // Terminal clear (from chrome shortcut handler)
+  ipcMain.on("terminal:clear", (_event, data: { panelId: string }) => {
+    const view = panelManager.getPanelView(data.panelId);
+    if (view) view.webContents.send("terminal:clear");
+  });
+
   // Browser navigation
   ipcMain.on("browser:navigate", (_event, data: { panelId: string; url: string }) => {
     panelManager.navigateBrowser(data.panelId, data.url);
@@ -598,6 +604,13 @@ function setupShortcuts(): void {
           accelerator: "CommandOrControl+B",
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "new-browser" });
+          },
+        },
+        {
+          label: "Clear Terminal",
+          accelerator: "CommandOrControl+K",
+          click: () => {
+            chromeView.webContents.send("shortcut:action", { type: "clear-terminal" });
           },
         },
         {

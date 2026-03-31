@@ -15,6 +15,7 @@ declare global {
       onOutput: (callback: (data: string) => void) => void;
       resize: (panelId: string, cols: number, rows: number) => void;
       onExit: (callback: (exitCode: number) => void) => void;
+      onClear: (callback: () => void) => void;
       getPanelId: () => string;
       openUrl: (url: string) => void;
       onChromeState: (
@@ -131,6 +132,11 @@ async function initTerminal(): Promise<void> {
       terminal.options.fontSize = prefs.terminal.fontSize;
       fitAddon.fit();
     }
+  });
+
+  // Clear terminal (Cmd+K / Ctrl+K)
+  window.pty.onClear(() => {
+    terminal.clear();
   });
 
   // Zoom control from main process

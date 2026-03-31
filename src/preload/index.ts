@@ -119,6 +119,9 @@ contextBridge.exposeInMainWorld("api", {
   createBrowserPanel: (id: string, url: string) => {
     ipcRenderer.send("panel:create", { id, type: "browser", url });
   },
+  clearTerminal: (panelId: string) => {
+    ipcRenderer.send("terminal:clear", { panelId });
+  },
   reloadBrowser: (panelId: string) => {
     ipcRenderer.send("browser:reload", { panelId });
   },
