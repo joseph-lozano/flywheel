@@ -184,8 +184,13 @@ function setupIpcHandlers(): void {
   // PTY handlers
   ipcMain.on("pty:create", (_event, data: { panelId: string; cwd?: string; runHook?: boolean }) => {
     let hookCommand: string | undefined;
-    if (data.runHook) {
-      hookCommand = configManager.get().hooks?.onWorktreeCreate;
+    if (data.runHook && data.cwd) {
+      const project = projectStore
+        .getProjects()
+        .find((p) => p.rows.some((r) => r.path === data.cwd));
+      if (project) {
+        hookCommand = configManager.getForProject(project.path).hooks?.onWorktreeCreate;
+      }
     }
     ptyManager.create(data.panelId, data.cwd, hookCommand);
   });

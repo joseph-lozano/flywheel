@@ -165,6 +165,20 @@ describe("ConfigManager", () => {
     expect(manager.get().hooks?.onWorktreeRemove).toBeUndefined();
   });
 
+  it("getForProject respects local > project > global precedence", () => {
+    process.env.XDG_CONFIG_HOME = "/home/user/.config";
+    mockFiles.set(
+      "/home/user/.config/flywheel.yaml",
+      'hooks:\n  onWorktreeCreate: "global-cmd"\n  onWorktreeRemove: "global-cleanup"',
+    );
+    mockFiles.set("/other/project/flywheel.yaml", 'hooks:\n  onWorktreeCreate: "project-cmd"');
+    mockFiles.set("/other/project/flywheel.local.yaml", 'hooks:\n  onWorktreeCreate: "local-cmd"');
+    const manager = new ConfigManager();
+    const config = manager.getForProject("/other/project");
+    expect(config.hooks?.onWorktreeCreate).toBe("local-cmd");
+    expect(config.hooks?.onWorktreeRemove).toBe("global-cleanup");
+  });
+
   it("keeps valid values when sibling values have wrong types", () => {
     mockFiles.set(
       "/some/project/flywheel.yaml",

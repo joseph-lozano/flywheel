@@ -307,6 +307,13 @@ describe("startup hook", () => {
     vi.advanceTimersByTime(500);
     expect(mockPty.write).toHaveBeenCalledTimes(1);
   });
+
+  it("clears hook timer on kill", () => {
+    manager.create("panel-1", "/tmp/cwd", "pnpm install");
+    manager.kill("panel-1");
+    vi.advanceTimersByTime(500);
+    expect(mockPty.write).not.toHaveBeenCalled();
+  });
 });
 
 describe("PtyManager environment injection", () => {
