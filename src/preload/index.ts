@@ -6,6 +6,7 @@ import type {
   CreateRowResult,
   DiscoverWorktreesResult,
   Project,
+  RemoveProjectResult,
   RemoveRowResult,
 } from "../shared/types";
 
@@ -176,7 +177,7 @@ contextBridge.exposeInMainWorld("api", {
   addProject: (): Promise<Project | null> => {
     return ipcRenderer.invoke("project:add");
   },
-  removeProject: (projectId: string, deleteWorktrees = false): Promise<{ errors: string[] }> => {
+  removeProject: (projectId: string, deleteWorktrees = false): Promise<RemoveProjectResult> => {
     return ipcRenderer.invoke("project:remove", { projectId, deleteWorktrees });
   },
   switchProject: (projectId: string) => {

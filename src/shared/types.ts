@@ -73,8 +73,21 @@ export interface PanelLayout {
 
 // IPC result types for row management
 export type CreateRowResult = { row: Row } | { error: string };
-export interface RemoveRowResult {
+export interface DiskRemovalError {
+  rowId: string;
+  branch: string;
+  path: string;
+  message: string;
+}
+export interface RemoveProjectResult {
+  removed: boolean;
   error?: string;
+  diskErrors: DiskRemovalError[];
+}
+export interface RemoveRowResult {
+  removed: boolean;
+  error?: string;
+  diskError?: DiskRemovalError;
 }
 export interface DiscoverWorktreesResult {
   rows: Row[];

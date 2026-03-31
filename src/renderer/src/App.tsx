@@ -1,6 +1,6 @@
 import { Show, batch, createEffect, createSignal, on, onCleanup, onMount } from "solid-js";
 import { LAYOUT, THEME } from "../../shared/constants";
-import type { PanelBoundsUpdate } from "../../shared/types";
+import type { DiskRemovalError, PanelBoundsUpdate } from "../../shared/types";
 import HintBar from "./components/HintBar";
 import ScrollIndicators from "./components/ScrollIndicators";
 import Sidebar from "./components/Sidebar";
@@ -30,6 +30,10 @@ export default function App() {
     clearTimeout(toastTimer);
     setToast({ message, type });
     toastTimer = setTimeout(() => setToast(null), 3000);
+  }
+
+  function formatDiskRemovalError(error: DiskRemovalError): string {
+    return `Failed to delete ${error.branch} at ${error.path}: ${error.message}`;
   }
 
   // --- Store helpers ---
@@ -173,7 +177,15 @@ export default function App() {
     const wasActive = project.activeRowId === rowId;
 
     const removeResult = await window.api.removeRow(rowId, deleteFromDisk);
-    if (removeResult.error) showToast(removeResult.error);
+    if (removeResult.error) {
+      showToast(removeResult.error);
+      return;
+    }
+    if (removeResult.diskError) {
+      showToast(formatDiskRemovalError(removeResult.diskError));
+      return;
+    }
+    if (!removeResult.removed) return;
 
     for (const id of [...createdPanelIds]) {
       if (id.startsWith(rowId)) createdPanelIds.delete(id);
@@ -456,9 +468,17 @@ export default function App() {
     const wasActive = appStore.state.activeProjectId === projectId;
 
     const result = await window.api.removeProject(projectId, deleteWorktrees);
-    if (result.errors.length > 0) {
-      showToast(`Failed to remove ${result.errors.length} worktree(s)`);
+    if (result.error) {
+      showToast(result.error);
+      return;
     }
+    if (result.diskErrors.length > 0) {
+      const detail = formatDiskRemovalError(result.diskErrors[0]);
+      const extraCount = result.diskErrors.length - 1;
+      showToast(extraCount > 0 ? `${detail} (+${extraCount} more)` : detail);
+      return;
+    }
+    if (!result.removed) return;
 
     // Clean up all rows' panel IDs, strip stores, and snapshots
     if (project) {
