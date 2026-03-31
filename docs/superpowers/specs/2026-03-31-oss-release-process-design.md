@@ -28,12 +28,13 @@ Add `@changesets/cli` as a dev dependency. Initialize with `.changeset/config.js
   "changelog": "@changesets/changelog-github",
   "commit": false,
   "linked": [],
-  "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": []
 }
 ```
+
+Note: `@changesets/changelog-github` requires a `GITHUB_TOKEN` env var to be set when running `pnpm changeset version` locally — it uses it to look up PR details and enrich changelog entries with links. Without it, changeset falls back to a plain format. Add to local shell profile or pass inline: `GITHUB_TOKEN=<pat> pnpm changeset version`.
 
 Add scripts to `package.json`:
 
