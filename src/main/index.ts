@@ -535,6 +535,7 @@ function setupIpcHandlers(): void {
     const worktreePath = worktreeManager.getWorktreePath(project.name, name);
 
     try {
+      await worktreeManager.fetchLatestRemote(project.path);
       const base = await worktreeManager.resolveBase(project.path);
       await worktreeManager.createWorktree(project.path, name, worktreePath, base);
     } catch (err) {
