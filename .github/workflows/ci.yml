@@ -48,14 +48,18 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm test
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm test
 
   build:
     needs: [changes, lint-and-test]
@@ -77,13 +81,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npx electron-vite build
-      - run: npx electron-builder --${{ matrix.platform }} --publish never
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec electron-vite build
+      - run: pnpm exec electron-builder --${{ matrix.platform }} --publish never
 
   ci-ok:
     # Use this as the single required status check in branch protection.

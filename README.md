@@ -4,37 +4,38 @@ Development Command Center. A spatial terminal multiplexer built with Electron.
 
 ## Prerequisites
 
-- Node.js 22+
+- [mise](https://mise.jdx.dev/)
 - macOS (Apple Silicon)
 - Xcode Command Line Tools (`xcode-select --install`)
 
 ## Setup
 
 ```bash
-npm ci
+mise install
+pnpm install --frozen-lockfile
 ```
 
-The `postinstall` hook rebuilds `node-pty` for Electron automatically.
+The repo pins `node@24` and `pnpm@10` via `mise.toml`. The `postinstall` hook rebuilds `node-pty` for Electron automatically.
 
 ## Development
 
 ```bash
-npm run dev          # Start dev server with hot reload
-npm test             # Run tests
-npm run test:watch   # Run tests in watch mode
+pnpm dev         # Start dev server with hot reload
+pnpm test        # Run tests
+pnpm test:watch  # Run tests in watch mode
 ```
 
 ## Building
 
 ```bash
-npm run package      # Build signed DMG
-npm run package:dir  # Build unpacked .app (faster, for testing)
+pnpm package      # Build signed DMG
+pnpm package:dir  # Build unpacked .app (faster, for testing)
 ```
 
 Local builds sign with your Keychain identity but skip notarization. To test unsigned:
 
 ```bash
-CSC_IDENTITY_AUTO_DISCOVERY=false npm run package:dir
+CSC_IDENTITY_AUTO_DISCOVERY=false pnpm package:dir
 ```
 
 ## Releasing

@@ -4,16 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build & Run
 
-- `npm ci` — clean install (required before first run; rebuilds node-pty for Electron via postinstall)
-- `npm run dev` — dev server with hot reload
-- `npm test` — run all tests (`vitest run`)
-- `npm run test:watch` — watch mode
-- `npm run lint` — run ESLint (strict type-checked rules)
-- `npm run format` — format with Prettier (double quotes, semis, organize-imports)
-- `npm run package:dir` — fast unsigned app bundle for local testing
-- `npm run package` — signed + notarized DMG (requires code-signing env vars)
-- `npm run package:linux` — Linux AppImage + deb (runs on Linux host)
-- `npm run package:linux:dir` — fast unsigned Linux app bundle for local testing
+- `mise install` — install the repo-pinned Node.js and pnpm versions
+- `pnpm install --frozen-lockfile` — clean install (required before first run; rebuilds node-pty for Electron via postinstall)
+- `pnpm dev` — dev server with hot reload
+- `pnpm test` — run all tests (`vitest run`)
+- `pnpm test:watch` — watch mode
+- `pnpm lint` — run ESLint (strict type-checked rules)
+- `pnpm format` — format with Prettier (double quotes, semis, organize-imports)
+- `pnpm package:dir` — fast unsigned app bundle for local testing
+- `pnpm package` — signed + notarized DMG (requires code-signing env vars)
+- `pnpm package:linux` — Linux AppImage + deb (runs on Linux host)
+- `pnpm package:linux:dir` — fast unsigned Linux app bundle for local testing
 
 ## Code Standards
 
@@ -28,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Four isolated contexts: main process (Node.js), renderer (Solid.js), terminal views (xterm.js in WebContentsView), browser host (WebContentsView)
 - Four preload scripts with separate IPC surfaces: `index.ts`, `panel.ts`, `browser.ts`, `browser-content.ts`
 - All IPC must validate inputs; enforce contextIsolation, never enable nodeIntegration
-- node-pty is a native module — `npm ci` must run to rebuild it for Electron's V8
+- node-pty is a native module — `pnpm install --frozen-lockfile` must run to rebuild it for Electron's V8
 
 ## Project State
 
@@ -42,7 +43,7 @@ To build and install a local dev app for manual testing:
 
 ```bash
 # 1. Build the unsigned app bundle
-npm run package:dir
+pnpm package:dir
 
 # 2. Install to /Applications (always rm -rf first — copying over an existing bundle
 #    does not refresh macOS Launch Services and will appear to load an old version)
@@ -55,7 +56,7 @@ The `touch` updates the bundle timestamp so launchers (Raycast, Spotlight) re-in
 
 **When to build:** After implementing a feature that needs manual verification — e.g., anything involving native dialogs, window lifecycle, or IPC that can't be covered by Vitest unit tests.
 
-**Do not use `npm run package`** — that requires code-signing credentials and notarization. Use `package:dir` for all local testing.
+**Do not use `pnpm package`** — that requires code-signing credentials and notarization. Use `package:dir` for all local testing.
 
 ## Code Review
 
