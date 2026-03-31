@@ -25,7 +25,7 @@ jobs:
         id: diff
         run: |
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-          if echo "$CHANGED" | grep -qE '\.(ts|tsx|js|jsx|cjs|mjs|json)$|eslint\.config|tsconfig|vitest|electron\.(vite|builder)'; then
+          if echo "$CHANGED" | grep -qE '\.(ts|tsx|js|jsx|cjs|mjs|json)$|eslint\.config|tsconfig|vitest|electron\.(vite|builder)|\.github/workflows'; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
