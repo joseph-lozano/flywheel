@@ -12,6 +12,7 @@ import type {
 } from "../../shared/types";
 
 interface FlywheelAPI {
+  platform: NodeJS.Platform;
   createPanel(id: string, color: string): void;
   createTerminalPanel(id: string): void;
   destroyPanel(id: string): void;

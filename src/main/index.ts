@@ -701,6 +701,10 @@ function setupIpcHandlers(): void {
 }
 
 function setupShortcuts(): void {
+  // On macOS the app modifier is Command; on Linux it is Alt, because Super is
+  // claimed by the window manager and Ctrl conflicts with terminal keybinds.
+  const mod = process.platform === "linux" ? "Alt" : "Command";
+
   const template: Electron.MenuItemConstructorOptions[] = [
     {
       label: "Flywheel",
@@ -711,28 +715,28 @@ function setupShortcuts(): void {
       submenu: [
         {
           label: "Focus Left",
-          accelerator: "Command+Left",
+          accelerator: `${mod}+Left`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "focus-left" });
           },
         },
         {
           label: "Focus Right",
-          accelerator: "Command+Right",
+          accelerator: `${mod}+Right`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "focus-right" });
           },
         },
         {
           label: "Swap Left",
-          accelerator: "Command+Shift+Left",
+          accelerator: `${mod}+Shift+Left`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "swap-left" });
           },
         },
         {
           label: "Swap Right",
-          accelerator: "Command+Shift+Right",
+          accelerator: `${mod}+Shift+Right`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "swap-right" });
           },
@@ -740,35 +744,35 @@ function setupShortcuts(): void {
         { type: "separator" },
         {
           label: "New Terminal",
-          accelerator: "CommandOrControl+T",
+          accelerator: `${mod}+T`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "new-panel" });
           },
         },
         {
           label: "New Browser",
-          accelerator: "CommandOrControl+B",
+          accelerator: `${mod}+B`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "new-browser" });
           },
         },
         {
           label: "Clear Terminal",
-          accelerator: "CommandOrControl+K",
+          accelerator: `${mod}+K`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "clear-terminal" });
           },
         },
         {
           label: "Close Panel",
-          accelerator: "CommandOrControl+W",
+          accelerator: `${mod}+W`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "close-panel" });
           },
         },
         {
           label: "Blur Panel",
-          accelerator: "CommandOrControl+G",
+          accelerator: `${mod}+G`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "blur-panel" });
           },
@@ -776,7 +780,7 @@ function setupShortcuts(): void {
         { type: "separator" },
         ...Array.from({ length: 9 }, (_, i) => ({
           label: `Jump to Panel ${i + 1}`,
-          accelerator: `CommandOrControl+${i + 1}`,
+          accelerator: `${mod}+${i + 1}`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "jump-to", index: i });
           },
@@ -788,7 +792,7 @@ function setupShortcuts(): void {
       submenu: [
         {
           label: "Add Project",
-          accelerator: "CommandOrControl+Shift+N",
+          accelerator: `${mod}+Shift+N`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "add-project" });
           },
@@ -796,14 +800,14 @@ function setupShortcuts(): void {
         { type: "separator" },
         {
           label: "Previous Project",
-          accelerator: "Command+Shift+Up",
+          accelerator: `${mod}+Shift+Up`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "prev-project" });
           },
         },
         {
           label: "Next Project",
-          accelerator: "Command+Shift+Down",
+          accelerator: `${mod}+Shift+Down`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "next-project" });
           },
@@ -811,7 +815,7 @@ function setupShortcuts(): void {
         { type: "separator" },
         ...Array.from({ length: 9 }, (_, i) => ({
           label: `Switch to Project ${i + 1}`,
-          accelerator: `CommandOrControl+Shift+${i + 1}`,
+          accelerator: `${mod}+Shift+${i + 1}`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "switch-project", index: i });
           },
@@ -823,7 +827,7 @@ function setupShortcuts(): void {
       submenu: [
         {
           label: "New Worktree Row",
-          accelerator: "CommandOrControl+N",
+          accelerator: `${mod}+N`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "new-row" });
           },
@@ -831,14 +835,14 @@ function setupShortcuts(): void {
         { type: "separator" },
         {
           label: "Previous Row",
-          accelerator: "Command+Up",
+          accelerator: `${mod}+Up`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "prev-row" });
           },
         },
         {
           label: "Next Row",
-          accelerator: "Command+Down",
+          accelerator: `${mod}+Down`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "next-row" });
           },
@@ -850,7 +854,7 @@ function setupShortcuts(): void {
       submenu: [
         {
           label: "Reload Config",
-          accelerator: "Command+Shift+,",
+          accelerator: `${mod}+Shift+,`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "reload-config" });
           },
@@ -874,28 +878,28 @@ function setupShortcuts(): void {
       submenu: [
         {
           label: "Reload Browser Panel",
-          accelerator: "CommandOrControl+R",
+          accelerator: `${mod}+R`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "reload-browser" });
           },
         },
         {
           label: "Browser Back",
-          accelerator: "Command+[",
+          accelerator: `${mod}+[`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "browser-back" });
           },
         },
         {
           label: "Browser Forward",
-          accelerator: "Command+]",
+          accelerator: `${mod}+]`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "browser-forward" });
           },
         },
         {
           label: "Toggle Browser DevTools",
-          accelerator: "CommandOrControl+Shift+I",
+          accelerator: `${mod}+Shift+I`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "toggle-devtools" });
           },
@@ -903,21 +907,21 @@ function setupShortcuts(): void {
         { type: "separator" as const },
         {
           label: "Zoom In",
-          accelerator: "Command+=",
+          accelerator: `${mod}+=`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "zoom-in" });
           },
         },
         {
           label: "Zoom Out",
-          accelerator: "Command+-",
+          accelerator: `${mod}+-`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "zoom-out" });
           },
         },
         {
           label: "Reset Zoom",
-          accelerator: "Command+0",
+          accelerator: `${mod}+0`,
           click: () => {
             chromeView.webContents.send("shortcut:action", { type: "zoom-reset" });
           },

@@ -89,8 +89,12 @@ export class PanelManager {
     // Intercept app shortcuts before xterm.js / browser content consumes them.
     // Menu accelerators don't fire when a child WebContentsView has focus,
     // so we manually forward matching key combos to the chrome view.
+    // On macOS the app modifier is Command (meta); on Linux it is Alt,
+    // because Super is claimed by the window manager and Ctrl by terminal programs.
+    const isLinux = process.platform === "linux";
     const handleShortcutKey = (event: Electron.Event, input: Electron.Input): void => {
-      if (input.type !== "keyDown" || !input.meta) return;
+      const modifierHeld = isLinux ? input.alt : input.meta;
+      if (input.type !== "keyDown" || !modifierHeld) return;
 
       let action: { type: string; index?: number } | null = null;
 
