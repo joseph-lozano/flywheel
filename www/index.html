@@ -168,10 +168,10 @@
 
       h1 {
         font-family: "Monaspace Neon", monospace;
-        font-size: 56px;
+        font-size: 44px;
         font-weight: 800;
         line-height: 1.08;
-        letter-spacing: -2px;
+        letter-spacing: -1.5px;
         color: var(--text);
         margin-bottom: 22px;
       }
@@ -248,6 +248,32 @@
         gap: 24px;
       }
 
+      .hero {
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+        margin-bottom: 40px;
+      }
+
+      .hero-text {
+        flex: 0 0 380px;
+        min-width: 0;
+      }
+
+      .hero-demo {
+        flex: 1 1 0;
+        min-width: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .hero-demo img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
       .features {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -256,7 +282,6 @@
         border: 1px solid var(--border);
         border-radius: 8px;
         overflow: hidden;
-        margin-top: 40px;
       }
 
       .feature {
@@ -286,6 +311,21 @@
         font-weight: 300;
         line-height: 1.6;
         color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .hero {
+          flex-direction: column;
+        }
+
+        .hero-text {
+          flex: 0 0 auto;
+        }
+
+        .hero-demo {
+          flex: 0 0 auto;
+          width: 100%;
+        }
       }
 
       @media (max-width: 640px) {
@@ -330,40 +370,48 @@
         <div class="chrome-tab">Flywheel</div>
       </div>
       <main class="content">
-        <h1 id="headline"></h1>
+        <div class="hero">
+          <div class="hero-text">
+            <h1 id="headline"></h1>
 
-        <p class="body-text">
-          Terminals, browsers, and processes — arranged
-          <span class="hl">spatially</span> in one scrollable workspace. Every branch gets its own
-          <span class="hl">isolated workspace</span>. Keyboard-driven. No more
-          <span class="hl">Alt-Tab</span>.
-        </p>
+            <p class="body-text">
+              Terminals, browsers, and processes — arranged
+              <span class="hl">spatially</span> in one scrollable workspace. Every branch gets its
+              own <span class="hl">isolated workspace</span>. Keyboard-driven. No more
+              <span class="hl">Alt-Tab</span>.
+            </p>
 
-        <div class="ctas">
-          <a
-            class="cta"
-            id="download-cta"
-            href="https://github.com/joseph-lozano/flywheel/releases/latest"
-          >
-            <span class="prompt"><i data-lucide="download"></i></span>
-            <span id="download-label">Download Flywheel</span>
-            <span class="comment" id="download-comment"># macOS · Linux</span>
-          </a>
-          <a
-            class="cta"
-            href="https://github.com/joseph-lozano/flywheel"
-            target="_blank"
-            rel="noopener"
-          >
-            <span class="prompt"><i data-lucide="star"></i></span>
-            <span>Star on GitHub</span>
-            <span class="comment"># joseph-lozano/flywheel</span>
-          </a>
-        </div>
+            <div class="ctas">
+              <a
+                class="cta"
+                id="download-cta"
+                href="https://github.com/joseph-lozano/flywheel/releases/latest"
+              >
+                <span class="prompt"><i data-lucide="download"></i></span>
+                <span id="download-label">Download Flywheel</span>
+                <span class="comment" id="download-comment"># macOS · Linux</span>
+              </a>
+              <a
+                class="cta"
+                href="https://github.com/joseph-lozano/flywheel"
+                target="_blank"
+                rel="noopener"
+              >
+                <span class="prompt"><i data-lucide="star"></i></span>
+                <span>Star on GitHub</span>
+                <span class="comment"># joseph-lozano/flywheel</span>
+              </a>
+            </div>
 
-        <div class="meta">
-          <span>v0.1.0-alpha</span>
-          <span>macOS arm64 · Linux x64/arm64</span>
+            <div class="meta">
+              <span>v0.1.0-alpha</span>
+              <span>macOS arm64 · Linux x64/arm64</span>
+            </div>
+          </div>
+
+          <div class="hero-demo">
+            <img src="demo.gif" alt="Flywheel in action" />
+          </div>
         </div>
 
         <div class="features">
