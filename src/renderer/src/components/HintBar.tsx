@@ -9,21 +9,25 @@ interface HintBarProps {
   rowCount?: number;
 }
 
+// On macOS use ⌘ (Command) symbol; on Linux use "Alt+" prefix.
+const mod = window.api.platform === "linux" ? "Alt+" : "\u2318";
+const shift = window.api.platform === "linux" ? "Shift+" : "\u21e7";
+
 const PANEL_HINTS = [
-  { key: "\u2318T", label: "Terminal" },
-  { key: "\u2318B", label: "Browser" },
-  { key: "\u2318W", label: "Close" },
-  { key: "\u2318G", label: "Blur" },
-  { key: "\u2318+/-", label: "Zoom" },
-  { key: "\u2318\u21e7,", label: "Reload Config" },
+  { key: `${mod}T`, label: "Terminal" },
+  { key: `${mod}B`, label: "Browser" },
+  { key: `${mod}W`, label: "Close" },
+  { key: `${mod}G`, label: "Blur" },
+  { key: `${mod}+/-`, label: "Zoom" },
+  { key: `${mod}${shift},`, label: "Reload Config" },
 ];
 
 const ROW_HINTS = [
-  { key: "\u2318N", label: "New Row" },
-  { key: "\u2318\u2191\u2193", label: "Switch Row" },
+  { key: `${mod}N`, label: "New Row" },
+  { key: `${mod}\u2191\u2193`, label: "Switch Row" },
 ];
 
-const NO_PROJECT_HINTS = [{ key: "\u2318\u21e7N", label: "Add Project" }];
+const NO_PROJECT_HINTS = [{ key: `${mod}${shift}N`, label: "Add Project" }];
 
 export default function HintBar(props: HintBarProps) {
   const isEmpty = () => !props.hasProjects;

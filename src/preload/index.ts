@@ -11,6 +11,8 @@ import type {
 } from "../shared/types";
 
 contextBridge.exposeInMainWorld("api", {
+  platform: process.platform,
+
   // Existing panel management
   createPanel: (id: string, color: string) => {
     ipcRenderer.send("panel:create", { id, color });
