@@ -1,3 +1,0 @@
-hooks:
-  onWorktreeCreate: "mise trust && mise install && mise exec -- pnpm install --frozen-lockfile"
-  onWorktreeRemove: "git clean -xdf"

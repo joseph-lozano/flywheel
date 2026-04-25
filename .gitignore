@@ -1,9 +1,0 @@
-.superpowers/
-node_modules/
-out/
-dist/
-*.tsbuildinfo
-flywheel.local.yaml
-CLAUDE.local.md
-.DS_Store
-.worktrees
